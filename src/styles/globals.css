@@ -1,0 +1,342 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* ===== FONTS ===== */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ===== COLORS ===== */
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-200: #bae6fd;
+  --color-brand-300: #7dd3fc;
+  --color-brand-400: #38bdf8;
+  --color-brand-500: #0d6084;
+  --color-brand-600: #0b5474;
+  --color-brand-700: #084560;
+  --color-brand-800: #06374c;
+  --color-brand-900: #052b3b;
+  --color-brand-950: #031922;
+
+  --color-success: #10b981;
+  --color-success-light: #d1fae5;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-error: #ef4444;
+  --color-error-light: #fee2e2;
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
+
+  /* ===== RADIUS ===== */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  /* ===== SHADOWS ===== */
+  --shadow-glow: 0 0 20px rgb(99 102 241 / 0.15);
+  --shadow-glow-lg: 0 0 40px rgb(99 102 241 / 0.2);
+
+  /* ===== ANIMATIONS ===== */
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-fade-in-up: fade-in-up 0.6s ease-out;
+  --animate-slide-in-left: slide-in-left 0.4s ease-out;
+  --animate-slide-in-right: slide-in-right 0.4s ease-out;
+  --animate-scale-in: scale-in 0.3s ease-out;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+}
+
+/* ===== CSS CUSTOM PROPERTIES (Theme Tokens) ===== */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 198 82% 28%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 198 82% 28%;
+  --chart-1: 198 82% 28%;
+  --chart-2: 262 83% 58%;
+  --chart-3: 330 81% 60%;
+  --chart-4: 173 80% 40%;
+  --chart-5: 47 95% 53%;
+  --sidebar-background: 198 82% 28%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 0 0% 100%;
+  --sidebar-primary-foreground: 198 82% 28%;
+  --sidebar-accent: 198 82% 23%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 198 82% 24%;
+  --sidebar-ring: 198 82% 28%;
+
+  --surface: 210 40% 98%;
+  --surface-elevated: 0 0% 100%;
+}
+
+.dark {
+  --background: 198 40% 10%;
+  --foreground: 0 0% 95%;
+  --card: 198 30% 12%;
+  --card-foreground: 0 0% 95%;
+  --popover: 198 30% 12%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 198 82% 40%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 198 25% 18%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 198 25% 18%;
+  --muted-foreground: 198 15% 65%;
+  --accent: 198 25% 18%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 198 25% 18%;
+  --input: 198 25% 18%;
+  --ring: 198 82% 40%;
+  --chart-1: 198 82% 40%;
+  --chart-2: 262 83% 58%;
+  --chart-3: 330 81% 60%;
+  --chart-4: 173 80% 40%;
+  --chart-5: 47 95% 53%;
+  --sidebar-background: 198 40% 8%;
+  --sidebar-foreground: 0 0% 90%;
+  --sidebar-primary: 198 82% 40%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 198 25% 15%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 198 40% 11%;
+  --sidebar-ring: 198 82% 40%;
+
+  --surface: 198 30% 12%;
+  --surface-elevated: 198 30% 16%;
+}
+
+/* Local overrides for sidebar text & border readability in light mode */
+aside {
+  --muted-foreground: 198 30% 80%;
+  --border: 198 82% 35%;
+}
+
+/* Local overrides for sidebar text & border readability in dark mode */
+.dark aside {
+  --muted-foreground: 198 15% 65%;
+  --border: 198 40% 11%;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+/* ===== BASE STYLES ===== */
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  font-family: var(--font-sans);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* ===== KEYFRAMES ===== */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgb(99 102 241 / 0.15); }
+  50% { box-shadow: 0 0 40px rgb(99 102 241 / 0.3); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ===== GLASSMORPHISM ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(17, 17, 24, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass-card {
+  background: rgba(30, 30, 45, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ===== GRADIENT BACKGROUNDS ===== */
+.gradient-brand {
+  background: linear-gradient(135deg, #0d6084 0%, #0b5474 50%, #084560 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, #0d6084 0%, #38bdf8 50%, #ff0000 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #0d6084, #38bdf8, #ff0000);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== UTILITY CLASSES ===== */
+.text-balance {
+  text-wrap: balance;
+}
+
+.transition-default {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* ===== GRID PATTERN ===== */
+.grid-pattern {
+  background-image: 
+    linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.dark .grid-pattern {
+  background-image: 
+    linear-gradient(rgba(99, 102, 241, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.06) 1px, transparent 1px);
+}
+
+/* ===== BI2B CONSULTORIA VISUAL BRANDING ===== */
+.gradient-bi2b {
+  background: linear-gradient(135deg, #0d6084 0%, #083c52 50%, #052634 100%);
+}
+
+.gradient-bi2b-light {
+  background: linear-gradient(135deg, #0f6e97 0%, #0d6084 100%);
+}
+
+.gradient-bi2b-text {
+  background: linear-gradient(135deg, #7ee7ff 0%, #38bdf8 50%, #0d6084 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-bi2b {
+  background: rgba(5, 14, 25, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(126, 231, 255, 0.07);
+}
+
+.bi2b-border-glow {
+  box-shadow: 0 0 15px rgba(126, 231, 255, 0.08);
+}
+
