@@ -100,7 +100,7 @@ export function AdminNotificationsPage() {
         // Attempt 2: Plain select without relationship hints if FK is not configured in Supabase REST schema
         const { data: plainHist, error: plainErr } = await supabase
           .from('notificacoes')
-          .select('*')
+          .select('id, user_id, company_id, title, message, type, action_url, is_read, created_at')
           .order('created_at', { ascending: false })
           .limit(100)
 
@@ -110,7 +110,9 @@ export function AdminNotificationsPage() {
 
       setHistory(histData)
     } catch (err: any) {
-      console.error('Erro ao carregar histórico:', err)
+      if (import.meta.env.DEV) {
+        console.error('Erro ao carregar histórico:', err)
+      }
     }
   }, [])
 

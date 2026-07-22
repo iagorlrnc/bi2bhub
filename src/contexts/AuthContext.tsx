@@ -72,7 +72,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (companyUserData) {
           const { data: companyData } = await supabase
             .from('empresas')
-            .select('id, name, trade_name, cnpj, email, plan, max_users, is_active')
+            .select('id, name, trade_name, cnpj, email, plan, max_users, is_active, codigo_exclusivo')
             .eq('id', companyUserData.company_id)
             .single() as any
 
@@ -170,13 +170,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     if (profileData && !profileData.is_active) {
+      // Verificar se é uma solicitação de acesso pendente na empresa
+      const { data: pendingCompanyUser } = await supabase
+        .from('usuarios_empresa')
+        .select('id')
+        .eq('user_id', data.user.id)
+        .eq('is_active', false)
+        .maybeSingle() as any
+
       await supabase.auth.signOut()
+
+      if (pendingCompanyUser) {
+        throw new Error('Sua solicitação de acesso está aguardando aprovação pelo responsável ou administrador da empresa.')
+      }
+
       throw new Error('Sua conta está inativa ou bloqueada. Contate o administrador.')
     }
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut({ scope: 'global' })
     if (error) throw error
     setProfile(null)
     setCompanyUser(null)

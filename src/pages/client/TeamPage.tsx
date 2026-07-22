@@ -1,14 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Users, Plus, UserX, UserCheck, Mail, Shield, Check, Trash2, Edit2 } from 'lucide-react'
+import { Users, Plus, UserX, UserCheck, Mail, Shield, Check, Trash2, Edit2, Copy, Key, UserPlus, AlertCircle, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function TeamPage() {
-  const { company, user, isLoading: authLoading } = useAuth()
-  const [team, setTeam] = useState<any[]>([])
+  const { company, user, isClientMaster, isAdmin, isLoading: authLoading } = useAuth()
+  const [activeMembers, setActiveMembers] = useState<any[]>([])
+  const [pendingRequests, setPendingRequests] = useState<any[]>([])
   const [invites, setInvites] = useState<any[]>([])
+  const [activeTab, setActiveTab] = useState<'members' | 'requests'>('members')
+  const [copiedId, setCopiedId] = useState(false)
   const [isOpenModal, setIsOpenModal] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<'usuario_master' | 'usuario_comum'>('usuario_comum')
@@ -22,13 +25,66 @@ export function TeamPage() {
   const [isSaving, setIsSaving] = useState(false)
 
   const maxUsers = company?.max_users || 5
-  const currentTotal = team.length + invites.length
+  const currentTotal = activeMembers.length + invites.length
+  const canManageAccess = isClientMaster || isAdmin
 
   const fetchData = useCallback(async () => {
     if (!company?.id) return
     setIsLoading(true)
     try {
-      // 1. Buscar membros
+      // 1. Tentar buscar via RPC SECURITY DEFINER para garantir acesso total aos perfis pelo Master
+      const { data: rpcData, error: rpcError } = await (supabase as any).rpc('master_obter_membros_equipe', {
+        p_company_id: company.id
+      })
+
+      if (!rpcError && Array.isArray(rpcData)) {
+        const mappedActive: any[] = []
+        const mappedPending: any[] = []
+
+        rpcData.forEach((u: any) => {
+          const item = {
+            id: u.id,
+            companyUserId: u.company_user_id,
+            name: u.full_name || (u.email ? u.email.split('@')[0] : 'Usuário'),
+            email: u.email || '',
+            phone: u.phone || '',
+            role: u.role || 'usuario_comum',
+            status: u.link_is_active ? 'active' : 'inactive',
+            permissions: u.permissions || [],
+            createdAt: u.link_created_at || u.created_at,
+            statusReason: u.status_reason
+          }
+
+          if (u.link_is_active || u.status_reason === 'Desativado pelo Usuário Master' || u.status_reason === 'Desativado pelo Administrador') {
+            mappedActive.push(item)
+          } else if (!u.status_reason) {
+            mappedPending.push(item)
+          }
+        })
+
+        setActiveMembers(mappedActive)
+        setPendingRequests(mappedPending)
+
+        // Buscar convites pendentes
+        const { data: inviteData } = await supabase
+          .from('convites')
+          .select('id, email, role, expires_at')
+          .eq('company_id', company.id)
+          .is('accepted_at', null)
+
+        setInvites((inviteData || []).map((inv: any) => ({
+          id: inv.id,
+          email: inv.email,
+          role: inv.role,
+          status: 'pending',
+          expires: new Date(inv.expires_at).toLocaleDateString('pt-BR')
+        })))
+
+        setIsLoading(false)
+        return
+      }
+
+      // 2. Fallback: Buscar via queries padrão caso a RPC não esteja pronta
       const { data: teamData, error: teamError } = await supabase
         .from('usuarios_empresa')
         .select(`
@@ -36,30 +92,88 @@ export function TeamPage() {
           role,
           permissions,
           is_active,
-          usuarios:user_id (
+          created_at,
+          user_id,
+          usuarios (
             id,
             full_name,
-            email
+            email,
+            phone,
+            created_at,
+            status_reason
           )
         `)
         .eq('company_id', company.id)
       if (teamError) throw teamError
 
-      const mappedTeam = (teamData || []).map((tu: any) => ({
-        id: tu.usuarios?.id,
-        companyUserId: tu.id,
-        name: tu.usuarios?.full_name || 'Usuário',
-        email: tu.usuarios?.email || '',
-        role: tu.role,
-        status: tu.is_active ? 'active' : 'inactive',
-        permissions: tu.permissions || []
-      }))
-      setTeam(mappedTeam)
+      const allUserIds = (teamData || []).map((tu: any) => tu.user_id).filter(Boolean)
+
+      let extraUsersMap: Record<string, any> = {}
+
+      if (allUserIds.length > 0) {
+        const { data: extraUsers } = await supabase
+          .from('usuarios')
+          .select('id, full_name, email, phone, created_at, status_reason')
+          .in('id', allUserIds)
+        
+        if (extraUsers) {
+          extraUsers.forEach((u: any) => {
+            extraUsersMap[u.id] = u
+          })
+        }
+      }
+
+      const { data: directCompanyUsers } = await supabase
+        .from('usuarios')
+        .select('id, full_name, email, phone, created_at, status_reason')
+        .or(`company_id.eq.${company.id},codigo_empresa.eq.${(company as any).codigo_exclusivo || company.id}`)
+
+      if (directCompanyUsers) {
+        directCompanyUsers.forEach((u: any) => {
+          if (!extraUsersMap[u.id]) {
+            extraUsersMap[u.id] = u
+          }
+        })
+      }
+
+      const mappedActive: any[] = []
+      const mappedPending: any[] = []
+
+      ;(teamData || []).forEach((tu: any) => {
+        const uRel = Array.isArray(tu.usuarios) ? tu.usuarios[0] : tu.usuarios
+        const userObj = (uRel && uRel.full_name) ? uRel : (extraUsersMap[tu.user_id] || uRel)
+        const nameVal = userObj?.full_name || (userObj?.email ? userObj.email.split('@')[0] : 'Usuário')
+        const emailVal = userObj?.email || ''
+        const phoneVal = userObj?.phone || ''
+
+        const item = {
+          id: userObj?.id || tu.user_id,
+          companyUserId: tu.id,
+          name: nameVal,
+          email: emailVal,
+          phone: phoneVal,
+          role: tu.role,
+          status: tu.is_active ? 'active' : 'inactive',
+          permissions: tu.permissions || [],
+          createdAt: userObj?.created_at || tu.created_at,
+          statusReason: userObj?.status_reason
+        }
+
+        if (tu.is_active || userObj?.status_reason === 'Desativado pelo Usuário Master' || userObj?.status_reason === 'Desativado pelo Administrador') {
+          mappedActive.push(item)
+        } else if (!userObj?.status_reason) {
+          // Apenas solicitações pendentes de novos acessos entram em pendentes
+          mappedPending.push(item)
+        }
+      })
+
+      setActiveMembers(mappedActive)
+      setPendingRequests(mappedPending)
 
       // 2. Buscar convites pendentes
       const { data: inviteData, error: inviteError } = await supabase
         .from('convites')
-        .select('*')
+        .select('id, email, role, expires_at')
         .eq('company_id', company.id)
         .is('accepted_at', null)
       if (inviteError) throw inviteError
@@ -73,7 +187,9 @@ export function TeamPage() {
       }))
       setInvites(mappedInvites)
     } catch (err) {
-      console.error('Erro ao buscar dados da equipe:', err)
+      if (import.meta.env.DEV) {
+        console.error('Erro ao buscar dados da equipe:', err)
+      }
       toast.error('Erro ao carregar dados da equipe.')
     } finally {
       setIsLoading(false)
@@ -89,37 +205,186 @@ export function TeamPage() {
     fetchData()
   }, [company?.id, authLoading, fetchData])
 
+  const handleCopyCompanyId = () => {
+    if (company?.id) {
+      const code = (company as any).codigo_exclusivo || company.id
+      navigator.clipboard.writeText(code)
+      setCopiedId(true)
+      toast.success('ID Exclusivo da Empresa copiado!')
+      setTimeout(() => setCopiedId(false), 2000)
+    }
+  }
+
+  const handleApproveRequest = async (companyUserId: string, userId: string, name: string) => {
+    try {
+      // 1. Aprovar vínculo na empresa em usuarios_empresa
+      const { error: linkError } = await supabase
+        .from('usuarios_empresa')
+        .update({ is_active: true })
+        .eq('id', companyUserId)
+      if (linkError) throw linkError
+
+      // 2. Tentar ativar o perfil em usuarios se a permissão RLS permitir
+      if (userId) {
+        const { error: userError } = await (supabase as any)
+          .from('usuarios')
+          .update({ is_active: true })
+          .eq('id', userId)
+
+        if (userError && import.meta.env.DEV) {
+          console.warn('Aviso RLS ao atualizar tabela usuarios (não impeditivo):', userError.message)
+        }
+      }
+
+      toast.success(`Acesso de ${name} aprovado com sucesso!`)
+      fetchData()
+    } catch (err: any) {
+      if (import.meta.env.DEV) console.error('Erro ao aprovar solicitação:', err)
+      toast.error(err.message || 'Erro ao aprovar solicitação de acesso.')
+    }
+  }
+
+  const handleRejectRequest = async (companyUserId: string, userId: string, name: string) => {
+    if (!company?.id) return
+    if (confirm(`Deseja recusar a solicitação de acesso de ${name}?`)) {
+      try {
+        // 1. Tentar chamar RPC SECURITY DEFINER para desvinculação atômica e atribuição de motivo
+        const { error: rpcError } = await (supabase as any).rpc('master_recusar_solicitacao', {
+          p_company_id: company.id,
+          p_user_id: userId
+        })
+
+        if (rpcError) {
+          if (import.meta.env.DEV) console.warn('Aviso RPC master_recusar_solicitacao, executando fallback:', rpcError.message)
+
+          // Fallback manual:
+          if (userId) {
+            await (supabase as any)
+              .from('usuarios')
+              .update({
+                is_active: false,
+                status_reason: 'Solicitação recusada pelo Usuário Master',
+                company_id: null,
+                codigo_empresa: null
+              })
+              .eq('id', userId)
+          }
+
+          if (companyUserId) {
+            await supabase
+              .from('usuarios_empresa')
+              .delete()
+              .eq('id', companyUserId)
+          } else if (userId && company.id) {
+            await supabase
+              .from('usuarios_empresa')
+              .delete()
+              .eq('company_id', company.id)
+              .eq('user_id', userId)
+          }
+        }
+
+        toast.info(`Solicitação de ${name} recusada com sucesso.`)
+        fetchData()
+      } catch (err: any) {
+        if (import.meta.env.DEV) console.error('Erro ao recusar solicitação:', err)
+        toast.error(err.message || 'Erro ao recusar solicitação.')
+      }
+    }
+  }
+
   const handleToggleStatus = async (userId: string) => {
-    const member = team.find(m => m.id === userId)
-    if (!member) return
+    const member = activeMembers.find(m => m.id === userId)
+    if (!member || !company?.id) return
     const nextStatus = member.status === 'active' ? false : true
     try {
-      const { error } = await supabase
-        .from('usuarios_empresa')
-        .update({ is_active: nextStatus })
-        .eq('user_id', userId)
-      if (error) throw error
-      toast.info(`Status do usuário atualizado.`)
+      if (nextStatus) {
+        // Ativar usuário
+        await (supabase as any)
+          .from('usuarios')
+          .update({ is_active: true, status_reason: null })
+          .eq('id', userId)
+
+        await (supabase as any)
+          .from('usuarios_empresa')
+          .update({ is_active: true })
+          .eq('company_id', company.id)
+          .eq('user_id', userId)
+
+        toast.success(`Usuário ${member.name} ativado com sucesso!`)
+      } else {
+        // Desativar usuário (Mantém o vínculo com a empresa)
+        await (supabase as any)
+          .from('usuarios')
+          .update({
+            is_active: false,
+            status_reason: 'Desativado pelo Usuário Master'
+          })
+          .eq('id', userId)
+
+        await (supabase as any)
+          .from('usuarios_empresa')
+          .update({ is_active: false })
+          .eq('company_id', company.id)
+          .eq('user_id', userId)
+
+        toast.info(`Usuário ${member.name} desativado com sucesso.`)
+      }
       fetchData()
-    } catch (err) {
-      console.error(err)
+    } catch (err: any) {
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao alterar status do usuário.')
     }
   }
 
   const handleRemoveUser = async (userId: string, name: string) => {
+    if (!company?.id) return
     if (confirm(`Tem certeza que deseja remover ${name} da equipe?`)) {
       try {
-        const { error } = await supabase
-          .from('usuarios_empresa')
-          .delete()
-          .eq('user_id', userId)
-        if (error) throw error
-        toast.success(`Usuário ${name} removido da empresa.`)
+        // 1. Chamar RPC SECURITY DEFINER para garantir remoção atômica do vínculo e atualização do motivo
+        const { error: rpcError } = await (supabase as any).rpc('master_remover_usuario_equipe', {
+          p_company_id: company.id,
+          p_user_id: userId
+        })
+
+        if (rpcError) {
+          if (import.meta.env.DEV) {
+            console.warn('RPC master_remover_usuario_equipe retornou aviso, executando fallback:', rpcError.message)
+          }
+
+          // Fallback: 1º Marca motivo de remoção, desativa e desvincula a empresa na tabela usuarios
+          await (supabase as any)
+            .from('usuarios')
+            .update({
+              is_active: false,
+              status_reason: 'Removido pelo Usuário Master',
+              company_id: null,
+              codigo_empresa: null
+            })
+            .eq('id', userId)
+
+          // 2º Tenta excluir o vínculo de usuarios_empresa
+          const { error: deleteErr } = await supabase
+            .from('usuarios_empresa')
+            .delete()
+            .eq('company_id', company.id)
+            .eq('user_id', userId)
+
+          // 3º Se a exclusão falhar devido a RLS, marca usuarios_empresa como inativo
+          if (deleteErr) {
+            await (supabase as any)
+              .from('usuarios_empresa')
+              .update({ is_active: false })
+              .eq('company_id', company.id)
+              .eq('user_id', userId)
+          }
+        }
+
+        toast.success(`Usuário ${name} removido da empresa com sucesso!`)
         fetchData()
-      } catch (err) {
-        console.error(err)
-        toast.error('Erro ao remover usuário.')
+      } catch (err: any) {
+        if (import.meta.env.DEV) console.error('Erro ao remover usuário:', err)
+        toast.error(err.message || 'Erro ao remover usuário.')
       }
     }
   }
@@ -135,6 +400,7 @@ export function TeamPage() {
     }
 
     try {
+      const secureToken = crypto.randomUUID()
       const { error } = await supabase
         .from('convites')
         .insert({
@@ -142,7 +408,7 @@ export function TeamPage() {
           email: inviteEmail.trim(),
           role: inviteRole,
           permissions: inviteRole === 'usuario_master' ? ['all'] : selectedPermissions,
-          token: Math.random().toString(36).substring(2) + Date.now().toString(36),
+          token: secureToken,
           invited_by: user.id,
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         })
@@ -152,7 +418,7 @@ export function TeamPage() {
       setIsOpenModal(false)
       fetchData()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao enviar convite.')
     }
   }
@@ -244,6 +510,27 @@ export function TeamPage() {
         </button>
       </div>
 
+      {/* Card do ID Exclusivo da Empresa */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-brand-500/30 bg-brand-500/5 p-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600">
+            <Key className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">ID Exclusivo da Empresa</p>
+            <p className="font-mono text-base font-bold tracking-widest text-[hsl(var(--foreground))] select-all">{(company as any)?.codigo_exclusivo || company?.id || 'N/A'}</p>
+          </div>
+        </div>
+        <button
+          onClick={handleCopyCompanyId}
+          disabled={!company?.id}
+          className="flex items-center gap-1.5 rounded-lg border border-brand-500/30 bg-[hsl(var(--card))] px-3.5 py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-500/10 transition-colors shadow-xs"
+        >
+          {copiedId ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+          {copiedId ? 'Copiado!' : 'Copiar ID'}
+        </button>
+      </div>
+
       {/* Banner de Progresso de Limite de Usuários */}
       <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5">
         <div className="flex items-center justify-between text-sm mb-2">
@@ -257,93 +544,261 @@ export function TeamPage() {
           />
         </div>
         <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))]">
-          O seu plano permite no máximo 5 usuários simultâneos por empresa. Libere espaço inativando ou excluindo membros.
+          O seu plano permite no máximo {maxUsers} usuários simultâneos por empresa.
         </p>
       </div>
 
-      {/* Grade/Lista de Membros */}
-      <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 space-y-4">
-        <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))]">Membros da Equipe</h3>
-        <div className="divide-y divide-[hsl(var(--border))]">
-          {isLoading ? (
-            <div className="py-4 text-center text-xs text-[hsl(var(--muted-foreground))]">
-              Carregando membros da equipe...
+      {/* Alerta de Solicitações Pendentes */}
+      {pendingRequests.length > 0 && activeTab !== 'requests' && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent p-4.5 animate-fade-in shadow-md shadow-amber-500/5 ring-1 ring-amber-500/20">
+          <div className="flex items-center gap-3.5">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-md shadow-amber-500/30 shrink-0">
+              <UserPlus className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-400"></span>
+              </span>
             </div>
-          ) : team.length > 0 ? (
-            team.map(member => (
-              <div key={member.id} className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between first:pt-0 last:pb-0">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-brand-700 font-bold dark:bg-brand-900/40 dark:text-brand-400">
-                    {(member.name || '').charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-[hsl(var(--foreground))]">{member.name}</h4>
-                    <p className="text-xs text-[hsl(var(--muted-foreground))]">{member.email}</p>
-                  </div>
-                </div>
-
-                {/* Permissões & Cargos/Funções */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className={cn(
-                    'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold',
-                    member.role === 'usuario_master'
-                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400'
-                      : 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400'
-                  )}>
-                    <Shield className="h-3 w-3" />
-                    {member.role === 'usuario_master' ? 'Master' : 'Usuário'}
-                  </span>
-                  
-                  <span className={cn(
-                    'px-2 py-0.5 rounded text-xs font-medium',
-                    member.status === 'active' 
-                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400'
-                      : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
-                  )}>
-                    {member.status === 'active' ? 'Ativo' : 'Inativo'}
-                  </span>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => handleOpenEdit(member)}
-                      disabled={member.role === 'usuario_master' || member.id === user?.id}
-                      className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={member.id === user?.id ? 'Você não pode editar o seu próprio perfil' : member.role === 'usuario_master' ? 'Administradores Master possuem acesso total' : 'Editar permissões'}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleToggleStatus(member.id)}
-                      disabled={member.role === 'usuario_master' || member.id === user?.id}
-                      className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={member.id === user?.id ? 'Você não pode desativar o seu próprio perfil' : member.role === 'usuario_master' ? 'O usuário Master não pode ser desativado' : (member.status === 'active' ? 'Desativar usuário' : 'Ativar usuário')}
-                    >
-                      {member.status === 'active' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                    </button>
-                    <button
-                      onClick={() => handleRemoveUser(member.id, member.name)}
-                      disabled={member.role === 'usuario_master' || member.id === user?.id}
-                      className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={member.id === user?.id ? 'Você não pode remover o seu próprio perfil' : 'Remover'}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="py-4 text-center text-xs text-[hsl(var(--muted-foreground))]">
-              Nenhum membro na equipe.
+            <div>
+              <p className="text-sm font-bold text-[hsl(var(--foreground))]">
+                {pendingRequests.length} {pendingRequests.length === 1 ? 'solicitação de acesso aguardando' : 'solicitações de acesso aguardando'} aprovação
+              </p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                Usuários se cadastraram informando o ID da sua empresa e aguardam autorização.
+              </p>
             </div>
-          )}
+          </div>
+          <button
+            onClick={() => setActiveTab('requests')}
+            className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 px-4 py-2 text-xs font-bold text-white transition-all shrink-0 shadow-md shadow-amber-500/25 hover:scale-105"
+          >
+            Ver Solicitações ({pendingRequests.length})
+          </button>
         </div>
+      )}
+
+      {/* Seção Principal de Abas: Membros vs Solicitações */}
+      <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 space-y-4">
+        <div className="flex border-b border-[hsl(var(--border))] gap-6">
+          <button
+            onClick={() => setActiveTab('members')}
+            className={`pb-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'members'
+                ? 'border-brand-500 text-brand-600'
+                : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            Membros da Equipe ({activeMembers.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('requests')}
+            className={`pb-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 relative ${
+              activeTab === 'requests'
+                ? 'border-brand-500 text-brand-600'
+                : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+            }`}
+          >
+            <UserPlus className="h-4 w-4" />
+            Solicitações de Acesso
+            {pendingRequests.length > 0 && (
+              <span className="relative flex items-center justify-center ml-1">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+                <span className="relative rounded-full bg-amber-500 text-white text-[11px] font-extrabold px-2 py-0.5 shadow-xs">
+                  {pendingRequests.length}
+                </span>
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* ABA 1: MEMBROS DA EQUIPE */}
+        {activeTab === 'members' && (
+          <div className="divide-y divide-[hsl(var(--border))]">
+            {isLoading ? (
+              <div className="py-4 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                Carregando membros da equipe...
+              </div>
+            ) : activeMembers.length > 0 ? (
+              activeMembers.map(member => (
+                <div key={member.id} className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between first:pt-0 last:pb-0">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-brand-700 font-bold dark:bg-brand-900/40 dark:text-brand-400">
+                      {(member.name || '').charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-[hsl(var(--foreground))]">{member.name}</h4>
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">{member.email}</p>
+                    </div>
+                  </div>
+
+                  {/* Permissões & Cargos/Funções */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className={cn(
+                      'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold',
+                      member.role === 'usuario_master'
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400'
+                    )}>
+                      <Shield className="h-3 w-3" />
+                      {member.role === 'usuario_master' ? 'Master' : 'Usuário'}
+                    </span>
+                    
+                    <span className={cn(
+                      'px-2 py-0.5 rounded text-xs font-medium',
+                      member.status === 'active' 
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400'
+                        : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                    )}>
+                      {member.status === 'active' ? 'Ativo' : 'Inativo'}
+                    </span>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleOpenEdit(member)}
+                        disabled={member.role === 'usuario_master' || member.id === user?.id || !canManageAccess}
+                        className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={member.id === user?.id ? 'Você não pode editar o seu próprio perfil' : member.role === 'usuario_master' ? 'Administradores Master possuem acesso total' : 'Editar permissões'}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleToggleStatus(member.id)}
+                        disabled={member.role === 'usuario_master' || member.id === user?.id || !canManageAccess}
+                        className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={member.id === user?.id ? 'Você não pode desativar o seu próprio perfil' : member.role === 'usuario_master' ? 'O usuário Master não pode ser desativado' : (member.status === 'active' ? 'Desativar usuário' : 'Ativar usuário')}
+                      >
+                        {member.status === 'active' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                      </button>
+                      <button
+                        onClick={() => handleRemoveUser(member.id, member.name)}
+                        disabled={member.role === 'usuario_master' || member.id === user?.id || !canManageAccess}
+                        className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={member.id === user?.id ? 'Você não pode remover o seu próprio perfil' : 'Remover'}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-4 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                Nenhum membro na equipe.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ABA 2: SOLICITAÇÕES DE ACESSO PENDENTES */}
+        {activeTab === 'requests' && (
+          <div className="space-y-4">
+            {!canManageAccess && (
+              <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 p-3 text-xs text-amber-600">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>Apenas o Usuário Master ou Administrador pode aprovar novas solicitações.</span>
+              </div>
+            )}
+
+            <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/50 text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
+                      <th className="p-4">Nome</th>
+                      <th className="p-4">Perfil</th>
+                      <th className="p-4">Solicitado em</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-center">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[hsl(var(--border))] text-sm">
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan={5} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-brand-500" />
+                            <span>Carregando solicitações...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : pendingRequests.length > 0 ? (
+                      pendingRequests.map(req => (
+                        <tr key={req.companyUserId} className="hover:bg-[hsl(var(--muted))]/30 transition-colors">
+                          <td className="p-4">
+                            <div>
+                              <h4 className="font-semibold text-[hsl(var(--foreground))]">{req.name}</h4>
+                              <p className="text-xs text-[hsl(var(--muted-foreground))]">{req.email || 'Sem e-mail'}</p>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className={cn(
+                              'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase',
+                              req.role === 'usuario_master'
+                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/30'
+                                : 'bg-gray-100 text-gray-700 dark:bg-gray-800'
+                            )}>
+                              {req.role === 'usuario_master' ? 'Usuário Master' : 'Usuário Comum'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-[hsl(var(--muted-foreground))] text-xs font-medium">
+                            {req.createdAt
+                              ? new Date(req.createdAt).toLocaleString('pt-BR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })
+                              : '-'}
+                          </td>
+                          <td className="p-4">
+                            <span className="px-2.5 py-0.5 rounded-md text-xs font-bold border bg-amber-500/15 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-500/20">
+                              Aguardando Aprovação
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => handleApproveRequest(req.companyUserId, req.id, req.name)}
+                                disabled={!canManageAccess}
+                                className="rounded-lg bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white transition-colors disabled:opacity-50"
+                                title="Aprovar Solicitação de Acesso"
+                              >
+                                Aprovar
+                              </button>
+                              <button
+                                onClick={() => handleRejectRequest(req.companyUserId, req.id, req.name)}
+                                disabled={!canManageAccess}
+                                className="rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1 text-xs font-semibold text-rose-600 transition-colors disabled:opacity-50"
+                                title="Recusar Solicitação"
+                              >
+                                Recusar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                          Nenhuma solicitação de acesso pendente no momento.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Convites Pendentes */}
       {invites.length > 0 && (
         <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 space-y-4">
-          <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Convites Pendentes</h3>
+          <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Convites por E-mail Pendentes</h3>
           <div className="divide-y divide-[hsl(var(--border))]">
             {invites.map(invite => (
               <div key={invite.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
@@ -452,6 +907,7 @@ export function TeamPage() {
           </div>
         </div>
       )}
+
       {/* Modal de Edição de Permissões */}
       {isOpenEditModal && editingMember && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

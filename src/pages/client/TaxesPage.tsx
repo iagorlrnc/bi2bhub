@@ -89,7 +89,7 @@ export function TaxesPage() {
     try {
       const { data, error } = await supabase
         .from('documentos')
-        .select('*')
+        .select('id, name, description, file_path, file_size, created_at, tags')
         .eq('company_id', company.id)
         .contains('tags', ['guia_imposto'])
         .order('created_at', { ascending: false })
@@ -99,7 +99,9 @@ export function TaxesPage() {
       const parsed = (data || []).map(parseTaxFromDoc)
       setTaxes(parsed)
     } catch (err) {
-      console.error('Erro ao buscar guias de impostos:', err)
+      if (import.meta.env.DEV) {
+        console.error('Erro ao buscar guias de impostos:', err)
+      }
       toast.error('Erro ao carregar guias de impostos.')
     } finally {
       setIsLoading(false)

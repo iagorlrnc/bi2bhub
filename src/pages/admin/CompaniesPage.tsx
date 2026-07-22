@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Building2, Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react'
+import { Building2, Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight, Loader2, Copy, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
@@ -73,17 +73,27 @@ export function CompaniesPage() {
   const [plan, setPlan] = useState('básico')
   const [maxUsers, setMaxUsers] = useState(5)
 
+  const [copiedCompanyId, setCopiedCompanyId] = useState<string | null>(null)
+
+  const handleCopyId = (company: any) => {
+    const code = company.codigo_exclusivo || company.id
+    navigator.clipboard.writeText(code)
+    setCopiedCompanyId(company.id)
+    toast.success('ID de 4 dígitos copiado!')
+    setTimeout(() => setCopiedCompanyId(null), 2000)
+  }
+
   const fetchCompanies = async () => {
     setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('empresas')
-        .select('*')
+        .select('id, name, trade_name, cnpj, email, phone, plan, max_users, is_active, created_at, address_city, address_state, codigo_exclusivo')
         .order('name', { ascending: true })
       if (error) throw error
       setCompanies(data || [])
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao buscar empresas.')
     } finally {
       setIsLoading(false)
@@ -189,14 +199,16 @@ export function CompaniesPage() {
         if (error) throw error
         toast.success('Empresa editada com sucesso!')
       } else {
+        const randomCode = String(Math.floor(1000 + Math.random() * 9000))
         const { error } = await supabase
           .from('empresas')
           .insert({
             ...companyData,
+            codigo_exclusivo: randomCode,
             is_active: true
           })
         if (error) throw error
-        toast.success('Empresa cadastrada com sucesso!')
+        toast.success(`Empresa cadastrada com sucesso! ID Exclusivo: ${randomCode}`)
       }
       setIsOpenModal(false)
       fetchCompanies()
@@ -286,6 +298,7 @@ export function CompaniesPage() {
             <thead>
               <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/50 text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
                 <th className="p-4">Empresa</th>
+                <th className="p-4">ID Exclusivo</th>
                 <th className="p-4">Contato</th>
                 <th className="p-4">Plano</th>
                 <th className="p-4">Limite de Usuários</th>
@@ -296,7 +309,7 @@ export function CompaniesPage() {
             <tbody className="divide-y divide-[hsl(var(--border))] text-sm">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                  <td colSpan={7} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin text-brand-500" />
                       <span>Carregando empresas...</span>
@@ -309,7 +322,25 @@ export function CompaniesPage() {
                     <td className="p-4">
                       <div>
                         <h4 className="font-semibold text-[hsl(var(--foreground))]">{company.name}</h4>
-                        <p className="text-xs text-[hsl(var(--muted-foreground))]">CNPJ: {company.cnpj}</p>
+                        <p className="text-xs text-[hsl(var(--muted-foreground))]">CNPJ: {formatCnpj(company.cnpj)}</p>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-xs font-bold tracking-widest text-[hsl(var(--foreground))] bg-[hsl(var(--muted))] px-2.5 py-1 rounded border border-[hsl(var(--border))] select-all">
+                          {company.codigo_exclusivo || company.id}
+                        </span>
+                        <button
+                          onClick={() => handleCopyId(company)}
+                          className="p-1 rounded text-[hsl(var(--muted-foreground))] hover:text-brand-500 transition-colors"
+                          title="Copiar ID de 4 dígitos"
+                        >
+                          {copiedCompanyId === company.id ? (
+                            <Check className="h-3.5 w-3.5 text-green-500" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
+                          )}
+                        </button>
                       </div>
                     </td>
                     <td className="p-4">

@@ -25,14 +25,16 @@ export function NotificationsPage() {
     try {
       const { data, error } = await supabase
         .from('notificacoes')
-        .select('*')
+        .select('id, title, message, type, action_url, is_read, created_at')
         .eq('user_id', user.id)
         .neq('deleted_by_client', true)
         .order('created_at', { ascending: false })
       if (error) throw error
       setNotifications(data || [])
     } catch (err) {
-      console.error('Erro ao buscar notificações:', err)
+      if (import.meta.env.DEV) {
+        console.error('Erro ao buscar notificações:', err)
+      }
       toast.error('Erro ao carregar notificações.')
     } finally {
       setIsLoading(false)

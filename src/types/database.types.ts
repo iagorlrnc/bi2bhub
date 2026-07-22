@@ -17,6 +17,9 @@ export interface Database {
           full_name: string
           avatar_url: string | null
           phone: string | null
+          company_id: string | null
+          codigo_empresa: string | null
+          status_reason: string | null
           user_type: UserType
           is_active: boolean
           created_at: string
@@ -29,6 +32,9 @@ export interface Database {
           full_name: string
           avatar_url?: string | null
           phone?: string | null
+          company_id?: string | null
+          codigo_empresa?: string | null
+          status_reason?: string | null
           user_type?: UserType
           is_active?: boolean
           created_at?: string
@@ -41,6 +47,9 @@ export interface Database {
           full_name?: string
           avatar_url?: string | null
           phone?: string | null
+          company_id?: string | null
+          codigo_empresa?: string | null
+          status_reason?: string | null
           user_type?: UserType
           is_active?: boolean
           created_at?: string
@@ -54,6 +63,7 @@ export interface Database {
           name: string
           trade_name: string | null
           cnpj: string
+          codigo_exclusivo: string | null
           state_registration: string | null
           municipal_registration: string | null
           email: string | null
@@ -78,6 +88,7 @@ export interface Database {
           name: string
           trade_name?: string | null
           cnpj: string
+          codigo_exclusivo?: string | null
           state_registration?: string | null
           municipal_registration?: string | null
           email?: string | null
@@ -102,6 +113,7 @@ export interface Database {
           name?: string
           trade_name?: string | null
           cnpj?: string
+          codigo_exclusivo?: string | null
           state_registration?: string | null
           municipal_registration?: string | null
           email?: string | null

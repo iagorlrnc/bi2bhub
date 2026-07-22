@@ -120,7 +120,7 @@ export function AdminMonthlyPage() {
     try {
       const { data, error } = await supabase
         .from('documentos')
-        .select('*')
+        .select('id, name, description, file_path, file_size, created_at, tags')
         .eq('company_id', selectedCompanyId)
         .contains('tags', ['obrigacao_mensal', selectedMonth])
 

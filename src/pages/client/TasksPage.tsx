@@ -91,7 +91,7 @@ export function TasksPage() {
     try {
       const { data, error } = await supabase
         .from('documentos')
-        .select('*')
+        .select('id, name, description, file_path, file_size, created_at, tags')
         .eq('company_id', company.id)
         .contains('tags', ['obrigacao_mensal', selectedMonth])
 
@@ -106,7 +106,9 @@ export function TasksPage() {
       })
       setMonthlyDocs(docsBySlug)
     } catch (err) {
-      console.error('Erro ao buscar documentos mensais:', err)
+      if (import.meta.env.DEV) {
+        console.error('Erro ao buscar documentos mensais:', err)
+      }
       toast.error('Erro ao carregar status dos documentos mensais.')
     } finally {
       setLoadingMonthly(false)

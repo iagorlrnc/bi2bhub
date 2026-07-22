@@ -14,8 +14,13 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { signIn } = useAuth()
   const navigate = useNavigate()
-  const [failedAttempts, setFailedAttempts] = useState(0)
-  const [lockoutTime, setLockoutTime] = useState<number | null>(null)
+  const [failedAttempts, setFailedAttempts] = useState(() => {
+    return Number(sessionStorage.getItem('login_failed_attempts') || 0)
+  })
+  const [lockoutTime, setLockoutTime] = useState<number | null>(() => {
+    const stored = sessionStorage.getItem('login_lockout_until')
+    return stored ? Number(stored) : null
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,14 +41,24 @@ export function LoginPage() {
       toast.success('Login realizado com sucesso!')
       setFailedAttempts(0)
       setLockoutTime(null)
+      sessionStorage.removeItem('login_failed_attempts')
+      sessionStorage.removeItem('login_lockout_until')
     } catch (err: any) {
-      console.error("LOGIN_ERROR:", err);
+      if (import.meta.env.DEV) {
+        console.error("LOGIN_ERROR:", err)
+      }
       const nextAttempts = failedAttempts + 1
       setFailedAttempts(nextAttempts)
+      sessionStorage.setItem('login_failed_attempts', String(nextAttempts))
+
       if (nextAttempts >= 5) {
-        const lockDuration = 30 * 1000 // 30 segundos
-        setLockoutTime(Date.now() + lockDuration)
-        toast.error('Número máximo de tentativas atingido. Entrada bloqueada por 30 segundos.')
+        // Multiplicador progressivo de tempo
+        const multiplier = Math.pow(2, Math.min(nextAttempts - 5, 4))
+        const lockDuration = 30 * 1000 * multiplier // 30s, 60s, 120s, 240s...
+        const unlockAt = Date.now() + lockDuration
+        setLockoutTime(unlockAt)
+        sessionStorage.setItem('login_lockout_until', String(unlockAt))
+        toast.error(`Número máximo de tentativas atingido. Entrada bloqueada por ${Math.ceil(lockDuration / 1000)} segundos.`)
       } else {
         toast.error('Email ou senha incorretos')
       }
@@ -87,21 +102,12 @@ export function LoginPage() {
 
           {/* Campo Senha */}
           <div>
-            <div className="mb-1.5 flex items-center justify-between">
-              <label
-                htmlFor="login-password"
-                className="text-sm font-medium text-[hsl(var(--foreground))]"
-              >
-                Senha
-              </label>
-              <button
-                type="button"
-                onClick={() => navigate(ROUTES.FORGOT_PASSWORD)}
-                className="text-xs font-medium text-brand-500 hover:text-brand-600 transition-colors"
-              >
-                Esqueceu a senha?
-              </button>
-            </div>
+            <label
+              htmlFor="login-password"
+              className="mb-1.5 block text-sm font-medium text-[hsl(var(--foreground))]"
+            >
+              Senha
+            </label>
             <div className="relative">
               <input
                 id="login-password"
@@ -138,6 +144,18 @@ export function LoginPage() {
               'Entrar'
             )}
           </button>
+
+          {/* Link de Cadastro */}
+          <div className="pt-2 text-center text-sm text-[hsl(var(--muted-foreground))]">
+            Ainda não possui uma conta?{' '}
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.REGISTER)}
+              className="font-medium text-brand-500 hover:text-brand-600 transition-colors hover:underline"
+            >
+              Fazer cadastro
+            </button>
+          </div>
         </form>
       </div>
 

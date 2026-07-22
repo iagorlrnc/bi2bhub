@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
+import { STRONG_PASSWORD_REGEX, PASSWORD_REQUIREMENTS_MESSAGE } from '@/constants'
 
 const formatPhone = (value: string) => {
   const digits = value.replace(/\D/g, '')
@@ -108,8 +109,16 @@ export function SettingsPage() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (newPassword.length < 6) {
-      toast.error('A nova senha deve ter no mínimo 6 caracteres!')
+    if (!profile?.email) {
+      toast.error('Sessão inválida. Por favor, faça login novamente.')
+      return
+    }
+    if (!currentPassword) {
+      toast.error('Por favor, informe sua senha atual.')
+      return
+    }
+    if (!STRONG_PASSWORD_REGEX.test(newPassword)) {
+      toast.error(PASSWORD_REQUIREMENTS_MESSAGE)
       return
     }
     if (newPassword !== confirmPassword) {
@@ -118,8 +127,20 @@ export function SettingsPage() {
     }
 
     try {
+      // 1. Reautenticar para verificar se a senha atual está correta
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: profile.email,
+        password: currentPassword
+      })
+      if (authError) {
+        toast.error('A senha atual fornecida está incorreta.')
+        return
+      }
+
+      // 2. Atualizar a senha
       const { error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) throw error
+
       toast.success('Senha atualizada com sucesso!')
       setCurrentPassword('')
       setNewPassword('')

@@ -6,6 +6,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { AppRouter } from '@/routes'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { CookieConsent } from '@/components/CookieConsent'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <AuthProvider>
             <ErrorBoundary>
               <AppRouter />
+              <CookieConsent />
             </ErrorBoundary>
             <Toaster
               position="top-right"

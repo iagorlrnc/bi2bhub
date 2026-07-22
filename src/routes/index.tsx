@@ -13,6 +13,9 @@ import { LandingPage } from '@/pages/landing/LandingPage'
 
 // Páginas — Autenticação
 import { LoginPage } from '@/pages/auth/LoginPage'
+import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 
 // Páginas — Área do Cliente
 import { TaxesPage } from '@/pages/client/TaxesPage'
@@ -53,6 +56,28 @@ export function AppRouter() {
               <GuestGuard>
                 <LoginPage />
               </GuestGuard>
+            }
+          />
+          <Route
+            path={ROUTES.REGISTER}
+            element={
+              <GuestGuard>
+                <RegisterPage />
+              </GuestGuard>
+            }
+          />
+          <Route
+            path={ROUTES.FORGOT_PASSWORD}
+            element={
+              <GuestGuard>
+                <ForgotPasswordPage />
+              </GuestGuard>
+            }
+          />
+          <Route
+            path={ROUTES.RESET_PASSWORD}
+            element={
+              <ResetPasswordPage />
             }
           />
         </Route>

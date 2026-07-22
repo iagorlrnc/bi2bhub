@@ -89,3 +89,9 @@ Thumbs.db
 .parcel-cache/
 .next/
 .nuxt/
+
+# Scripts de teste e debug (podem conter credenciais)
+test_*.cjs
+test_*.js
+debug_*.cjs
+debug_*.js

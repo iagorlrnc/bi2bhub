@@ -26,13 +26,15 @@ export function StaffPage() {
     try {
       const { data, error } = await supabase
         .from('usuarios')
-        .select('*')
+        .select('id, email, full_name, role, department, phone, user_type, is_active, avatar_url')
         .in('user_type', ['admin', 'staff'])
         .order('full_name', { ascending: true })
       if (error) throw error
       setStaff(data || [])
     } catch (err) {
-      console.error('Erro ao carregar contadores:', err)
+      if (import.meta.env.DEV) {
+        console.error('Erro ao carregar contadores:', err)
+      }
       toast.error('Erro ao carregar lista de contadores.')
     } finally {
       setIsLoading(false)
@@ -106,7 +108,7 @@ export function StaffPage() {
         // Para adicionar um novo contador, procuramos se o e-mail já existe no auth/profiles
         const { data: existing, error: findError } = await supabase
           .from('usuarios')
-          .select('*')
+          .select('id, email, full_name, user_type')
           .eq('email', email)
           .maybeSingle()
         

@@ -202,14 +202,14 @@ export function DrivePage() {
       // 1. Buscar pastas
       const { data: folderData, error: folderError } = await supabase
         .from('pastas')
-        .select('*')
+        .select('id, company_id, parent_id, name, color, icon, created_by, is_sistema, created_at')
         .eq('company_id', company.id)
       if (folderError) throw folderError
 
       // 2. Buscar arquivos
       const { data: fileData, error: fileError } = await supabase
         .from('documentos')
-        .select('*')
+        .select('id, company_id, folder_id, name, description, file_path, file_size, mime_type, category, tags, is_favorite, uploaded_by, created_at')
         .eq('company_id', company.id)
       if (fileError) throw fileError
 
@@ -222,7 +222,9 @@ export function DrivePage() {
       setFolders(resolvedFolders)
       setFiles(resolvedFiles)
     } catch (err) {
-      console.error('Erro ao buscar dados do drive:', err)
+      if (import.meta.env.DEV) {
+        console.error('Erro ao buscar dados do drive:', err)
+      }
       toast.error('Erro ao carregar arquivos do Drive.')
     } finally {
       setIsLoading(false)
