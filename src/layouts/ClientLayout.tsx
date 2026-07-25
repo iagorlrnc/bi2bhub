@@ -254,9 +254,9 @@ export function ClientLayout() {
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
               </div>
-              {company.document && (
+              {company.cnpj && (
                 <p className="mt-1 px-1 text-[10px] text-slate-400">
-                  CNPJ: {company.document}
+                  CNPJ: {company.cnpj}
                 </p>
               )}
             </div>
