@@ -142,7 +142,7 @@ export function HeroSection({ isDark }: HeroSectionProps) {
               <span className="text-[8px] font-bold tracking-wider uppercase text-cyan-300 mt-0.5">Bi2B</span>
             </div>
 
-            {/* Satellite Node 1: XMLHub */}
+            {/* Satellite Node 1: Guias Bi2B */}
             <div className="absolute top-6 flex flex-col items-center gap-1">
               <div 
                 className={cn(
@@ -152,10 +152,10 @@ export function HeroSection({ isDark }: HeroSectionProps) {
               >
                 <FileCode2 className="h-5 w-5" />
               </div>
-              <span className={cn("text-[10px] font-semibold", isDark ? "text-slate-400" : "text-slate-600")}>XMLHub</span>
+              <span className={cn("text-[10px] font-semibold", isDark ? "text-slate-400" : "text-slate-600")}>Guias Bi2B</span>
             </div>
 
-            {/* Satellite Node 2: MonitorHub */}
+            {/* Satellite Node 2: Monitora Bi2B */}
             <div className="absolute right-6 top-[28%] flex flex-col items-center gap-1">
               <div 
                 className={cn(
@@ -165,10 +165,10 @@ export function HeroSection({ isDark }: HeroSectionProps) {
               >
                 <Shield className="h-5 w-5" />
               </div>
-              <span className={cn("text-[10px] font-semibold", isDark ? "text-slate-400" : "text-slate-600")}>MonitorHub</span>
+              <span className={cn("text-[10px] font-semibold", isDark ? "text-slate-400" : "text-slate-600")}>Monitora Bi2B</span>
             </div>
 
-            {/* Satellite Node 3: ConnectHub */}
+            {/* Satellite Node 3: Bi2B Chamados */}
             <div className="absolute right-14 bottom-10 flex flex-col items-center gap-1">
               <div 
                 className={cn(
@@ -178,10 +178,10 @@ export function HeroSection({ isDark }: HeroSectionProps) {
               >
                 <MessageSquare className="h-5 w-5" />
               </div>
-              <span className={cn("text-[10px] font-semibold", isDark ? "text-slate-400" : "text-slate-600")}>ConnectHub</span>
+              <span className={cn("text-[10px] font-semibold", isDark ? "text-slate-400" : "text-slate-600")}>Bi2B Chamados</span>
             </div>
 
-            {/* Satellite Node 4: TaskHub */}
+            {/* Satellite Node 4: Tarefas Bi2B */}
             <div className="absolute left-14 bottom-10 flex flex-col items-center gap-1">
               <div 
                 className={cn(
@@ -191,10 +191,10 @@ export function HeroSection({ isDark }: HeroSectionProps) {
               >
                 <Activity className="h-5 w-5" />
               </div>
-              <span className={cn("text-[10px] font-semibold", isDark ? "text-slate-400" : "text-slate-600")}>TaskHub</span>
+              <span className={cn("text-[10px] font-semibold", isDark ? "text-slate-400" : "text-slate-600")}>Tarefas Bi2B</span>
             </div>
 
-            {/* Satellite Node 5: DriveHub */}
+            {/* Satellite Node 5: Bi2B Drive */}
             <div className="absolute left-6 top-[28%] flex flex-col items-center gap-1">
               <div 
                 className={cn(
@@ -204,7 +204,7 @@ export function HeroSection({ isDark }: HeroSectionProps) {
               >
                 <FolderOpen className="h-5 w-5" />
               </div>
-              <span className={cn("text-[10px] font-semibold", isDark ? "text-slate-400" : "text-slate-600")}>DriveHub</span>
+              <span className={cn("text-[10px] font-semibold", isDark ? "text-slate-400" : "text-slate-600")}>Bi2B Drive</span>
             </div>
           </div>
         </motion.div>

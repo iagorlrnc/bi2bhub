@@ -50,13 +50,13 @@ const comparisonRows = [
   {
     module: 'Drive de Documentos',
     manual: 'Pastas locais, Google Drive sem padrão, arquivos perdidos',
-    bi2b: 'DriveHub com pastas, categorias, busca por tag e drag-and-drop',
+    bi2b: 'Bi2B Drive com pastas, categorias, busca por tag e drag-and-drop',
     highlight: false,
   },
   {
     module: 'Chamados e Suporte',
     manual: 'WhatsApp pessoal, e-mails sem rastreio, sem histórico',
-    bi2b: 'ConnectHub com chamados rastreáveis, prioridade e avaliação',
+    bi2b: 'Bi2B Chamados com chamados rastreáveis, prioridade e avaliação',
     highlight: false,
   },
   {

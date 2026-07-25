@@ -33,13 +33,13 @@ const testimonials = [
   {
     name: 'Roberto Dutra',
     role: 'Diretor Financeiro, Vanguarda Tech',
-    text: 'A integração do XMLHub transformou nossa rotina contábil. Economizamos dezenas de horas mensais que antes eram gastas baixando notas manualmente da SEFAZ.',
+    text: 'A integração do Guias Bi2B transformou nossa rotina contábil. Economizamos dezenas de horas mensais que antes eram gastas baixando notas manualmente da SEFAZ.',
     rating: 5,
   },
   {
     name: 'Karina de Souza',
     role: 'Sócia-Administradora, Clínica Saúde Prime',
-    text: 'O MonitorHub é espetacular. Receber alertas de vencimento de certidões antes mesmo da contabilidade ligar nos poupou multas caras este ano.',
+    text: 'O Monitora Bi2B é espetacular. Receber alertas de vencimento de certidões antes mesmo da contabilidade ligar nos poupou multas caras este ano.',
     rating: 5,
   },
   {

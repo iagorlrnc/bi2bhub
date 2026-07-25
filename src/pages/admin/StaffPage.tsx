@@ -26,7 +26,7 @@ export function StaffPage() {
     try {
       const { data, error } = await supabase
         .from('usuarios')
-        .select('id, email, full_name, role, department, phone, user_type, is_active, avatar_url')
+        .select('id, email, full_name, phone, user_type, is_active, avatar_url')
         .in('user_type', ['admin', 'staff'])
         .order('full_name', { ascending: true })
       if (error) throw error
@@ -91,15 +91,15 @@ export function StaffPage() {
     e.preventDefault()
     if (!name || !email || !role) return
 
+    const staffPayload = JSON.stringify({ role, department })
+
     try {
       if (editingId) {
         const { error } = await supabase
           .from('usuarios')
           .update({
             full_name: name,
-            role,
-            department,
-            phone: null // Limpa o JSON legado do telefone
+            phone: staffPayload
           })
           .eq('id', editingId)
         if (error) throw error
@@ -115,15 +115,13 @@ export function StaffPage() {
         if (findError) throw findError
 
         if (existing) {
-          // Promover usuário a staff (contador) e gravar cargo/depto diretamente
+          // Promover usuário a staff (contador) e gravar cargo/depto no campo phone
           const { error: promoError } = await supabase
             .from('usuarios')
             .update({
               full_name: name,
               user_type: 'staff',
-              role,
-              department,
-              phone: null, // Limpa o JSON legado do telefone
+              phone: staffPayload,
               is_active: true
             })
             .eq('id', existing.id)
@@ -153,9 +151,7 @@ export function StaffPage() {
           .from('usuarios')
           .update({
             user_type: 'client_user',
-            phone: null,
-            role: null,
-            department: null
+            phone: null
           })
           .eq('id', id)
         if (error) throw error

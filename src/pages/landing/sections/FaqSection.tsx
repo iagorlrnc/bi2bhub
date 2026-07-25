@@ -21,8 +21,8 @@ interface FaqSectionProps {
 }
 
 const faqData = [
-  { q: 'Como funciona o Portal do Cliente?', a: 'O Portal é uma plataforma digital que conecta sua empresa e a contabilidade em tempo real. Pelo ecossistema integrado (XMLHub, MonitorHub, ConnectHub, TaskHub e DriveHub), todos os dados, notas e certidões são gerenciados de forma automatizada.' },
-  { q: 'O que são os módulos XMLHub e MonitorHub?', a: 'O XMLHub monitora a SEFAZ em tempo real para capturar, validar e baixar notas fiscais. O MonitorHub realiza varredura automática de certidões e obrigações, alertando antes que qualquer prazo expire.' },
+  { q: 'Como funciona o Portal do Cliente?', a: 'O Portal é uma plataforma digital que conecta sua empresa e a contabilidade em tempo real. Pelo ecossistema integrado (Guias Bi2B, Monitora Bi2B, Bi2B Chamados, Tarefas Bi2B e Bi2B Drive), todos os dados, notas e certidões são gerenciados de forma automatizada.' },
+  { q: 'O que são os módulos Guias Bi2B e Monitora Bi2B?', a: 'O Guias Bi2B monitora a SEFAZ em tempo real para capturar, validar e baixar notas fiscais. O Monitora Bi2B realiza varredura automática de certidões e obrigações, alertando antes que qualquer prazo expire.' },
   { q: 'Meus dados estão isolados no banco de dados?', a: 'Sim! Utilizamos arquitetura de banco de dados PostgreSQL com Row Level Security (RLS) avançado. Seus dados são totalmente isolados lógica e fisicamente de outras empresas.' },
   { q: 'Posso configurar acessos diferentes para minha equipe?', a: 'Sim. O usuário Cliente Master pode convidar colaboradores adicionais para sua empresa e definir permissões modulares de forma individualizada.' },
   { q: 'O Portal do Cliente é compatível com celulares?', a: 'Sim. Nossa interface é 100% responsiva (Mobile-First) e adaptada para funcionar perfeitamente em smartphones, tablets e computadores.' },

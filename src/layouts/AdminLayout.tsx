@@ -22,22 +22,46 @@ import {
   Calendar,
   FileSpreadsheet,
   Bell,
+  PanelLeft,
+  HelpCircle,
+  ChevronRight,
+  ChevronDown,
 } from 'lucide-react'
 
 import logoPng from '@/assets/logo.png'
 
-const adminSidebarItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: ROUTES.ADMIN_DASHBOARD },
-  { label: 'Empresas', icon: Building2, path: ROUTES.ADMIN_COMPANIES },
-  { label: 'Drive de Documentos', icon: FolderOpen, path: ROUTES.ADMIN_DRIVE },
-  { label: 'Obrigações Mensais', icon: Calendar, path: ROUTES.ADMIN_MONTHLY },
-  { label: 'Guias e Impostos', icon: FileSpreadsheet, path: ROUTES.ADMIN_TAXES },
-  { label: 'Usuários', icon: Users, path: ROUTES.ADMIN_USERS },
-  { label: 'Contadores', icon: UserCog, path: ROUTES.ADMIN_STAFF },
-  { label: 'Chamados', icon: MessageSquare, path: ROUTES.ADMIN_TICKETS },
-  { label: 'Notificações', icon: Bell, path: ROUTES.ADMIN_NOTIFICATIONS },
-  { label: 'Auditoria', icon: ScrollText, path: ROUTES.ADMIN_AUDIT },
-  { label: 'Configurações', icon: Settings, path: ROUTES.ADMIN_SETTINGS },
+const adminSidebarCategories = [
+  {
+    title: 'Visão Geral',
+    items: [
+      { label: 'Dashboard', icon: LayoutDashboard, path: ROUTES.ADMIN_DASHBOARD },
+      { label: 'Auditoria', icon: ScrollText, path: ROUTES.ADMIN_AUDIT },
+    ],
+  },
+  {
+    title: 'Operações Contábeis',
+    items: [
+      { label: 'Empresas', icon: Building2, path: ROUTES.ADMIN_COMPANIES },
+      { label: 'Drive de Documentos', icon: FolderOpen, path: ROUTES.ADMIN_DRIVE },
+      { label: 'Tarefas Mensais', icon: Calendar, path: ROUTES.ADMIN_MONTHLY },
+      { label: 'Guias e Impostos', icon: FileSpreadsheet, path: ROUTES.ADMIN_TAXES },
+    ],
+  },
+  {
+    title: 'Atendimento & Comunicação',
+    items: [
+      { label: 'Chamados', icon: MessageSquare, path: ROUTES.ADMIN_TICKETS },
+      { label: 'Notificações', icon: Bell, path: ROUTES.ADMIN_NOTIFICATIONS },
+    ],
+  },
+  {
+    title: 'Configurações & Pessoas',
+    items: [
+      { label: 'Usuários', icon: Users, path: ROUTES.ADMIN_USERS },
+      { label: 'Contadores', icon: UserCog, path: ROUTES.ADMIN_STAFF },
+      { label: 'Configurações', icon: Settings, path: ROUTES.ADMIN_SETTINGS },
+    ],
+  },
 ]
 
 const adminPathLabels: Record<string, string> = {
@@ -50,18 +74,15 @@ const adminPathLabels: Record<string, string> = {
   audit: 'Auditoria',
   settings: 'Configurações',
   drive: 'Drive de Documentos',
-  monthly: 'Obrigações Mensais',
+  monthly: 'Tarefas Mensais',
   taxes: 'Guias e Impostos',
   notifications: 'Enviar Notificações',
 }
 
 export function AdminLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth >= 1024
-    }
-    return false
-  })
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
   const { profile, signOut } = useAuth()
   const { resolvedTheme, toggleTheme } = useTheme()
   const location = useLocation()
@@ -79,142 +100,260 @@ export function AdminLayout() {
     navigate(ROUTES.LOGIN)
   }
 
+  const userInitial = profile?.full_name?.charAt(0)?.toUpperCase() ?? 'A'
+
   return (
-    <div className="flex h-screen overflow-hidden bg-[hsl(var(--background))]">
-      {/* Camada de sobreposição da barra lateral (Mobile) */}
-      {sidebarOpen && (
+    <div className="flex h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-900">
+      {/* Overlay Mobile */}
+      {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden animate-fade-in"
+          onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Barra lateral (Sidebar) */}
+      {/* Sidebar Fingu-style */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col border-r border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar-background))] transition-all duration-300 lg:static lg:translate-x-0 lg:z-0',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-[240px]'
+          'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200/80 bg-[#f8f9fa] text-slate-800 transition-all duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 lg:static lg:z-0',
+          isCollapsed ? 'lg:w-[68px]' : 'lg:w-[240px]',
+          mobileOpen ? 'w-[240px] translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
-        <div className="flex h-16 items-center gap-3 border-b border-[hsl(var(--sidebar-border))] px-6">
-          <img src={logoPng} alt={APP_NAME} className="h-8 w-auto object-contain" />
-          <div className="flex items-center gap-1 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider text-brand-500">
-            Admin
-          </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="ml-auto rounded-md p-1 hover:bg-[hsl(var(--sidebar-accent))] lg:hidden"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Itens de navegação */}
-        <nav className="flex-1 space-y-1.5 overflow-y-auto py-4">
-          {adminSidebarItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => {
-                if (window.innerWidth < 1024) setSidebarOpen(false)
-              }}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 py-2.5 text-sm font-medium transition-all duration-200 ml-0 mr-4 pl-6 pr-4 rounded-r-full rounded-l-none',
-                  isActive
-                    ? 'bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-primary-foreground))] shadow-md'
-                    : 'text-[hsl(var(--sidebar-foreground))] hover:bg-white/10 hover:text-[hsl(var(--sidebar-foreground))]'
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <span
-                    className={cn(
-                      'h-2.5 w-2.5 rounded-full shrink-0 transition-colors',
-                      isActive
-                        ? 'bg-[hsl(var(--sidebar-primary-foreground))]'
-                        : 'bg-white'
-                    )}
-                  />
-                  {item.label}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Seção do Usuário */}
-        <div className="border-t border-[hsl(var(--sidebar-border))] px-6 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-[hsl(var(--sidebar-foreground))]">
-                {profile?.full_name ?? 'Admin'}
-              </p>
-              <p className="truncate text-xs text-[hsl(var(--muted-foreground))]">
-                Administrador
-              </p>
+        {/* Header da Sidebar (Logo Fingu-style) */}
+        {!isCollapsed ? (
+          <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/60 px-4 dark:border-slate-800/60">
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <img src={logoPng} alt={APP_NAME} className="h-8 w-auto shrink-0 object-contain" />
+              <div className="flex flex-col min-w-0">
+                <span className="font-heading text-sm font-bold leading-tight text-slate-900 dark:text-white">
+                  Bi2B
+                </span>
+                <span className="text-[10px] font-semibold tracking-wide text-brand-600 dark:text-brand-400">
+                  Painel Admin
+                </span>
+              </div>
             </div>
             <button
-              onClick={handleSignOut}
-              className="rounded-md p-1.5 text-[hsl(var(--muted-foreground))] hover:bg-white/10 hover:text-white"
-              title="Sair"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-lg p-1 text-slate-400 hover:text-slate-600 lg:hidden"
+              title="Fechar menu"
             >
-              <LogOut className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
+        ) : (
+          <div className="flex h-16 shrink-0 items-center justify-center border-b border-slate-200/60 dark:border-slate-800/60">
+            <img src={logoPng} alt={APP_NAME} className="h-7 w-auto object-contain" />
+          </div>
+        )}
+
+        {/* Conteúdo da Sidebar */}
+        <div className="flex flex-1 flex-col overflow-y-auto px-2 py-3 space-y-4">
+          {/* Seção Administração / Dropdown */}
+          {!isCollapsed ? (
+            <div className="px-2">
+              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                Escritório
+              </p>
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="inline-flex items-center rounded-md bg-brand-500/10 px-1.5 py-0.5 text-[10px] font-bold text-brand-600 dark:text-brand-400 shrink-0">
+                    Admin
+                  </span>
+                  <span className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Gestão Geral
+                  </span>
+                </div>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              </div>
+            </div>
+          ) : (
+            <div className="group relative flex justify-center my-1">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-bold text-brand-600 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                A
+              </div>
+              <div className="absolute left-full ml-2 hidden rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg group-hover:block z-50 whitespace-nowrap dark:bg-slate-100 dark:text-slate-900">
+                Painel Admin
+              </div>
+            </div>
+          )}
+
+          {/* Categorias Otimizadas por Funcionalidade */}
+          {adminSidebarCategories.map((category, catIdx) => (
+            <div key={category.title} className="space-y-1">
+              {!isCollapsed ? (
+                <p className="px-2 mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {category.title}
+                </p>
+              ) : (
+                catIdx > 0 && (
+                  <div className="my-2 h-[1px] bg-slate-200/60 dark:bg-slate-800/60" />
+                )
+              )}
+
+              <nav className="space-y-0.5">
+                {category.items.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) =>
+                        cn(
+                          'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
+                          isActive
+                            ? 'bg-slate-200/70 text-slate-900 font-semibold dark:bg-slate-800 dark:text-white'
+                            : 'text-slate-600 hover:bg-slate-200/40 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100',
+                          isCollapsed && 'justify-center px-0 py-2.5'
+                        )
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400')} />
+                          {!isCollapsed && <span className="truncate">{item.label}</span>}
+                          {isCollapsed && (
+                            <div className="absolute left-full ml-2 hidden rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg group-hover:block z-50 whitespace-nowrap dark:bg-slate-100 dark:text-slate-900">
+                              {item.label}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                  )
+                })}
+              </nav>
+            </div>
+          ))}
         </div>
+
+        {/* Rodapé da Sidebar Fingu-style */}
+        {!isCollapsed ? (
+          <div className="mt-auto border-t border-slate-200/60 p-3 space-y-3 dark:border-slate-800/60">
+            <div className="flex items-center gap-2.5 rounded-lg p-1">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white shadow-sm">
+                {userInitial}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  {profile?.full_name ?? 'Administrador'}
+                </p>
+                <p className="truncate text-[10px] text-slate-400">
+                  {profile?.email ?? 'admin@bi2b.com.br'}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                onClick={() => navigate(ROUTES.ADMIN_SETTINGS)}
+                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+              >
+                <HelpCircle className="h-3.5 w-3.5 text-slate-500" />
+                <span>Ajuda</span>
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+              >
+                <LogOut className="h-3.5 w-3.5 text-slate-500" />
+                <span>Sair</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-auto border-t border-slate-200/60 p-2 flex flex-col items-center gap-2 dark:border-slate-800/60">
+            <div className="group relative flex justify-center">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white shadow-sm">
+                {userInitial}
+              </div>
+              <div className="absolute left-full ml-2 hidden rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg group-hover:block z-50 whitespace-nowrap dark:bg-slate-100 dark:text-slate-900">
+                {profile?.full_name ?? 'Admin'}
+              </div>
+            </div>
+            <button
+              onClick={() => navigate(ROUTES.ADMIN_SETTINGS)}
+              className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+            >
+              <HelpCircle className="h-4 w-4" />
+              <div className="absolute left-full ml-2 hidden rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg group-hover:block z-50 whitespace-nowrap dark:bg-slate-100 dark:text-slate-900">
+                Ajuda
+              </div>
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+            >
+              <LogOut className="h-4 w-4" />
+              <div className="absolute left-full ml-2 hidden rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg group-hover:block z-50 whitespace-nowrap dark:bg-slate-100 dark:text-slate-900">
+                Sair
+              </div>
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* Conteúdo Principal */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Barra de navegação superior (Navbar) */}
-        <header className="flex h-16 shrink-0 items-center gap-4 bg-transparent px-4 lg:px-6">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="rounded-md p-2 hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+        {/* Topbar / Header */}
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 bg-white px-4 lg:px-6 dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="hidden lg:flex items-center justify-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+              title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
+            >
+              <PanelLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="flex lg:hidden items-center justify-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+              title="Abrir menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
 
-          {/* Trilha de navegação */}
-          <nav className="hidden items-center gap-1 text-sm lg:flex">
-            {breadcrumbs.map((crumb, idx) => (
-              <span key={crumb.path} className="flex items-center gap-1">
-                <span
-                  className={cn(
-                    crumb.isLast
-                      ? 'font-medium text-[hsl(var(--foreground))]'
-                      : 'text-[hsl(var(--muted-foreground))]'
+            {/* Breadcrumb Navigation */}
+            <nav className="hidden items-center gap-1.5 text-xs sm:flex font-medium">
+              {breadcrumbs.map((crumb, idx) => (
+                <span key={crumb.path} className="flex items-center gap-1.5">
+                  <span
+                    className={cn(
+                      crumb.isLast
+                        ? 'font-semibold text-slate-900 dark:text-slate-100'
+                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors'
+                    )}
+                  >
+                    {crumb.label}
+                  </span>
+                  {idx < breadcrumbs.length - 1 && (
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                   )}
-                >
-                  {crumb.label}
                 </span>
-                {idx < breadcrumbs.length - 1 && (
-                  <span className="text-[hsl(var(--muted-foreground))] mx-1">&gt;</span>
-                )}
-              </span>
-            ))}
-          </nav>
+              ))}
+            </nav>
+          </div>
 
-          <div className="flex-1" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Alternador de Tema */}
+            <button
+              onClick={toggleTheme}
+              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+              title={resolvedTheme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+            >
+              {resolvedTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
 
-          {/* Alternador de tema */}
-          <button
-            onClick={toggleTheme}
-            className="rounded-md p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))]"
-          >
-            {resolvedTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
-
-          {/* Perfil */}
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-sm font-bold text-white dark:bg-brand-900 dark:text-brand-300">
-            {profile?.full_name?.charAt(0)?.toUpperCase() ?? 'A'}
+            {/* Avatar do Usuário */}
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white shadow-sm">
+              {userInitial}
+            </div>
           </div>
         </header>
 
-        {/* Conteúdo da página */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        {/* Conteúdo das Páginas */}
+        <main className="flex-1 overflow-y-auto bg-[#fafafa] p-4 md:p-6 lg:p-8 dark:bg-slate-900">
           <Outlet />
         </main>
       </div>

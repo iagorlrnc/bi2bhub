@@ -231,7 +231,7 @@ export function AdminMonthlyPage() {
     return (
       <div className="flex h-[300px] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-brand-500 mr-2" />
-        <span className="text-[hsl(var(--muted-foreground))]">Carregando obrigações...</span>
+        <span className="text-[hsl(var(--muted-foreground))]">Carregando tarefas...</span>
       </div>
     )
   }
@@ -246,7 +246,7 @@ export function AdminMonthlyPage() {
           </div>
           <div>
             <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">
-              Obrigações Mensais
+              Tarefas Mensais
             </h1>
             <p className="text-sm text-[hsl(var(--muted-foreground))]">
               Monitore e envie os documentos fiscais e contábeis periódicos de cada cliente

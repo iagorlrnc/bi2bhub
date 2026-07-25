@@ -215,7 +215,7 @@ export function TasksPage() {
             <CheckSquare className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Obrigações Mensais</h1>
+            <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Tarefas Mensais</h1>
             <p className="text-sm text-[hsl(var(--muted-foreground))]">
               Envio mensal de notas fiscais, extratos bancários e documentos para conciliação contábil e fiscal
             </p>

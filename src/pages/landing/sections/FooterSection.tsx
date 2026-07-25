@@ -48,7 +48,7 @@ export function FooterSection({ isDark }: FooterSectionProps) {
           <div>
             <h4 className={cn("text-xs font-bold uppercase tracking-[0.15em]", isDark ? "text-slate-200" : "text-white")}>Módulos</h4>
             <ul className="mt-4 space-y-2.5 text-xs">
-              {['XML Fiscal', 'MonitorHub', 'ConnectHub', 'TaskHub', 'DriveHub'].map((item) => (
+              {['Guias Bi2B', 'Monitora Bi2B', 'Bi2B Chamados', 'Tarefas Bi2B', 'Bi2B Drive'].map((item) => (
                 <li key={item}>
                   <span className={cn("cursor-pointer transition-colors duration-200", isDark ? "text-slate-400 hover:text-cyan-400" : "text-slate-300 hover:text-cyan-300")}>
                     {item}

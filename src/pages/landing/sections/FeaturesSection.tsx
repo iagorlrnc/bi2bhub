@@ -41,10 +41,10 @@ interface FeaturesSectionProps {
 export function FeaturesSection({ isDark }: FeaturesSectionProps) {
   const [activeTab, setActiveTab] = useState<'xml' | 'monitor' | 'connect' | 'task' | 'drive'>('xml')
 
-  // Chat Interativo no ConnectHub
-  const [chatMessages, setChatMessages] = useState([
-    { sender: 'client', text: 'Preciso enviar os comprovantes bancários deste mês.', time: '14:20' },
-    { sender: 'support', text: 'Boa tarde! Pode anexar diretamente na aba DriveHub ou enviar por aqui.', time: '14:22' }
+  // Chat Interativo no Bi2B Chamados
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'support' | 'client'; text: string; time: string }>>([
+    { sender: 'client', text: 'Olá! Preciso enviar a documentação para o fechamento mensal.', time: '14:20' },
+    { sender: 'support', text: 'Boa tarde! Pode anexar diretamente na aba Bi2B Drive ou enviar por aqui.', time: '14:22' },
   ])
   const [newMsg, setNewMsg] = useState('')
 
@@ -94,11 +94,11 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
           {/* Seletores das Abas */}
           <div className="flex flex-wrap justify-center gap-3 pt-6 max-w-4xl mx-auto relative z-10">
             {[
-              { id: 'xml', label: 'XML Fiscal', icon: FileCode2 },
-              { id: 'monitor', label: 'MonitorHub', icon: Shield },
-              { id: 'connect', label: 'ConnectHub', icon: MessageSquare },
-              { id: 'task', label: 'TaskHub', icon: Activity },
-              { id: 'drive', label: 'DriveHub', icon: FolderOpen },
+              { id: 'xml', label: 'Guias Bi2B', icon: FileCode2 },
+              { id: 'monitor', label: 'Monitora Bi2B', icon: Shield },
+              { id: 'connect', label: 'Bi2B Chamados', icon: MessageSquare },
+              { id: 'task', label: 'Tarefas Bi2B', icon: Activity },
+              { id: 'drive', label: 'Bi2B Drive', icon: FolderOpen },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -158,7 +158,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                   >
                     <FileCode2 className="h-6 w-6" />
                   </div>
-                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>XML Fiscal</h3>
+                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>Guias Bi2B</h3>
                   <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
                     Sincronização imediata de Notas Fiscais Eletrônicas (NF-e, CT-e, NFS-e) emitidas e recebidas direto da base da SEFAZ, permitindo download em lote.
                   </p>
@@ -234,7 +234,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                   >
                     <Shield className="h-6 w-6" />
                   </div>
-                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>MonitorHub</h3>
+                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>Monitora Bi2B</h3>
                   <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
                     Varredura diária automatizada de certidões negativas de débitos (CNDs) federais, estaduais e municipais, emitindo alertas antes que qualquer prazo expire.
                   </p>
@@ -254,7 +254,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                   </ul>
                 </div>
 
-                {/* Prévia MonitorHub */}
+                {/* Prévia Monitora Bi2B */}
                 <div className="md:col-span-6">
                   <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono", isDark ? "bg-[#050b14]/90 border-cyan-500/10" : "bg-slate-50 border-slate-200")}>
                     <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3", isDark ? "border-cyan-950" : "border-slate-200")}>
@@ -298,7 +298,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                   >
                     <MessageSquare className="h-6 w-6" />
                   </div>
-                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>ConnectHub (Chat)</h3>
+                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>Bi2B Chamados (Chat)</h3>
                   <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
                     Envie mensagens em tempo real para seu suporte contábil. Uma interface fluida e de resposta imediata com histórico completo dos chamados.
                   </p>
@@ -381,7 +381,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                   >
                     <Activity className="h-6 w-6" />
                   </div>
-                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>TaskHub</h3>
+                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>Tarefas Bi2B</h3>
                   <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
                     Gerenciador visual das guias mensais, impostos e obrigações trabalhistas. Evite atrasos acompanhando o status de cada entrega diretamente no seu painel.
                   </p>
@@ -401,7 +401,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                   </ul>
                 </div>
 
-                {/* Prévia TaskHub */}
+                {/* Prévia Tarefas Bi2B */}
                 <div className="md:col-span-6">
                   <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono", isDark ? "bg-[#050b14]/90 border-cyan-500/10" : "bg-slate-50 border-slate-200")}>
                     <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3", isDark ? "border-cyan-950" : "border-slate-200")}>
@@ -454,7 +454,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                   >
                     <FolderOpen className="h-6 w-6" />
                   </div>
-                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>DriveHub</h3>
+                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>Bi2B Drive</h3>
                   <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
                     Gerenciamento inteligente de arquivos estruturados por categorias e pastas (Contrato Social, Balanços, RH, Fiscal). Faça uploads simples via drag-and-drop.
                   </p>
@@ -474,7 +474,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                   </ul>
                 </div>
 
-                {/* Prévia DriveHub */}
+                {/* Prévia Bi2B Drive */}
                 <div className="md:col-span-6">
                   <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono", isDark ? "bg-[#050b14]/90 border-cyan-500/10" : "bg-slate-50 border-slate-200")}>
                     <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3", isDark ? "border-cyan-950" : "border-slate-200")}>
