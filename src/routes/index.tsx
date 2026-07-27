@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ROUTES } from '@/constants/routes'
 import { AuthGuard, RoleGuard, GuestGuard, PermissionGuard } from '@/routes/guards'
-import { getSubdomain, getClientSubdomainUrl } from '@/utils/subdomain'
+import { getSubdomain, getClientSubdomainUrl, getAdminSubdomainUrl } from '@/utils/subdomain'
 import { useAuth } from '@/contexts/AuthContext'
 
 // Layouts / Estruturas de Telas
@@ -192,6 +192,9 @@ function SubdomainRoutes() {
       <Route path="/" element={<RootDomainHandler />} />
       <Route path="/login" element={<Navigate to={getClientSubdomainUrl('/')} replace />} />
       <Route path="/cadastrar" element={<Navigate to={getClientSubdomainUrl('/cadastrar')} replace />} />
+      <Route path="/admin" element={<Navigate to={getAdminSubdomainUrl('/')} replace />} />
+      <Route path="/administrador" element={<Navigate to={getAdminSubdomainUrl('/')} replace />} />
+      <Route path="/app" element={<Navigate to={getClientSubdomainUrl('/')} replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

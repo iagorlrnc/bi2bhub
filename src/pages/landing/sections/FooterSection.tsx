@@ -5,6 +5,7 @@ import { ShieldCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import logoPng from '@/assets/logo.png'
+import { getAdminSubdomainUrl } from '@/utils/subdomain'
 
 interface FooterSectionProps {
   isDark: boolean
@@ -95,9 +96,16 @@ export function FooterSection({ isDark }: FooterSectionProps) {
           <p className="text-xs text-slate-500">
             © {new Date().getFullYear()} {APP_NAME}. Todos os direitos reservados.
           </p>
-          <p className="text-xs text-slate-500 font-mono font-bold">
-            CNPJ: 00.000.000/0001-00 • São Paulo, SP
-          </p>
+          <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
+            <span
+              onClick={() => { window.location.href = getAdminSubdomainUrl('/') }}
+              className="hover:text-cyan-400 cursor-pointer transition-colors font-bold"
+            >
+              🔒 Acesso Administrativo
+            </span>
+            <span>•</span>
+            <span className="font-mono">CNPJ: 00.000.000/0001-00</span>
+          </div>
         </div>
       </div>
     </footer>
