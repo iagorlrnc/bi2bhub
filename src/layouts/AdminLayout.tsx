@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { ROUTES } from '@/constants/routes'
 import { cn } from '@/lib/utils'
 import { APP_NAME } from '@/constants'
+import { AutoRefreshButton } from '@/components/AutoRefreshButton'
 import {
   LayoutDashboard,
   Building2,
@@ -68,15 +69,24 @@ const adminPathLabels: Record<string, string> = {
   admin: 'Admin',
   dashboard: 'Dashboard',
   companies: 'Empresas',
+  empresas: 'Empresas',
   users: 'Usuários',
+  usuarios: 'Usuários',
   staff: 'Contadores',
+  contadores: 'Contadores',
   tickets: 'Chamados',
+  chamados: 'Chamados',
   audit: 'Auditoria',
+  auditoria: 'Auditoria',
   settings: 'Configurações',
+  configuracoes: 'Configurações',
   drive: 'Drive de Documentos',
   monthly: 'Tarefas Mensais',
+  'tarefas-mensais': 'Tarefas Mensais',
   taxes: 'Guias e Impostos',
+  impostos: 'Guias e Impostos',
   notifications: 'Enviar Notificações',
+  notificacoes: 'Enviar Notificações',
 }
 
 export function AdminLayout() {
@@ -149,7 +159,7 @@ export function AdminLayout() {
         )}
 
         {/* Conteúdo da Sidebar */}
-        <div className="flex flex-1 flex-col overflow-y-auto px-2 py-3 space-y-4">
+        <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden px-2 py-3 space-y-4">
           {/* Seção Administração / Dropdown */}
           {!isCollapsed ? (
             <div className="px-2">
@@ -173,7 +183,7 @@ export function AdminLayout() {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-bold text-brand-600 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 A
               </div>
-              <div className="absolute left-full ml-2 hidden rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg group-hover:block z-50 whitespace-nowrap dark:bg-slate-100 dark:text-slate-900">
+              <div className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                 Painel Admin
               </div>
             </div>
@@ -215,9 +225,9 @@ export function AdminLayout() {
                           <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400')} />
                           {!isCollapsed && <span className="truncate">{item.label}</span>}
                           {isCollapsed && (
-                            <div className="absolute left-full ml-2 hidden rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg group-hover:block z-50 whitespace-nowrap dark:bg-slate-100 dark:text-slate-900">
+                            <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                               {item.label}
-                            </div>
+                            </span>
                           )}
                         </>
                       )}
@@ -268,27 +278,27 @@ export function AdminLayout() {
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white shadow-sm">
                 {userInitial}
               </div>
-              <div className="absolute left-full ml-2 hidden rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg group-hover:block z-50 whitespace-nowrap dark:bg-slate-100 dark:text-slate-900">
+              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                 {profile?.full_name ?? 'Admin'}
-              </div>
+              </span>
             </div>
             <button
               onClick={() => navigate(ROUTES.ADMIN_SETTINGS)}
               className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
             >
               <HelpCircle className="h-4 w-4" />
-              <div className="absolute left-full ml-2 hidden rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg group-hover:block z-50 whitespace-nowrap dark:bg-slate-100 dark:text-slate-900">
+              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                 Ajuda
-              </div>
+              </span>
             </button>
             <button
               onClick={handleSignOut}
               className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
             >
               <LogOut className="h-4 w-4" />
-              <div className="absolute left-full ml-2 hidden rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg group-hover:block z-50 whitespace-nowrap dark:bg-slate-100 dark:text-slate-900">
+              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                 Sair
-              </div>
+              </span>
             </button>
           </div>
         )}
@@ -344,6 +354,9 @@ export function AdminLayout() {
             >
               {resolvedTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
+
+            {/* Botão de Atualizar Auto (3s) */}
+            <AutoRefreshButton />
 
             {/* Avatar do Usuário */}
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white shadow-sm">

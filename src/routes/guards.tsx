@@ -67,7 +67,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
   if (isLoading) return <LoadingScreen />
 
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />
+    const subdomain = window.location.hostname.toLowerCase().startsWith('administrador.') ? 'administrador' : 'app'
+    const redirectPath = subdomain === 'administrador' ? ROUTES.ADMIN_LOGIN : ROUTES.LOGIN
+    return <Navigate to={redirectPath} state={{ from: location }} replace />
   }
 
   // Interceptar contas inativas
@@ -92,7 +94,8 @@ export function RoleGuard({ children, allowedRoles, fallback }: RoleGuardProps) 
 
   if (!userType || !allowedRoles.includes(userType)) {
     if (fallback) return <>{fallback}</>
-    return <Navigate to={ROUTES.LOGIN} replace />
+    const isHostAdmin = window.location.hostname.toLowerCase().startsWith('administrador.')
+    return <Navigate to={isHostAdmin ? ROUTES.ADMIN_LOGIN : ROUTES.LOGIN} replace />
   }
 
   return <>{children}</>

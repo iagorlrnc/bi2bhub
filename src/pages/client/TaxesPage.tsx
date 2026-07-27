@@ -13,6 +13,7 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { logAuditActivity } from '@/lib/audit'
 
 interface TaxGuide {
   id: string
@@ -147,22 +148,56 @@ export function TaxesPage() {
       if (uploadError) throw uploadError
 
       // 2. Montar novas tags com status pago e comprovante associado
-      const filteredTags = currentTags.filter(t => !t.startsWith('status:') && !t.startsWith('comprovante:'))
+      const filteredTags = (currentTags || []).filter(t => !t.startsWith('status:') && !t.startsWith('comprovante:'))
       const updatedTags = [...filteredTags, 'status:pago', `comprovante:${filePath}`]
 
-      // 3. Atualizar registro do banco
-      const { error: updateError } = await supabase
+      // 3. Atualizar estado local imediatamente para refletir no UI sem latência
+      setTaxes(prevTaxes => prevTaxes.map(t => {
+        if (t.id === taxId) {
+          return {
+            ...t,
+            status: 'pago',
+            receiptPath: filePath,
+            tags: updatedTags
+          }
+        }
+        return t
+      }))
+
+      // 4. Atualizar registro no banco de dados com select() para confirmar a alteração
+      const { data: updatedRows, error: updateError } = await supabase
         .from('documentos')
         .update({ tags: updatedTags })
         .eq('id', taxId)
+        .select()
 
       if (updateError) throw updateError
 
+      logAuditActivity({
+        userId: user.id,
+        companyId: company.id,
+        action: 'ANEXAR_COMPROVANTE_PAGAMENTO',
+        entityType: 'guias_fiscais',
+        entityId: taxId,
+        metadata: {
+          origin: 'Painel do Cliente',
+          file_name: file.name,
+          tax_type: taxType,
+          ref_period: refPeriod,
+          receipt_path: filePath
+        }
+      })
+
+      if (!updatedRows || updatedRows.length === 0) {
+        console.warn('Aviso: Nenhum registro foi atualizado no banco de dados. Verifique as políticas RLS no Supabase.')
+      }
+
       toast.success('Comprovante de pagamento anexado com sucesso!')
-      fetchTaxes()
     } catch (err: any) {
-      console.error(err)
-      toast.error('Erro ao anexar comprovante.')
+      console.error('Erro ao anexar comprovante:', err)
+      toast.error('Erro ao anexar comprovante: ' + (err.message || 'Erro de permissão'))
+      // Em caso de falha, re-busca os dados originais
+      fetchTaxes()
     } finally {
       setUploadingId(null)
     }
@@ -258,7 +293,7 @@ export function TaxesPage() {
                   <th className="py-3 px-4">Valor (R$)</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-center">Download Guia</th>
-                  <th className="py-3 px-4 text-center">Comprovante de Pago</th>
+                  <th className="py-3 px-4 text-center">Comprovante de Pagamento</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[hsl(var(--border))]">
@@ -309,14 +344,33 @@ export function TaxesPage() {
                           <span>Enviando...</span>
                         </div>
                       ) : tax.receiptPath ? (
-                        <button
-                          onClick={() => handleDownloadFile(tax.receiptPath!)}
-                          className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors"
-                          title="Ver recibo anexado"
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          Ver Recibo
-                        </button>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => handleDownloadFile(tax.receiptPath!)}
+                            className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors"
+                            title="Ver ou baixar recibo anexado"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Ver Recibo
+                          </button>
+                          <label
+                            className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-950/20 cursor-pointer transition-colors"
+                            title="Reenviar / Substituir Comprovante"
+                          >
+                            <Upload className="h-3.5 w-3.5" />
+                            <input
+                              type="file"
+                              accept=".pdf,.png,.jpg,.jpeg"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) {
+                                  handleUploadReceipt(tax.id, tax.taxType, tax.refPeriod, tax.tags, file)
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
                       ) : (
                         <label className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg border border-dashed border-slate-300 hover:border-brand-500 hover:text-brand-500 text-xs font-bold text-[hsl(var(--muted-foreground))] cursor-pointer transition-colors">
                           <Upload className="h-3.5 w-3.5" />

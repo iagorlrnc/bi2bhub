@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { logAuditActivity } from '@/lib/audit'
 import { STRONG_PASSWORD_REGEX, PASSWORD_REQUIREMENTS_MESSAGE } from '@/constants'
 
 export function UsersPage() {
@@ -323,6 +324,14 @@ export function UsersPage() {
           })
         if (insertError) throw insertError
       }
+
+      logAuditActivity({
+        userId: currentUser?.id,
+        action: 'ATUALIZAR_PERFIL_USUARIO',
+        entityType: 'usuarios',
+        entityId: editingUser.id,
+        metadata: { full_name: editFullName, user_type: editUserType, company_id: editCompanyId }
+      })
 
       toast.success('Usuário atualizado com sucesso!')
       setIsOpenEditModal(false)

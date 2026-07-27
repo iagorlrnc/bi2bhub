@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Ticket, AlertCircle, Clock, UserCheck, CheckCircle2, Archive, ShieldAlert, Timer, CheckCheck } from 'lucide-react'
+import { Ticket, AlertCircle, Clock, CheckCircle2, Archive, ShieldAlert } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface TicketDashboardCardsProps {
@@ -8,62 +8,21 @@ interface TicketDashboardCardsProps {
 
 export function TicketDashboardCards({ tickets }: TicketDashboardCardsProps) {
   const stats = useMemo(() => {
-    const todayStr = new Date().toISOString().split('T')[0]
-
     const total = tickets.length
     const abertos = tickets.filter(t => t.status === 'aberto').length
     const emAndamento = tickets.filter(t => t.status === 'em_andamento').length
-    const aguardando = tickets.filter(t => t.status === 'aguardando_cliente').length
     
-    const resolvidosHoje = tickets.filter(t => {
-      if (t.status !== 'resolvido' && t.status !== 'fechado') return false
-      if (!t.resolved_at) return false
-      return t.resolved_at.split('T')[0] === todayStr
-    }).length
-
+    const resolvidos = tickets.filter(t => t.status === 'resolvido' || t.status === 'fechado' || !!t.resolved_at).length
     const encerrados = tickets.filter(t => t.status === 'fechado' || t.status === 'resolvido').length
     const altaPrioridade = tickets.filter(t => (t.priority === 'alta' || t.priority === 'urgente') && t.status !== 'fechado' && t.status !== 'resolvido').length
-
-    // Calcular tempo médio (estimado ou real baseado em timestamps)
-    let totalRespTimeMinutes = 0
-    let respCount = 0
-    let totalResolveTimeHours = 0
-    let resolveCount = 0
-
-    tickets.forEach(t => {
-      const created = new Date(t.created_at).getTime()
-      if (t.resolved_at) {
-        const resolved = new Date(t.resolved_at).getTime()
-        const diffHours = (resolved - created) / (1000 * 60 * 60)
-        if (diffHours > 0 && diffHours < 720) {
-          totalResolveTimeHours += diffHours
-          resolveCount++
-        }
-      }
-      // Simular tempo até primeira resposta se não houver campo específico
-      if (t.updated_at && t.updated_at !== t.created_at) {
-        const updated = new Date(t.updated_at).getTime()
-        const diffMins = (updated - created) / (1000 * 60)
-        if (diffMins > 0 && diffMins < 1440) {
-          totalRespTimeMinutes += diffMins
-          respCount++
-        }
-      }
-    })
-
-    const avgRespMin = respCount > 0 ? Math.round(totalRespTimeMinutes / respCount) : 45
-    const avgResolveHours = resolveCount > 0 ? (totalResolveTimeHours / resolveCount).toFixed(1) : '3.5'
 
     return {
       total,
       abertos,
       emAndamento,
-      aguardando,
-      resolvidosHoje,
+      resolvidos,
       encerrados,
-      altaPrioridade,
-      avgRespMin,
-      avgResolveHours
+      altaPrioridade
     }
   }, [tickets])
 
@@ -99,19 +58,9 @@ export function TicketDashboardCards({ tickets }: TicketDashboardCardsProps) {
       badgeColor: 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
     },
     {
-      label: 'Aguardando Cliente',
-      value: stats.aguardando,
-      description: 'Aguardando retorno ou dados',
-      icon: UserCheck,
-      borderColor: 'border-yellow-500/20',
-      bgColor: 'bg-yellow-50/50 dark:bg-yellow-950/20',
-      iconBg: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400',
-      badgeColor: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-300'
-    },
-    {
-      label: 'Resolvidos Hoje',
-      value: stats.resolvidosHoje,
-      description: 'Finalizados no dia atual',
+      label: 'Resolvidos',
+      value: stats.resolvidos,
+      description: 'Total de chamados finalizados',
       icon: CheckCircle2,
       borderColor: 'border-emerald-500/20',
       bgColor: 'bg-emerald-50/50 dark:bg-emerald-950/20',
@@ -137,31 +86,11 @@ export function TicketDashboardCards({ tickets }: TicketDashboardCardsProps) {
       bgColor: 'bg-rose-50/50 dark:bg-rose-950/20',
       iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
       badgeColor: 'bg-rose-500/10 text-rose-700 dark:text-rose-300'
-    },
-    {
-      label: 'Tempo M. Atendimento',
-      value: `${stats.avgRespMin}m`,
-      description: 'Média de tempo até 1ª resposta',
-      icon: Timer,
-      borderColor: 'border-indigo-500/20',
-      bgColor: 'bg-indigo-50/50 dark:bg-indigo-950/20',
-      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
-      badgeColor: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
-    },
-    {
-      label: 'Tempo M. Resolução',
-      value: `${stats.avgResolveHours}h`,
-      description: 'Média de encerramento total',
-      icon: CheckCheck,
-      borderColor: 'border-teal-500/20',
-      bgColor: 'bg-teal-50/50 dark:bg-teal-950/20',
-      iconBg: 'bg-teal-500/10 text-teal-600 dark:text-teal-400',
-      badgeColor: 'bg-teal-500/10 text-teal-700 dark:text-teal-300'
     }
   ]
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6 gap-3">
       {cards.map((card, idx) => {
         const Icon = card.icon
         return (

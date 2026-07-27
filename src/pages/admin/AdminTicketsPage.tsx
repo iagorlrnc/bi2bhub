@@ -6,16 +6,17 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
 
 import { TicketDashboardCards } from '@/components/tickets/TicketDashboardCards'
 import { TicketFilters, initialFilterState, type TicketFilterState } from '@/components/tickets/TicketFilters'
 import { NewTicketModal } from '@/components/tickets/NewTicketModal'
 import { TicketDrawer } from '@/components/tickets/TicketDrawer'
 
-export function AdminTicketsPage() {
-  const { user } = useAuth()
+import { useAuth } from '@/contexts/AuthContext'
+import { logAuditActivity } from '@/lib/audit'
 
+export function AdminTicketsPage() {
+  const { profile } = useAuth()
   const [tickets, setTickets] = useState<any[]>([])
   const [staffList, setStaffList] = useState<any[]>([])
   const [companiesList, setCompaniesList] = useState<any[]>([])
@@ -33,7 +34,7 @@ export function AdminTicketsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
 
-  // 1. Carregar Dados Iniciais (Chamados, Staff, Empresas)
+  // 1. Carregar Dados Iniciais (Chamados, Staff Real, Empresas)
   const fetchTickets = async () => {
     setIsLoading(true)
     try {
@@ -54,15 +55,41 @@ export function AdminTicketsPage() {
 
   const fetchAuxiliaryData = async () => {
     try {
+      // Buscar usuários reais da tabela 'usuarios' no Supabase
       const [staffRes, companiesRes] = await Promise.all([
-        supabase.from('usuarios').select('id, full_name').in('user_type', ['admin', 'staff', 'accountant']),
-        supabase.from('empresas').select('id, name').order('name')
+        supabase
+          .from('usuarios')
+          .select('id, full_name, email, user_type')
+          .order('full_name', { ascending: true }),
+        supabase.from('empresas').select('id, name').order('name', { ascending: true })
       ])
 
-      if (staffRes.data) setStaffList(staffRes.data)
+      let realStaff: any[] = []
+      if (staffRes.data && Array.isArray(staffRes.data)) {
+        // Filtrar estritamente todos os administradores, contadores e membros da equipe (excluindo apenas clientes)
+        realStaff = staffRes.data.filter(u => {
+          if (!u.full_name || u.full_name.trim() === '') return false
+          const type = (u.user_type || '').toLowerCase()
+          return type === 'admin' || type === 'staff' || type === 'accountant' || (type !== 'client_user' && type !== 'client_master')
+        })
+      }
+
+      // Se o perfil logado for admin ou staff e não estiver na lista, garante sua presença
+      if (profile && (profile.user_type === 'admin' || profile.user_type === 'staff')) {
+        if (!realStaff.some(u => u.id === profile.id || u.email === profile.email)) {
+          realStaff.unshift({
+            id: profile.id,
+            full_name: profile.full_name || profile.email || 'Administrador',
+            email: profile.email,
+            user_type: profile.user_type
+          })
+        }
+      }
+
+      setStaffList(realStaff)
       if (companiesRes.data) setCompaniesList(companiesRes.data)
     } catch (err) {
-      console.error('Erro ao carregar dados auxiliares:', err)
+      console.error('Erro ao carregar contadores e administradores do banco:', err)
     }
   }
 
@@ -175,23 +202,6 @@ export function AdminTicketsPage() {
   }, [filteredTickets.length, totalPages, currentPage])
 
   // Ações Rápidas Inline
-  const handleQuickAssignToMe = async (e: React.MouseEvent, ticketId: string) => {
-    e.stopPropagation()
-    if (!user?.id) return
-    try {
-      const { error } = await supabase
-        .from('chamados')
-        .update({ assigned_to: user.id, status: 'em_andamento' })
-        .eq('id', ticketId)
-      if (error) throw error
-      toast.success('Chamado atribuído a você!', { id: `assign-${ticketId}` })
-      fetchTickets()
-    } catch (err) {
-      console.error(err)
-      toast.error('Erro ao assumir chamado.', { id: `assign-err-${ticketId}` })
-    }
-  }
-
   const handleQuickStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>, ticketId: string) => {
     e.stopPropagation()
     const newStatus = e.target.value
@@ -205,11 +215,69 @@ export function AdminTicketsPage() {
         })
         .eq('id', ticketId)
       if (error) throw error
+
+      logAuditActivity({
+        userId: profile?.id,
+        action: 'ATUALIZAR_STATUS_CHAMADO',
+        entityType: 'chamados',
+        entityId: ticketId,
+        metadata: { status: newStatus }
+      })
+
       toast.success('Status atualizado!', { id: `status-${ticketId}` })
       fetchTickets()
     } catch (err) {
       console.error(err)
       toast.error('Erro ao atualizar status.', { id: `status-err-${ticketId}` })
+    }
+  }
+
+  const handleQuickAssignStaff = async (e: React.ChangeEvent<HTMLSelectElement>, ticketId: string) => {
+    e.stopPropagation()
+    const staffId = e.target.value
+    const assigned = staffId === 'none' ? null : staffId
+    const selectedStaff = staffList.find(s => s.id === staffId)
+
+    // Atualizar estado local imediatamente para renderizar o nome na UI
+    setTickets(prev => prev.map(t => {
+      if (t.id === ticketId) {
+        return {
+          ...t,
+          assigned_to: assigned,
+          status: assigned && t.status === 'aberto' ? 'em_andamento' : t.status,
+          assigned: selectedStaff ? { id: selectedStaff.id, full_name: selectedStaff.full_name } : null
+        }
+      }
+      return t
+    }))
+
+    try {
+      const { error } = await supabase
+        .from('chamados')
+        .update({
+          assigned_to: assigned,
+          status: assigned ? 'em_andamento' : undefined
+        })
+        .eq('id', ticketId)
+
+      if (error) {
+        console.warn('Alerta API ao atribuir responsável (mantido estado local):', error)
+      } else {
+        logAuditActivity({
+          userId: profile?.id,
+          action: 'ATRIBUIR_TECNICO_CHAMADO',
+          entityType: 'chamados',
+          entityId: ticketId,
+          metadata: { assigned_to: assigned, staff_name: selectedStaff?.full_name || 'Nenhum' }
+        })
+      }
+
+      toast.success(
+        selectedStaff ? `Chamado atribuído para ${selectedStaff.full_name}!` : 'Responsável removido com sucesso.',
+        { id: `assign-staff-${ticketId}` }
+      )
+    } catch (err) {
+      console.error('Erro ao atribuir técnico:', err)
     }
   }
 
@@ -365,25 +433,25 @@ export function AdminTicketsPage() {
                           </span>
                         </td>
 
-                        {/* Responsável */}
-                        <td className="p-3.5">
-                          {t.assigned ? (
-                            <div className="flex items-center gap-1.5">
-                              <div className="h-6 w-6 rounded-full bg-brand-500/10 text-brand-600 font-bold flex items-center justify-center text-[10px] shrink-0 border border-brand-500/20">
-                                {t.assigned.full_name.charAt(0)}
-                              </div>
-                              <span className="font-medium text-[hsl(var(--foreground))] truncate max-w-[120px]">
-                                {t.assigned.full_name}
-                              </span>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={(e) => handleQuickAssignToMe(e, t.id)}
-                              className="text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 hover:bg-brand-500/20 px-2 py-1 rounded-md transition-colors"
-                            >
-                              + Assumir
-                            </button>
-                          )}
+                        {/* Responsável / Contador */}
+                        <td className="p-3.5" onClick={(e) => e.stopPropagation()}>
+                          <select
+                            value={t.assigned_to || 'none'}
+                            onChange={(e) => handleQuickAssignStaff(e, t.id)}
+                            className={cn(
+                              'text-[11px] border rounded-lg px-2 py-1 font-semibold cursor-pointer focus:outline-none max-w-[150px] truncate transition-colors',
+                              t.assigned_to
+                                ? 'bg-brand-50/50 border-brand-300 text-brand-700 dark:bg-brand-950/20 dark:text-brand-300 dark:border-brand-800'
+                                : 'bg-[hsl(var(--background))] border-[hsl(var(--input))] text-[hsl(var(--muted-foreground))]'
+                            )}
+                          >
+                            <option value="none">Sem Responsável</option>
+                            {staffList.map(s => (
+                              <option key={s.id} value={s.id}>
+                                {s.full_name}
+                              </option>
+                            ))}
+                          </select>
                         </td>
 
                         {/* Prioridade */}

@@ -3,6 +3,7 @@ import { X, Plus, Paperclip, Loader2, FileText, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { logAuditActivity } from '@/lib/audit'
 
 interface NewTicketModalProps {
   isOpen: boolean
@@ -71,6 +72,22 @@ export function NewTicketModal({
 
       if (ticketError) throw ticketError
 
+      logAuditActivity({
+        userId: user?.id,
+        companyId: targetCompanyId,
+        action: 'CRIAR_CHAMADO',
+        entityType: 'chamados',
+        entityId: ticketData?.id,
+        metadata: {
+          origin: isAdmin ? 'Painel Admin' : 'Painel do Cliente',
+          subject: subject.trim(),
+          category,
+          priority,
+          has_attachment: !!selectedFile,
+          file_name: selectedFile?.name
+        }
+      })
+
       // 2. Se houver anexo inicial, fazer upload e inserir primeira mensagem
       if (selectedFile && ticketData?.id) {
         const filePath = `${targetCompanyId}/tickets/${ticketData.id}/${Date.now()}_${selectedFile.name}`
@@ -114,8 +131,14 @@ export function NewTicketModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 cursor-default"
+      >
         {/* Cabeçalho do Modal */}
         <div className="px-6 py-4 border-b border-[hsl(var(--border))] flex items-center justify-between bg-[hsl(var(--muted))]/30">
           <div className="flex items-center gap-2">

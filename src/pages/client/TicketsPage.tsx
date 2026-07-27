@@ -247,7 +247,7 @@ export function TicketsPage() {
                         </td>
 
                         <td className="p-3.5 font-medium text-[hsl(var(--foreground))]">
-                          {t.assigned?.full_name || 'Aguardando Atendente'}
+                          {t.assigned?.full_name || 'Aguardando Contador'}
                         </td>
 
                         <td className="p-3.5">
@@ -300,7 +300,7 @@ export function TicketsPage() {
                   </div>
                   <h4 className="font-bold text-sm text-[hsl(var(--foreground))]">{t.subject}</h4>
                   <div className="flex items-center justify-between text-xs pt-1">
-                    <span className="text-[hsl(var(--muted-foreground))]">Atendente: {t.assigned?.full_name || 'Suporte'}</span>
+                    <span className="text-[hsl(var(--muted-foreground))]">Contador: {t.assigned?.full_name || 'Equipe Contábil'}</span>
                     <span className="px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 font-bold text-[10px]">
                       {t.status}
                     </span>

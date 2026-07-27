@@ -1,6 +1,4 @@
-import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ROUTES } from '@/constants/routes'
 import {
   ArrowRight,
   Shield,
@@ -11,6 +9,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import bpontoPng from '@/assets/bponto.png'
+
+import { getClientSubdomainUrl } from '@/utils/subdomain'
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -30,8 +30,6 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ isDark }: HeroSectionProps) {
-  const navigate = useNavigate()
-
   return (
     <section className="relative pt-32 pb-16 px-6 md:px-8 md:pt-40 lg:pt-44 md:pb-20 lg:pb-24 overflow-hidden">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 md:gap-16 items-center">
@@ -68,14 +66,14 @@ export function HeroSection({ isDark }: HeroSectionProps) {
             className="flex flex-col sm:flex-row items-start gap-3 pt-2"
           >
             <button
-              onClick={() => navigate(ROUTES.REGISTER)}
+              onClick={() => { window.location.href = getClientSubdomainUrl('/auth/register') }}
               className="inline-flex items-center justify-center gap-2 font-bold bg-gradient-to-r from-[#0d6084] to-[#0a4a62] text-white hover:brightness-110 rounded-full px-8 py-4 text-sm shadow-lg shadow-cyan-950/30 border border-cyan-500/20 transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] group cursor-pointer"
             >
               Começar grátis
               <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
             </button>
             <button
-              onClick={() => navigate(ROUTES.LOGIN)}
+              onClick={() => { window.location.href = getClientSubdomainUrl('/') }}
               className={cn(
                 "inline-flex items-center justify-center px-6 py-4 text-sm font-semibold rounded-full transition-all duration-300 cursor-pointer",
                 isDark

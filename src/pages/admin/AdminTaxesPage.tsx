@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import {
   FileSpreadsheet,
   Download,
-  CheckCircle2,
   AlertCircle,
   Loader2,
   FileCheck,
@@ -14,6 +13,7 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { logAuditActivity } from '@/lib/audit'
 
 interface TaxGuide {
   id: string
@@ -243,6 +243,14 @@ export function AdminTaxesPage() {
 
       if (dbError) throw dbError
 
+      logAuditActivity({
+        userId: user?.id,
+        companyId: selectedCompanyId,
+        action: 'PUBLICAR_GUIA_IMPOSTO',
+        entityType: 'guias_fiscais',
+        metadata: { tax_name: finalTaxName, ref_period: refPeriod, due_date: dueDate, value: parseFloat(value) }
+      })
+
       toast.success('Guia de imposto publicada com sucesso!')
       setIsOpenModal(false)
       // Resetar form
@@ -368,7 +376,8 @@ export function AdminTaxesPage() {
                       <th className="py-3 px-4">Vencimento</th>
                       <th className="py-3 px-4">Valor</th>
                       <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4">Arquivos</th>
+                      <th className="py-3 px-4">Guia (PDF)</th>
+                      <th className="py-3 px-4 text-center">Comprovante</th>
                       <th className="py-3 px-4 text-center">Ações</th>
                     </tr>
                   </thead>
@@ -401,22 +410,30 @@ export function AdminTaxesPage() {
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-4 space-y-1">
+                        <td className="py-3 px-4">
                           <button
                             onClick={() => handleDownloadFile(tax.file_path)}
-                            className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
+                            className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-xs font-bold text-brand-600 dark:text-brand-400 transition-colors"
+                            title="Baixar Guia (PDF)"
                           >
-                            <Download className="h-3 w-3" />
+                            <Download className="h-3.5 w-3.5" />
                             Ver Guia (PDF)
                           </button>
-                          {tax.receiptPath && (
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {tax.receiptPath ? (
                             <button
                               onClick={() => handleDownloadFile(tax.receiptPath!)}
-                              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                              className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors"
+                              title="Baixar Comprovante de Pagamento"
                             >
-                              <CheckCircle2 className="h-3 w-3" />
-                              Ver Comprovante
+                              <Download className="h-3.5 w-3.5" />
+                              Baixar Comprovante
                             </button>
+                          ) : (
+                            <span className="text-xs text-[hsl(var(--muted-foreground))] italic">
+                              Não enviado
+                            </span>
                           )}
                         </td>
                         <td className="py-3 px-4 text-center">

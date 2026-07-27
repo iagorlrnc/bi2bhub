@@ -3,6 +3,7 @@ import { Building2, Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight, Loader
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
+import { logAuditActivity } from '@/lib/audit'
 import { z } from 'zod'
 
 const formatCnpj = (value: string) => {
@@ -197,17 +198,34 @@ export function CompaniesPage() {
           .update(companyData)
           .eq('id', editingId)
         if (error) throw error
+        logAuditActivity({
+          action: 'ATUALIZAR_EMPRESA',
+          entityType: 'empresas',
+          entityId: editingId,
+          metadata: { company_name: companyData.name, cnpj: companyData.cnpj }
+        })
         toast.success('Empresa editada com sucesso!')
       } else {
         const randomCode = String(Math.floor(1000 + Math.random() * 9000))
-        const { error } = await supabase
+        const { data: createdCompany, error } = await supabase
           .from('empresas')
           .insert({
             ...companyData,
             codigo_exclusivo: randomCode,
             is_active: true
           })
+          .select('id')
+          .single()
+
         if (error) throw error
+
+        logAuditActivity({
+          action: 'CRIAR_EMPRESA',
+          entityType: 'empresas',
+          entityId: createdCompany?.id,
+          metadata: { company_name: companyData.name, cnpj: companyData.cnpj, codigo_exclusivo: randomCode }
+        })
+
         toast.success(`Empresa cadastrada com sucesso! ID Exclusivo: ${randomCode}`)
       }
       setIsOpenModal(false)
@@ -225,6 +243,14 @@ export function CompaniesPage() {
         .update({ is_active: !currentStatus })
         .eq('id', id)
       if (error) throw error
+
+      logAuditActivity({
+        action: 'ALTERAR_STATUS_EMPRESA',
+        entityType: 'empresas',
+        entityId: id,
+        metadata: { is_active: !currentStatus }
+      })
+
       toast.success(`Status da empresa atualizado com sucesso.`)
       fetchCompanies()
     } catch (err) {
@@ -241,6 +267,14 @@ export function CompaniesPage() {
           .delete()
           .eq('id', id)
         if (error) throw error
+
+        logAuditActivity({
+          action: 'EXCLUIR_EMPRESA',
+          entityType: 'empresas',
+          entityId: id,
+          metadata: { company_name: name }
+        })
+
         toast.success(`Empresa ${name} deletada com sucesso.`)
         fetchCompanies()
       } catch (err) {

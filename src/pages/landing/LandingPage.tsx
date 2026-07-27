@@ -25,6 +25,8 @@ import { FaqSection } from './sections/FaqSection'
 import { ContactSection } from './sections/ContactSection'
 import { FooterSection } from './sections/FooterSection'
 
+import { getClientSubdomainUrl } from '@/utils/subdomain'
+
 export function LandingPage() {
   const navigate = useNavigate()
   const { resolvedTheme, toggleTheme } = useTheme()
@@ -52,6 +54,14 @@ export function LandingPage() {
     setMobileMenu(false)
     const el = document.querySelector(id)
     el?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const handleClientLogin = () => {
+    window.location.href = getClientSubdomainUrl('/')
+  }
+
+  const handleClientRegister = () => {
+    window.location.href = getClientSubdomainUrl('/auth/register')
   }
 
   const isDark = resolvedTheme === 'dark'
@@ -140,7 +150,7 @@ export function LandingPage() {
               {isDark ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
             </button>
             <button
-              onClick={() => navigate(ROUTES.LOGIN)}
+              onClick={handleClientLogin}
               className={cn(
                 "hidden lg:block px-5 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95",
                 isDark ? "text-slate-300 hover:text-cyan-400" : "text-slate-600 hover:text-[#0d6084]"
@@ -149,7 +159,7 @@ export function LandingPage() {
               Entrar
             </button>
             <button
-              onClick={() => navigate(ROUTES.REGISTER)}
+              onClick={handleClientRegister}
               className="hidden lg:block bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:brightness-110 border border-cyan-500/20 text-white font-bold text-xs uppercase tracking-wider px-6 py-2.5 rounded-full shadow-lg shadow-cyan-950/40 hover-elevate active-elevate-2 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
             >
               Teste Grátis!
@@ -197,7 +207,7 @@ export function LandingPage() {
               <div className={cn("h-px my-2", isDark ? "bg-slate-800/60" : "bg-slate-200")} />
               <div className="flex flex-col gap-2">
                 <button
-                  onClick={() => { setMobileMenu(false); navigate(ROUTES.LOGIN) }}
+                  onClick={() => { setMobileMenu(false); handleClientLogin() }}
                   className={cn(
                     "w-full rounded-full py-3 text-center text-xs font-bold uppercase tracking-wider cursor-pointer border",
                     isDark ? "border-slate-700 text-slate-300" : "border-slate-300 text-slate-700 hover:bg-slate-50"
@@ -206,7 +216,7 @@ export function LandingPage() {
                   Entrar
                 </button>
                 <button
-                  onClick={() => { setMobileMenu(false); navigate(ROUTES.REGISTER) }}
+                  onClick={() => { setMobileMenu(false); handleClientRegister() }}
                   className="w-full rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] border border-cyan-500/20 py-3 text-center text-xs font-bold uppercase tracking-wider text-white cursor-pointer"
                 >
                   Criar Conta

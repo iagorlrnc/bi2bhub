@@ -1,42 +1,43 @@
-// ===== Route Constants =====
+// ===== Route Constants (Rotas Traduzidas para Português) =====
 export const ROUTES = {
   // Landing
   HOME: '/',
 
-  // Auth
-  LOGIN: '/auth/login',
-  REGISTER: '/auth/register',
-  FORGOT_PASSWORD: '/auth/forgot-password',
-  RESET_PASSWORD: '/auth/reset-password',
-  ACCEPT_INVITE: '/auth/accept-invite',
+  // Autenticação (Rotas em Português)
+  LOGIN: '/login',
+  ADMIN_LOGIN: '/login',
+  REGISTER: '/cadastrar',
+  FORGOT_PASSWORD: '/recuperar-senha',
+  RESET_PASSWORD: '/redefinir-senha',
+  ACCEPT_INVITE: '/aceitar-convite',
 
-  // Client Panel
-  APP: '/app',
-  TAXES: '/app/taxes',
-  TASKS: '/app/tasks',
-  DRIVE: '/app/drive',
-  TICKETS: '/app/tickets',
-  TICKET_DETAIL: '/app/tickets/:id',
-  TEAM: '/app/team',
-  PROFILE: '/app/profile',
-  SETTINGS: '/app/settings',
-  NOTIFICATIONS: '/app/notifications',
+  // Área do Cliente (Subdomínio app.* - Rotas internas em Português)
+  APP: '/',
+  TAXES: '/impostos',
+  TASKS: '/tarefas',
+  DRIVE: '/drive',
+  TICKETS: '/chamados',
+  TICKET_DETAIL: '/chamados/:id',
+  TEAM: '/equipe',
+  PROFILE: '/perfil',
+  SETTINGS: '/configuracoes',
+  NOTIFICATIONS: '/notificacoes',
 
-  // Admin Panel
-  ADMIN: '/admin',
-  ADMIN_DASHBOARD: '/admin/dashboard',
-  ADMIN_COMPANIES: '/admin/companies',
-  ADMIN_COMPANY_DETAIL: '/admin/companies/:id',
-  ADMIN_USERS: '/admin/users',
-  ADMIN_STAFF: '/admin/staff',
-  ADMIN_TICKETS: '/admin/tickets',
-  ADMIN_TICKET_DETAIL: '/admin/tickets/:id',
-  ADMIN_AUDIT: '/admin/audit',
-  ADMIN_SETTINGS: '/admin/settings',
-  ADMIN_DRIVE: '/admin/drive',
-  ADMIN_MONTHLY: '/admin/monthly',
-  ADMIN_TAXES: '/admin/taxes',
-  ADMIN_NOTIFICATIONS: '/admin/notifications',
+  // Área de Administração (Subdomínio administrador.* - Rotas internas em Português)
+  ADMIN: '/',
+  ADMIN_DASHBOARD: '/dashboard',
+  ADMIN_COMPANIES: '/empresas',
+  ADMIN_COMPANY_DETAIL: '/empresas/:id',
+  ADMIN_USERS: '/usuarios',
+  ADMIN_STAFF: '/contadores',
+  ADMIN_TICKETS: '/chamados',
+  ADMIN_TICKET_DETAIL: '/chamados/:id',
+  ADMIN_AUDIT: '/auditoria',
+  ADMIN_SETTINGS: '/configuracoes',
+  ADMIN_DRIVE: '/drive',
+  ADMIN_MONTHLY: '/tarefas-mensais',
+  ADMIN_TAXES: '/impostos',
+  ADMIN_NOTIFICATIONS: '/notificacoes',
 } as const
 
 export type RouteKey = keyof typeof ROUTES

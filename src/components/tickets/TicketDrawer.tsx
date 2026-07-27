@@ -2,12 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import {
   X, MessageSquare, Info, History, AlertCircle, Send,
   Paperclip, FileText, Download, Lock, Star, Copy, Trash2,
-  Building2, UserCheck, Loader2
+  Building2, UserCheck, Loader2, Sparkles, RefreshCw, CheckCircle2,
+  Clock,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
+import { logAuditActivity } from '@/lib/audit'
 
 interface TicketDrawerProps {
   isOpen: boolean
@@ -178,6 +180,19 @@ export function TicketDrawer({
 
       if (error) throw error
 
+      logAuditActivity({
+        userId: user.id,
+        companyId: ticket.company_id,
+        action: selectedFile ? 'ANEXAR_DOCUMENTO_CHAMADO' : 'ENVIAR_MENSAGEM_CHAMADO',
+        entityType: 'chamados',
+        entityId: ticketId,
+        metadata: {
+          origin: isAdmin ? 'Painel Admin' : 'Painel do Cliente',
+          file_name: selectedFile?.name,
+          is_internal: isInternal
+        }
+      })
+
       const { data: myProfile } = await supabase
         .from('usuarios')
         .select('full_name, avatar_url, user_type')
@@ -217,7 +232,7 @@ export function TicketDrawer({
       }
     } catch (err) {
       console.error(err)
-      toast.error('Erro ao baixar anexo.', { id: 'download-attach-error' })
+      toast.error('Erro ao baixar anexo.', { id: 'download-attachment-error' })
     }
   }
 
@@ -229,6 +244,26 @@ export function TicketDrawer({
         .update({ assigned_to: user.id, status: 'em_andamento' })
         .eq('id', ticketId)
       if (error) throw error
+
+      logAuditActivity({
+        userId: user.id,
+        companyId: ticket?.company_id,
+        action: 'ATRIBUIR_TECNICO_CHAMADO',
+        entityType: 'chamados',
+        entityId: ticketId,
+        metadata: { origin: 'Painel Admin', assigned_to_self: true }
+      })
+
+      const { data: myProfile } = await supabase.from('usuarios').select('full_name').eq('id', user.id).single()
+      const myName = myProfile?.full_name || 'Técnico'
+
+      await supabase.from('mensagens_chamado').insert({
+        ticket_id: ticketId,
+        sender_id: user.id,
+        content: `👤 Chamado assumido por ${myName}`,
+        is_internal: false
+      })
+
       toast.success('Chamado atribuído a você!', { id: `assign-${ticketId}` })
       fetchTicketDetails()
       onRefresh()
@@ -250,6 +285,37 @@ export function TicketDrawer({
         })
         .eq('id', ticketId)
       if (error) throw error
+
+      logAuditActivity({
+        userId: user?.id,
+        companyId: ticket?.company_id,
+        action: 'ATUALIZAR_STATUS_CHAMADO',
+        entityType: 'chamados',
+        entityId: ticketId,
+        metadata: {
+          origin: isAdmin ? 'Painel Admin' : 'Painel do Cliente',
+          status: newStatus
+        }
+      })
+
+      const statusLabels: Record<string, string> = {
+        aberto: 'Aberto',
+        em_andamento: 'Em Atendimento',
+        aguardando_cliente: 'Aguardando Cliente',
+        resolvido: 'Resolvido',
+        fechado: 'Encerrado'
+      }
+      const label = statusLabels[newStatus] || newStatus
+
+      if (user?.id) {
+        await supabase.from('mensagens_chamado').insert({
+          ticket_id: ticketId,
+          sender_id: user.id,
+          content: `📌 Status alterado para "${label}"`,
+          is_internal: false
+        })
+      }
+
       toast.success('Status alterado com sucesso!', { id: `status-${ticketId}` })
       fetchTicketDetails()
       onRefresh()
@@ -267,6 +333,24 @@ export function TicketDrawer({
         .update({ priority: newPriority as any })
         .eq('id', ticketId)
       if (error) throw error
+
+      const priorityLabels: Record<string, string> = {
+        baixa: 'Baixa',
+        media: 'Média',
+        alta: 'Alta',
+        urgente: 'Urgente / Crítica'
+      }
+      const label = priorityLabels[newPriority] || newPriority
+
+      if (user?.id) {
+        await supabase.from('mensagens_chamado').insert({
+          ticket_id: ticketId,
+          sender_id: user.id,
+          content: `⚡ Prioridade alterada para "${label}"`,
+          is_internal: false
+        })
+      }
+
       toast.success('Prioridade atualizada!', { id: `priority-${ticketId}` })
       fetchTicketDetails()
       onRefresh()
@@ -278,15 +362,34 @@ export function TicketDrawer({
 
   const handleAssignStaff = async (staffId: string) => {
     if (!ticketId) return
+    const assigned = staffId === 'none' ? null : staffId
+    const selectedStaff = staffList.find(s => s.id === staffId)
+
+    setTicket((prev: any) => prev ? {
+      ...prev,
+      assigned_to: assigned,
+      status: assigned && prev.status === 'aberto' ? 'em_andamento' : prev.status,
+      assigned: selectedStaff ? { id: selectedStaff.id, full_name: selectedStaff.full_name } : null
+    } : prev)
+
     try {
-      const assigned = staffId === 'none' ? null : staffId
       const { error } = await supabase
         .from('chamados')
-        .update({ assigned_to: assigned })
+        .update({ assigned_to: assigned, status: assigned ? 'em_andamento' : undefined })
         .eq('id', ticketId)
-      if (error) throw error
-      toast.success('Responsável atualizado!', { id: `staff-${ticketId}` })
-      fetchTicketDetails()
+      if (error) console.warn('Aviso API ao atualizar responsável:', error)
+
+      const staffName = selectedStaff ? selectedStaff.full_name : 'Nenhum responsável (removido)'
+      if (user?.id) {
+        await supabase.from('mensagens_chamado').insert({
+          ticket_id: ticketId,
+          sender_id: user.id,
+          content: `👤 Responsável pelo chamado definido para "${staffName}"`,
+          is_internal: false
+        })
+      }
+
+      toast.success(selectedStaff ? `Responsável alterado para ${selectedStaff.full_name}!` : 'Responsável removido.', { id: `staff-${ticketId}` })
       onRefresh()
     } catch (err) {
       console.error(err)
@@ -364,8 +467,14 @@ export function TicketDrawer({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-[hsl(var(--card))] h-full flex flex-col shadow-2xl border-l border-[hsl(var(--border))]">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end animate-in fade-in duration-200 cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl bg-[hsl(var(--card))] h-full flex flex-col shadow-2xl border-l border-[hsl(var(--border))] cursor-default"
+      >
         {/* Topo / Cabeçalho do Drawer */}
         <div className="p-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30 flex flex-col gap-3">
           <div className="flex items-center justify-between">
@@ -394,14 +503,16 @@ export function TicketDrawer({
                 </button>
               )}
 
-              <button
-                type="button"
-                onClick={handleDuplicate}
-                className="p-1.5 rounded-lg border border-[hsl(var(--input))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] transition-colors"
-                title="Duplicar Chamado"
-              >
-                <Copy className="h-4 w-4" />
-              </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={handleDuplicate}
+                  className="p-1.5 rounded-lg border border-[hsl(var(--input))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] transition-colors"
+                  title="Duplicar Chamado"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+              )}
 
               {isAdmin && (
                 <button
@@ -467,18 +578,20 @@ export function TicketDrawer({
               Conversa & Respostas ({messages.length})
             </button>
 
-            <button
-              onClick={() => setActiveTab('details')}
-              className={cn(
-                'flex items-center gap-1.5 px-4 py-2 border-b-2 font-semibold text-xs transition-colors',
-                activeTab === 'details'
-                  ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                  : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
-              )}
-            >
-              <Info className="h-3.5 w-3.5" />
-              Detalhes & SLA
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('details')}
+                className={cn(
+                  'flex items-center gap-1.5 px-4 py-2 border-b-2 font-semibold text-xs transition-colors',
+                  activeTab === 'details'
+                    ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                    : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+                )}
+              >
+                <Info className="h-3.5 w-3.5" />
+                Detalhes & SLA
+              </button>
+            )}
 
             <button
               onClick={() => setActiveTab('timeline')}
@@ -550,7 +663,7 @@ export function TicketDrawer({
                         )}
                         {!msg.is_internal && !isMe && !isClient && (
                           <span className="px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-[8px] font-bold uppercase">
-                            Suporte
+                            Contador
                           </span>
                         )}
                       </div>
@@ -763,34 +876,227 @@ export function TicketDrawer({
 
           {/* Aba Linha do Tempo */}
           {activeTab === 'timeline' && (
-            <div className="p-5 space-y-4 text-xs">
-              <h4 className="font-bold text-[hsl(var(--foreground))] flex items-center gap-2">
-                <History className="h-4 w-4 text-brand-500" /> Histórico de Eventos
-              </h4>
-
-              <div className="relative border-l-2 border-brand-500/20 pl-4 ml-2 space-y-4">
-                <div className="relative">
-                  <div className="absolute -left-6 top-0.5 h-3.5 w-3.5 rounded-full bg-brand-500 ring-4 ring-white dark:ring-slate-900" />
-                  <p className="font-semibold text-[hsl(var(--foreground))]">Chamado Criado</p>
-                  <p className="text-[10px] text-[hsl(var(--muted-foreground))]">{new Date(ticket?.created_at).toLocaleString('pt-BR')}</p>
-                </div>
-
-                {ticket?.assigned && (
-                  <div className="relative">
-                    <div className="absolute -left-6 top-0.5 h-3.5 w-3.5 rounded-full bg-amber-500 ring-4 ring-white dark:ring-slate-900" />
-                    <p className="font-semibold text-[hsl(var(--foreground))]">Atribuído a {ticket.assigned.full_name}</p>
-                    <p className="text-[10px] text-[hsl(var(--muted-foreground))]">{new Date(ticket.updated_at).toLocaleString('pt-BR')}</p>
-                  </div>
-                )}
-
-                {ticket?.status === 'resolvido' && (
-                  <div className="relative">
-                    <div className="absolute -left-6 top-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-4 ring-white dark:ring-slate-900" />
-                    <p className="font-semibold text-emerald-600">Chamado Marcado como Resolvido</p>
-                    <p className="text-[10px] text-[hsl(var(--muted-foreground))]">{ticket.resolved_at ? new Date(ticket.resolved_at).toLocaleString('pt-BR') : 'Hoje'}</p>
-                  </div>
-                )}
+            <div className="p-5 space-y-5 text-xs">
+              {/* Topo */}
+              <div className="pb-3 border-b border-[hsl(var(--border))]">
+                <h4 className="font-bold text-sm text-[hsl(var(--foreground))] flex items-center gap-2">
+                  <History className="h-4 w-4 text-brand-500" /> Linha do Tempo de Eventos
+                </h4>
+                <p className="text-[11px] text-[hsl(var(--muted-foreground))]">
+                  Histórico de criação, alterações de status, prioridade, responsável e encerramento
+                </p>
               </div>
+
+              {/* Construtor dos Nós da Linha do Tempo (Apenas Eventos / Sem Mensagens) */}
+              {(() => {
+                const events: any[] = []
+
+                // 1. Evento de Criação do Chamado
+                if (ticket) {
+                  events.push({
+                    id: `creation-${ticket.id}`,
+                    timestamp: ticket.created_at,
+                    type: 'creation',
+                    title: `Chamado #${ticket.ticket_number || ''} Criado`,
+                    author: ticket.creator?.full_name || 'Cliente',
+                    authorEmail: ticket.creator?.email,
+                    companyName: ticket.company?.name || ticket.company?.trade_name,
+                    category: ticket.category,
+                    priority: ticket.priority,
+                    status: ticket.status,
+                    subject: ticket.subject,
+                    description: ticket.description
+                  })
+                }
+
+                // 2. Apenas registros de auditoria de alterações (status, prioridade, responsável)
+                messages.forEach((msg) => {
+                  const contentStr = msg.content || ''
+                  const isAudit = contentStr.startsWith('📌') || contentStr.startsWith('⚡') || contentStr.startsWith('👤') || contentStr.startsWith('system_event:')
+
+                  if (isAudit) {
+                    events.push({
+                      id: msg.id,
+                      timestamp: msg.created_at,
+                      type: 'audit',
+                      title: contentStr.replace(/^system_event:/, ''),
+                      author: msg.sender?.full_name || 'Sistema',
+                      isInternal: msg.is_internal
+                    })
+                  }
+                })
+
+                // 3. Evento de Resolução
+                if (ticket?.resolved_at || ticket?.status === 'resolvido') {
+                  events.push({
+                    id: `resolved-${ticket.id}`,
+                    timestamp: ticket.resolved_at || ticket.updated_at,
+                    type: 'resolution',
+                    title: 'Chamado Marcado como Resolvido',
+                    description: 'Atendimento concluído com sucesso.',
+                    author: 'Suporte Técnico'
+                  })
+                }
+
+                // 4. Evento de Encerramento
+                if (ticket?.closed_at || ticket?.status === 'fechado') {
+                  events.push({
+                    id: `closed-${ticket.id}`,
+                    timestamp: ticket.closed_at || ticket.updated_at,
+                    type: 'closure',
+                    title: 'Chamado Encerrado',
+                    description: 'Solicitação arquivada no histórico.',
+                    author: 'Sistema'
+                  })
+                }
+
+                // Ordenar cronologicamente (do mais antigo ao mais recente)
+                events.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+
+                if (events.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-[hsl(var(--muted-foreground))] italic">
+                      Nenhum evento de histórico registrado.
+                    </div>
+                  )
+                }
+
+                return (
+                  <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[hsl(var(--border))]">
+                    {events.map((evt) => {
+                      const dateFormatted = new Date(evt.timestamp).toLocaleString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+
+                      // RENDERIZAÇÃO: Evento de Criação
+                      if (evt.type === 'creation') {
+                        return (
+                          <div key={evt.id} className="relative group">
+                            {/* Marcador do Nó */}
+                            <div className="absolute -left-6 top-1 h-5 w-5 rounded-full bg-brand-500 text-white flex items-center justify-center ring-4 ring-[hsl(var(--background))] shadow-md">
+                              <Sparkles className="h-3 w-3" />
+                            </div>
+
+                            {/* Conteúdo do Card */}
+                            <div className="rounded-2xl border border-brand-200 dark:border-brand-900/40 bg-brand-50/30 dark:bg-brand-950/10 p-4 space-y-2 shadow-2xs">
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <span className="font-bold text-sm text-brand-700 dark:text-brand-400">
+                                  {evt.title}
+                                </span>
+                                <span className="text-[10px] font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1 bg-[hsl(var(--card))] px-2 py-0.5 rounded-full border border-[hsl(var(--border))]">
+                                  <Clock className="h-3 w-3 text-brand-500" /> {dateFormatted}
+                                </span>
+                              </div>
+
+                              <p className="text-[11px] text-[hsl(var(--muted-foreground))]">
+                                Criado por <strong className="text-[hsl(var(--foreground))]">{evt.author}</strong> {evt.companyName ? `(${evt.companyName})` : ''}
+                              </p>
+
+                              <div className="pt-2 border-t border-brand-200/60 dark:border-brand-900/30 space-y-1.5">
+                                <div className="flex items-center gap-2 flex-wrap text-[10px]">
+                                  {evt.category && (
+                                    <span className="px-2 py-0.5 rounded-md bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 font-bold capitalize">
+                                      {evt.category}
+                                    </span>
+                                  )}
+                                  {evt.priority && (
+                                    <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold capitalize">
+                                      Prioridade: {evt.priority}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="font-semibold text-xs text-[hsl(var(--foreground))]">{evt.subject}</p>
+                                {evt.description && (
+                                  <p className="text-[11px] text-[hsl(var(--muted-foreground))] leading-relaxed line-clamp-3 bg-[hsl(var(--card))] p-2.5 rounded-xl border border-[hsl(var(--border))]">
+                                    {evt.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      }
+
+                      // RENDERIZAÇÃO: Evento de Auditoria / Sistema
+                      if (evt.type === 'audit') {
+                        return (
+                          <div key={evt.id} className="relative">
+                            <div className="absolute -left-6 top-1 h-5 w-5 rounded-full bg-purple-500 text-white flex items-center justify-center ring-4 ring-[hsl(var(--background))] shadow-md">
+                              <RefreshCw className="h-3 w-3" />
+                            </div>
+
+                            <div className="rounded-xl border border-purple-200 dark:border-purple-900/30 bg-purple-50/20 dark:bg-purple-950/10 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                              <div className="space-y-0.5">
+                                <p className="font-bold text-xs text-purple-900 dark:text-purple-300">
+                                  {evt.title}
+                                </p>
+                                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">
+                                  Alterado por <strong className="text-[hsl(var(--foreground))]">{evt.author}</strong>
+                                </p>
+                              </div>
+                              <span className="text-[10px] text-[hsl(var(--muted-foreground))] shrink-0">
+                                {dateFormatted}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      }
+
+                      // RENDERIZAÇÃO: Resolução
+                      if (evt.type === 'resolution') {
+                        return (
+                          <div key={evt.id} className="relative">
+                            <div className="absolute -left-6 top-1 h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center ring-4 ring-[hsl(var(--background))] shadow-md">
+                              <CheckCircle2 className="h-3 w-3" />
+                            </div>
+
+                            <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-950/10 p-3 flex items-center justify-between shadow-2xs">
+                              <div>
+                                <p className="font-bold text-xs text-emerald-700 dark:text-emerald-400">
+                                  {evt.title}
+                                </p>
+                                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">{evt.description}</p>
+                              </div>
+                              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                {dateFormatted}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      }
+
+                      // RENDERIZAÇÃO: Encerramento
+                      if (evt.type === 'closure') {
+                        return (
+                          <div key={evt.id} className="relative">
+                            <div className="absolute -left-6 top-1 h-5 w-5 rounded-full bg-slate-600 text-white flex items-center justify-center ring-4 ring-[hsl(var(--background))] shadow-md">
+                              <Lock className="h-3 w-3" />
+                            </div>
+
+                            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-3 flex items-center justify-between shadow-2xs">
+                              <div>
+                                <p className="font-bold text-xs text-slate-700 dark:text-slate-300">
+                                  {evt.title}
+                                </p>
+                                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">{evt.description}</p>
+                              </div>
+                              <span className="text-[10px] font-semibold text-slate-500">
+                                {dateFormatted}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      }
+
+                      return null
+                    })}
+                  </div>
+                )
+              })()}
             </div>
           )}
         </div>

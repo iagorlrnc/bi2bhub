@@ -25,6 +25,7 @@ import { toast } from 'sonner'
 import { MAX_FILE_SIZE, ALLOWED_FILE_TYPES } from '@/constants'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { logAuditActivity } from '@/lib/audit'
 
 export function DrivePage() {
   const { company, user, isLoading: authLoading } = useAuth()
@@ -181,6 +182,15 @@ export function DrivePage() {
 
       if (error) throw error
 
+      logAuditActivity({
+        userId: user?.id,
+        companyId: company?.id,
+        action: 'ATUALIZAR_DOCUMENTO',
+        entityType: 'documentos',
+        entityId: editingFileId,
+        metadata: { new_name: editFileName.trim(), new_category: editFileCategory }
+      })
+
       toast.success('Documento atualizado com sucesso!')
       setIsOpenFileModal(false)
       setEditingFileId(null)
@@ -301,6 +311,16 @@ export function DrivePage() {
           .delete()
           .eq('id', id)
         if (error) throw error
+
+        logAuditActivity({
+          userId: user?.id,
+          companyId: company?.id,
+          action: 'EXCLUIR_DOCUMENTO',
+          entityType: 'documentos',
+          entityId: id,
+          metadata: { file_name: file.name, file_path: file.file_path }
+        })
+
         toast.success('Documento excluído.')
         fetchData()
       } catch (err) {
@@ -412,6 +432,14 @@ export function DrivePage() {
           })
         if (dbError) throw dbError
         uploadedCount++
+
+        logAuditActivity({
+          userId: user.id,
+          companyId: company.id,
+          action: 'UPLOAD_DOCUMENTO',
+          entityType: 'documentos',
+          metadata: { file_name: file.name, file_size: file.size, file_path: filePath, category }
+        })
       } catch (err: any) {
         console.error('Erro no upload do arquivo:', err)
         toast.error(`Erro ao enviar "${file.name}": ${err.message || JSON.stringify(err)}`)
