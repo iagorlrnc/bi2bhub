@@ -15,11 +15,9 @@ import logoPng from '@/assets/logo.png'
 
 // ===== SECTIONS =====
 import { HeroSection } from './sections/HeroSection'
-import { MarqueeSection } from './sections/MarqueeSection'
 import { HowItWorksSection } from './sections/HowItWorksSection'
 import { FeaturesSection } from './sections/FeaturesSection'
 import { ProductivitySection } from './sections/ProductivitySection'
-import { TestimonialsSection } from './sections/TestimonialsSection'
 import { PricingSection } from './sections/PricingSection'
 import { FaqSection } from './sections/FaqSection'
 import { ContactSection } from './sections/ContactSection'
@@ -58,10 +56,6 @@ export function LandingPage() {
 
   const handleClientLogin = () => {
     window.location.href = getClientSubdomainUrl('/')
-  }
-
-  const handleClientRegister = () => {
-    window.location.href = getClientSubdomainUrl('/auth/register')
   }
 
   const isDark = resolvedTheme === 'dark'
@@ -153,18 +147,9 @@ export function LandingPage() {
             </button>
             <button
               onClick={handleClientLogin}
-              className={cn(
-                "hidden lg:inline-flex items-center justify-center px-5 py-2 rounded-full border border-white/15 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all duration-300 hover:border-white/30 hover:scale-105 active:scale-95",
-                isDark ? "bg-white/5 text-slate-200 hover:bg-white/10" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-              )}
-            >
-              Entrar
-            </button>
-            <button
-              onClick={handleClientRegister}
               className="hidden lg:inline-flex items-center justify-center bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] border border-cyan-400/30 text-white font-bold text-xs uppercase tracking-wider px-6 py-2.5 rounded-full shadow-[0_8px_25px_rgba(13,96,132,0.35)] hover:shadow-[0_12px_35px_rgba(13,96,132,0.5)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95 cursor-pointer"
             >
-              Teste Grátis!
+              Entrar
             </button>
           </div>
 
@@ -210,18 +195,9 @@ export function LandingPage() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => { setMobileMenu(false); handleClientLogin() }}
-                  className={cn(
-                    "w-full rounded-full py-3 text-center text-xs font-bold uppercase tracking-wider cursor-pointer border transition-all",
-                    isDark ? "border-white/20 bg-white/5 text-slate-200 hover:bg-white/10" : "border-slate-300 text-slate-700 hover:bg-slate-50"
-                  )}
-                >
-                  Entrar
-                </button>
-                <button
-                  onClick={() => { setMobileMenu(false); handleClientRegister() }}
                   className="w-full rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] border border-cyan-400/30 py-3 text-center text-xs font-bold uppercase tracking-wider text-white shadow-[0_8px_25px_rgba(13,96,132,0.35)] cursor-pointer"
                 >
-                  Criar Conta
+                  Entrar
                 </button>
               </div>
             </motion.div>
@@ -231,11 +207,9 @@ export function LandingPage() {
 
       {/* ===== PAGE SECTIONS (Ordem Proposta: Hero → Prova Social → Como Funciona → Soluções/Ecossistema → Resultados → Depoimentos → Planos → FAQ → CTA Final → Footer) ===== */}
       <HeroSection isDark={isDark} />
-      <MarqueeSection isDark={isDark} />
       <HowItWorksSection isDark={isDark} />
       <FeaturesSection isDark={isDark} />
       <ProductivitySection isDark={isDark} />
-      <TestimonialsSection isDark={isDark} />
       <PricingSection isDark={isDark} />
       <FaqSection isDark={isDark} />
       <ContactSection isDark={isDark} />

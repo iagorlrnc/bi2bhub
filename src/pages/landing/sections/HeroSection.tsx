@@ -5,7 +5,6 @@ import {
   Building2,
   Star,
   Award,
-  Sparkles,
   ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -30,7 +29,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ isDark }: HeroSectionProps) {
   return (
-    <section className="relative pt-32 pb-16 px-4 sm:px-6 md:px-8 md:pt-40 lg:pt-44 md:pb-24 overflow-hidden">
+    <section className="relative min-h-screen min-h-[100dvh] flex flex-col justify-center items-center pt-28 pb-12 px-4 sm:px-6 md:px-8 overflow-hidden">
       {/* Dynamic Background Light Accents - Otimizado para Mobile */}
       <div 
         className={cn(
@@ -39,7 +38,7 @@ export function HeroSection({ isDark }: HeroSectionProps) {
         )} 
       />
 
-      <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
+      <div className="max-w-7xl mx-auto flex flex-col items-center text-center my-auto">
         
         {/* Main Content Area */}
         <motion.div
@@ -48,21 +47,6 @@ export function HeroSection({ isDark }: HeroSectionProps) {
           variants={staggerContainer}
           className="flex flex-col items-center gap-6 max-w-4xl"
         >
-          {/* Top Pill Badge — HubStrom Style */}
-          <motion.div variants={fadeInUp} className="inline-flex">
-            <span
-              className={cn(
-                "inline-flex items-center gap-2.5 rounded-full border px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-105",
-                isDark 
-                  ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 shadow-cyan-950/20" 
-                  : "border-[#0d6084]/20 bg-[#0d6084]/5 text-[#0d6084] shadow-slate-200/50"
-              )}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-              <span>Plataforma SaaS de Gestão Contábil B2B</span>
-              <span className={cn("w-1.5 h-1.5 rounded-full", isDark ? "bg-cyan-400" : "bg-[#0d6084]")} />
-            </span>
-          </motion.div>
 
           {/* Direct Benefit Headline — HubStrom/Fingu Style */}
           <motion.h1

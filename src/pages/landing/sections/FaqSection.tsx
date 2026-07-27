@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -57,44 +57,44 @@ export function FaqSection({ isDark }: FaqSectionProps) {
         </motion.div>
 
         <div className="space-y-4 text-left">
-          {faqData.map((faq, i) => (
-            <motion.div
-              key={i}
-              variants={fadeInUp}
-              className={cn(
-                "rounded-3xl border overflow-hidden backdrop-blur-2xl transition-all duration-300 shadow-xl",
-                isDark 
-                  ? "border-white/10 bg-[#040914]/70 hover:border-cyan-400/30 shadow-[0_10px_30px_rgba(0,0,0,0.4)]" 
-                  : "border-slate-200 bg-white shadow-md shadow-slate-100/50 hover:border-slate-300"
-              )}
-            >
-              <button
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+          {faqData.map((faq, i) => {
+            const isOpen = openFaq === i
+            return (
+              <div
+                key={i}
                 className={cn(
-                  "flex w-full items-center justify-between px-7 py-5 text-left text-sm font-bold cursor-pointer transition-colors",
-                  isDark ? "text-slate-200 hover:text-cyan-300" : "text-slate-700 hover:text-[#0d6084]"
+                  "rounded-3xl border overflow-hidden backdrop-blur-2xl transition-colors duration-300 shadow-xl w-full",
+                  isDark 
+                    ? "border-white/10 bg-[#040914]/70 hover:border-cyan-400/30 shadow-[0_10px_30px_rgba(0,0,0,0.4)]" 
+                    : "border-slate-200 bg-white shadow-md shadow-slate-100/50 hover:border-slate-300"
                 )}
               >
-                <span className="pr-4 leading-snug">{faq.q}</span>
-                <ChevronDown className={cn("h-5 w-5 shrink-0 transition-transform duration-300", openFaq === i ? "rotate-180 text-cyan-400" : "text-slate-400")} />
-              </button>
-              <AnimatePresence initial={false}>
-                {openFaq === i && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="overflow-hidden"
-                  >
-                    <div className={cn("px-7 pb-6 pt-1 border-t", isDark ? "border-white/10" : "border-slate-100")}>
-                      <p className={cn("text-xs sm:text-sm leading-relaxed pt-3", isDark ? "text-slate-300/90" : "text-slate-600")}>{faq.a}</p>
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(isOpen ? null : i)}
+                  className={cn(
+                    "flex w-full items-center justify-between px-7 py-5 text-left text-sm font-bold cursor-pointer transition-colors focus:outline-none select-none",
+                    isDark ? "text-slate-200 hover:text-cyan-300" : "text-slate-700 hover:text-[#0d6084]"
+                  )}
+                >
+                  <span className="pr-4 leading-snug">{faq.q}</span>
+                  <ChevronDown className={cn("h-5 w-5 shrink-0 transition-transform duration-300", isOpen ? "rotate-180 text-cyan-400" : "text-slate-400")} />
+                </button>
+                <div
+                  className={cn(
+                    "grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.04,0.62,0.23,0.98)] overflow-hidden",
+                    isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  )}
+                >
+                  <div className="overflow-hidden min-h-0">
+                    <div className={cn("px-7 pb-6 pt-3 border-t", isDark ? "border-white/10" : "border-slate-100")}>
+                      <p className={cn("text-xs sm:text-sm leading-relaxed", isDark ? "text-slate-300/90" : "text-slate-600")}>{faq.a}</p>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </motion.section>

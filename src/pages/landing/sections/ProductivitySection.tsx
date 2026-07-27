@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, CartesianGrid } from 'recharts'
-import { TrendingUp, Clock, ShieldCheck, FileCheck } from 'lucide-react'
+import { TrendingUp, Clock, ShieldCheck, FileText, Headphones } from 'lucide-react'
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -108,10 +108,10 @@ export function ProductivitySection({ isDark }: ProductivitySectionProps) {
         {/* Destaques Tipográficos Grandes — Fingu Style */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {[
-            { stat: '-90%', title: 'Tempo em Rotinas Manuais', sub: 'Economia média de 23.5 horas/semana por empresa', icon: Clock, color: 'text-cyan-400' },
-            { stat: '24/7', title: 'Varredura de CNDs', sub: 'Monitoramento diário nas esferas Federal, Estadual e Municipal', icon: ShieldCheck, color: 'text-emerald-400' },
-            { stat: '5 Anos', title: 'Guarda Fiscal SEFAZ', sub: 'Armazenamento seguro de XMLs garantido por lei', icon: FileCheck, color: 'text-amber-400' },
-            { stat: '100%', title: 'Isolamento de Dados RLS', sub: 'Cada empresa opera em camada blindada no banco de dados', icon: ShieldCheck, color: 'text-cyan-400' },
+            { stat: '-90%', title: 'Tempo em Rotinas Manuais', sub: 'Economia média de 23.5 horas/semana para a sua empresa', icon: Clock, color: 'text-cyan-400' },
+            { stat: 'Zero', title: 'Multas por Atrasos Fiscais', sub: 'Alertas sobre prazos e guias de impostos sempre em dia', icon: ShieldCheck, color: 'text-indigo-400' },
+            { stat: '100%', title: 'Acesso Digital & Nuvem', sub: 'Guias, documentos e certidões acessíveis de qualquer lugar', icon: FileText, color: 'text-teal-400' },
+            { stat: '15 min', title: 'Atendimento & Suporte Ágil', sub: 'Abertura e resposta rápida de chamados diretamente no portal', icon: Headphones, color: 'text-blue-400' },
           ].map((item, idx) => (
             <motion.div
               key={idx}
