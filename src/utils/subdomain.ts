@@ -17,6 +17,14 @@ export function getSubdomain(): SubdomainType {
   if (hostname.startsWith('administrador.')) {
     return 'administrador'
   }
+
+  // Suporte a fallback para .vercel.app (que não possui subdomínio wildcard por padrão no domínio gratuito)
+  const searchParams = new URLSearchParams(window.location.search)
+  const querySub = searchParams.get('subdomain')
+  if (querySub === 'app' || querySub === 'administrador') {
+    return querySub
+  }
+
   return 'main'
 }
 
@@ -33,6 +41,10 @@ export function getSubdomainBaseUrl(targetSubdomain: 'app' | 'administrador'): s
     return `${protocol}//${window.location.host}`
   }
 
+  // Fallback para domínio nativo gratuito da Vercel (.vercel.app)
+  if (hostname.endsWith('.vercel.app')) {
+    return `${protocol}//${hostname}${portSuffix}?subdomain=${targetSubdomain}`
+  }
   // Tratamento para ambiente local (localhost / 127.0.0.1)
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return `${protocol}//${targetSubdomain}.localhost${portSuffix}`
