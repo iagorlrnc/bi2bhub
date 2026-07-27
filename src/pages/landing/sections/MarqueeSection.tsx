@@ -10,15 +10,15 @@ const banks = ['Nubank', 'Itaú', 'Banco do Brasil', 'Bradesco', 'Santander', 'C
 export function MarqueeSection({ isDark }: MarqueeSectionProps) {
   return (
     <section className={cn(
-      "border-t border-b py-10 relative overflow-hidden",
-      isDark ? "bg-slate-950/30 border-cyan-950/40" : "bg-slate-100/50 border-slate-200/60"
+      "border-t border-b py-10 relative overflow-hidden backdrop-blur-md",
+      isDark ? "bg-[#040914]/60 border-white/10" : "bg-slate-100/50 border-slate-200/80"
     )}>
       {/* Fading Edge Overlays */}
       <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 z-10 pointer-events-none marquee-overlay-left" />
       <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 z-10 pointer-events-none marquee-overlay-right" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p className={cn("text-center text-xs font-semibold uppercase tracking-[0.25em] mb-6", isDark ? "text-slate-500" : "text-slate-400")}>
+        <p className={cn("text-center text-xs font-bold uppercase tracking-[0.3em] mb-6", isDark ? "text-slate-400/80" : "text-slate-500")}>
           Conexão Direta com Bancos e Órgãos Reguladores
         </p>
         <div className="flex items-center select-none overflow-hidden relative">

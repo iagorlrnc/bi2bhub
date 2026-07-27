@@ -13,8 +13,11 @@ import {
   FileText,
   Send,
   Sparkles,
+  ArrowUpRight,
+  Layers,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import bpontoPng from '@/assets/logo.png'
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -68,75 +71,286 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
     }, 1200)
   }
 
+  const modulesList = [
+    {
+      id: 'xml' as const,
+      name: 'Guias Bi2B',
+      icon: FileCode2,
+      tagline: 'Sincronização SEFAZ & Lote',
+      desc: 'Varredura imediata de NF-e, CT-e e NFS-e direto da base nacional com guarda garantida.',
+    },
+    {
+      id: 'monitor' as const,
+      name: 'Monitora Bi2B',
+      icon: Shield,
+      tagline: 'CNDs & Alertas Preventivos',
+      desc: 'Varredura automática de certidões negativas e obrigações federais, estaduais e municipais.',
+    },
+    {
+      id: 'connect' as const,
+      name: 'Bi2B Chamados',
+      icon: MessageSquare,
+      tagline: 'Suporte Contábil Realtime',
+      desc: 'Comunicação direta com o suporte contábil com histórico completo e status de chamados.',
+    },
+    {
+      id: 'task' as const,
+      name: 'Tarefas Bi2B',
+      icon: Activity,
+      tagline: 'Gestão de Guias e Prazos',
+      desc: 'Painel visual de controle de impostos (DAS, ISS, FGTS) com aviso de datas limite.',
+    },
+    {
+      id: 'drive' as const,
+      name: 'Bi2B Drive',
+      icon: FolderOpen,
+      tagline: 'Gestão de Arquivos Criptografados',
+      desc: 'Armazenamento organizado por pastas (Fiscal, RH, Societário) com busca por tag.',
+    },
+  ]
+
   return (
     <motion.section
-      id="funcionalidades"
+      id="solucoes"
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: '-100px' }}
       variants={staggerContainer}
       className={cn(
-        "py-28 border-b relative",
-        isDark ? "border-cyan-950/40" : "border-slate-200"
+        "py-28 border-b relative overflow-hidden",
+        isDark ? "bg-[#040914] border-white/10" : "bg-slate-50 border-slate-200"
       )}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
+        {/* Header da Seção */}
         <motion.div variants={fadeInUp} className="text-center space-y-4 mb-16">
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400">Ecossistema Modular</span>
-          <h2 className={cn("font-heading text-3xl sm:text-4xl font-extrabold", isDark ? "text-white" : "text-slate-900")}>
-            Conheça os Módulos do Portal
+          <span className={cn(
+            "inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] shadow-md",
+            isDark ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300" : "border-[#0d6084]/20 bg-[#0d6084]/5 text-[#0d6084]"
+          )}>
+            <Layers className="w-3.5 h-3.5 text-cyan-400" />
+            Ecossistema Integrado de Soluções
+          </span>
+          <h2 className={cn("font-sans text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-balance", isDark ? "text-white" : "text-slate-900")}>
+            Soluções conectadas em um único portal
           </h2>
-          <p className={cn("max-w-xl mx-auto text-sm", isDark ? "text-slate-400" : "text-slate-500")}>
-            Gerencie suas demandas, notas e impostos de forma modular. Ative apenas o que sua operação precisa.
+          <p className={cn("max-w-2xl mx-auto text-sm sm:text-base leading-relaxed text-balance", isDark ? "text-slate-300/90" : "text-slate-600")}>
+            Tudo o que sua empresa e seu escritório contábil precisam para operar em sintonia, sem dispersão de dados ou ruído de comunicação.
           </p>
+        </motion.div>
 
-          {/* Seletores das Abas */}
-          <div className="flex flex-wrap justify-center gap-3 pt-6 max-w-4xl mx-auto relative z-10">
-            {[
-              { id: 'xml', label: 'Guias Bi2B', icon: FileCode2 },
-              { id: 'monitor', label: 'Monitora Bi2B', icon: Shield },
-              { id: 'connect', label: 'Bi2B Chamados', icon: MessageSquare },
-              { id: 'task', label: 'Tarefas Bi2B', icon: Activity },
-              { id: 'drive', label: 'Bi2B Drive', icon: FolderOpen },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+        {/* GRAFO DO ECOSSISTEMA INTERATIVO (100% PRESERVADO INTEGRALMENTE) + APRESENTAÇÃO */}
+        <div className="grid lg:grid-cols-12 gap-12 items-center mb-16">
+          
+          {/* Grafo do Ecossistema Interativo (Coluna Esquerda/Topo) */}
+          <motion.div
+            variants={scaleIn}
+            className="lg:col-span-6 relative flex justify-center items-center"
+          >
+            {/* Outer rotating light circle */}
+            <div className={cn("absolute inset-0 -m-8 border rounded-full animate-[spin_40s_linear_infinite]", isDark ? "border-cyan-500/10" : "border-slate-200/60")} />
+            <div className={cn("absolute inset-0 -m-16 border border-dashed rounded-full animate-[spin_60s_linear_infinite]", isDark ? "border-cyan-500/10" : "border-slate-200/50")} />
+
+            {/* Grafo do Ecossistema Interativo Preservado */}
+            <div 
+              className={cn(
+                "relative w-full aspect-square max-w-[420px] rounded-3xl border p-6 backdrop-blur-2xl flex items-center justify-center hover-elevate shadow-2xl",
+                isDark 
+                  ? "bg-[#040914]/80 border-cyan-500/20 bi2b-border-glow shadow-cyan-950/30" 
+                  : "bg-white border-slate-200/90 shadow-2xl shadow-slate-200/60"
+              )}
+            >
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 400">
+                {/* Linhas Conectoras Centrais */}
+                <motion.line x1="200" y1="200" x2="200" y2="70" stroke={isDark ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
+                <motion.line x1="200" y1="200" x2="310" y2="150" stroke={isDark ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
+                <motion.line x1="200" y1="200" x2="270" y2="300" stroke={isDark ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
+                <motion.line x1="200" y1="200" x2="130" y2="300" stroke={isDark ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
+                <motion.line x1="200" y1="200" x2="90" y2="150" stroke={isDark ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
+
+                {/* Sinais luminosos em movimento */}
+                <motion.circle r="4" fill={isDark ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 200], cy: [200, 70] }} transition={{ repeat: Infinity, duration: 2.2, ease: 'linear' }} />
+                <motion.circle r="4" fill={isDark ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 310], cy: [200, 150] }} transition={{ repeat: Infinity, duration: 2.5, ease: 'linear' }} />
+                <motion.circle r="4" fill={isDark ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 270], cy: [200, 300] }} transition={{ repeat: Infinity, duration: 2.8, ease: 'linear' }} />
+                <motion.circle r="4" fill={isDark ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 130], cy: [200, 300] }} transition={{ repeat: Infinity, duration: 2.6, ease: 'linear' }} />
+                <motion.circle r="4" fill={isDark ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 90], cy: [200, 150] }} transition={{ repeat: Infinity, duration: 2.4, ease: 'linear' }} />
+              </svg>
+
+              {/* Nó Central Bi2B */}
+              <div 
+                className={cn(
+                  "absolute w-20 h-20 rounded-full bg-gradient-to-br from-[#0d6084] to-[#0a4a62] border flex flex-col items-center justify-center shadow-xl z-10 p-2 cursor-pointer transition-transform hover:scale-110",
+                  isDark ? "border-cyan-400/40 shadow-cyan-500/20" : "border-cyan-400/30 shadow-slate-300"
+                )}
+              >
+                <img src={bpontoPng} alt="Bi2B Icon" className="h-10 w-10 object-contain animate-pulse" />
+                <span className="text-[8px] font-bold tracking-wider uppercase text-cyan-300 mt-0.5">Bi2B</span>
+              </div>
+
+              {/* Satellite Node 1: Guias Bi2B */}
+              <div 
+                onClick={() => setActiveTab('xml')}
+                className="absolute top-6 flex flex-col items-center gap-1 cursor-pointer group"
+              >
+                <div 
                   className={cn(
-                    'relative flex items-center gap-2 rounded-full px-5 py-3 text-xs font-bold uppercase tracking-wider border cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]',
+                    "w-12 h-12 rounded-xl border flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110",
+                    activeTab === 'xml'
+                      ? "bg-[#0d6084] border-cyan-400 text-white shadow-cyan-500/30"
+                      : (isDark ? "bg-[#08101d] border-cyan-500/20 text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084]")
+                  )}
+                >
+                  <FileCode2 className="h-5 w-5" />
+                </div>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'xml' ? "text-cyan-400" : (isDark ? "text-slate-300" : "text-slate-700"))}>Guias Bi2B</span>
+              </div>
+
+              {/* Satellite Node 2: Monitora Bi2B */}
+              <div 
+                onClick={() => setActiveTab('monitor')}
+                className="absolute right-6 top-[28%] flex flex-col items-center gap-1 cursor-pointer group"
+              >
+                <div 
+                  className={cn(
+                    "w-12 h-12 rounded-xl border flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110",
+                    activeTab === 'monitor'
+                      ? "bg-[#0d6084] border-cyan-400 text-white shadow-cyan-500/30"
+                      : (isDark ? "bg-[#08101d] border-cyan-500/20 text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084]")
+                  )}
+                >
+                  <Shield className="h-5 w-5" />
+                </div>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'monitor' ? "text-cyan-400" : (isDark ? "text-slate-300" : "text-slate-700"))}>Monitora Bi2B</span>
+              </div>
+
+              {/* Satellite Node 3: Bi2B Chamados */}
+              <div 
+                onClick={() => setActiveTab('connect')}
+                className="absolute right-12 bottom-8 flex flex-col items-center gap-1 cursor-pointer group"
+              >
+                <div 
+                  className={cn(
+                    "w-12 h-12 rounded-xl border flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110",
+                    activeTab === 'connect'
+                      ? "bg-[#0d6084] border-cyan-400 text-white shadow-cyan-500/30"
+                      : (isDark ? "bg-[#08101d] border-cyan-500/20 text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084]")
+                  )}
+                >
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'connect' ? "text-cyan-400" : (isDark ? "text-slate-300" : "text-slate-700"))}>Bi2B Chamados</span>
+              </div>
+
+              {/* Satellite Node 4: Tarefas Bi2B */}
+              <div 
+                onClick={() => setActiveTab('task')}
+                className="absolute left-12 bottom-8 flex flex-col items-center gap-1 cursor-pointer group"
+              >
+                <div 
+                  className={cn(
+                    "w-12 h-12 rounded-xl border flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110",
+                    activeTab === 'task'
+                      ? "bg-[#0d6084] border-cyan-400 text-white shadow-cyan-500/30"
+                      : (isDark ? "bg-[#08101d] border-cyan-500/20 text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084]")
+                  )}
+                >
+                  <Activity className="h-5 w-5" />
+                </div>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'task' ? "text-cyan-400" : (isDark ? "text-slate-300" : "text-slate-700"))}>Tarefas Bi2B</span>
+              </div>
+
+              {/* Satellite Node 5: Bi2B Drive */}
+              <div 
+                onClick={() => setActiveTab('drive')}
+                className="absolute left-6 top-[28%] flex flex-col items-center gap-1 cursor-pointer group"
+              >
+                <div 
+                  className={cn(
+                    "w-12 h-12 rounded-lg border flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110",
+                    activeTab === 'drive'
+                      ? "bg-[#0d6084] border-cyan-400 text-white shadow-cyan-500/30"
+                      : (isDark ? "bg-[#08101d] border-cyan-500/20 text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084]")
+                  )}
+                >
+                  <FolderOpen className="h-5 w-5" />
+                </div>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'drive' ? "text-cyan-400" : (isDark ? "text-slate-300" : "text-slate-700"))}>Bi2B Drive</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Cards Conectados do Ecossistema — HubStrom Style */}
+          <div className="lg:col-span-6 space-y-4">
+            {modulesList.map((m) => {
+              const isActive = activeTab === m.id
+              return (
+                <motion.div
+                  key={m.id}
+                  onClick={() => setActiveTab(m.id)}
+                  className={cn(
+                    "rounded-2xl border p-5 transition-all duration-300 cursor-pointer flex items-start gap-4 hover:-translate-y-0.5 relative overflow-hidden backdrop-blur-xl shadow-lg",
                     isActive
-                      ? 'border-cyan-500/40 text-white shadow-md shadow-cyan-950/20'
-                      : (isDark 
-                          ? "bg-slate-900/50 border-slate-800 text-slate-400 hover:text-white" 
-                          : "bg-white border-slate-200 text-slate-500 hover:text-slate-800")
+                      ? (isDark
+                          ? "bg-[#08152b] border-cyan-400 shadow-[0_8px_30px_rgba(13,96,132,0.3)]"
+                          : "bg-white border-[#0d6084] shadow-xl shadow-slate-200/60")
+                      : (isDark
+                          ? "bg-[#040914]/70 border-white/10 hover:border-cyan-400/30"
+                          : "bg-white/80 border-slate-200/80 hover:border-slate-300")
                   )}
                 >
                   {isActive && (
-                    <motion.span
-                      layoutId="activeTabPill"
-                      className="absolute inset-0 bg-gradient-to-r from-[#0d6084] to-[#0a4a62] rounded-full -z-10"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 to-[#0d6084]" />
                   )}
-                  <tab.icon className="h-4 w-4 relative z-10" />
-                  <span className="relative z-10">{tab.label}</span>
-                </button>
-              );
+
+                  <div className={cn(
+                    "w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 transition-transform duration-300",
+                    isActive
+                      ? "bg-gradient-to-br from-[#0d6084] to-[#0a4a62] border-cyan-400/40 text-cyan-200 shadow-md"
+                      : (isDark ? "bg-white/5 border-white/10 text-cyan-400" : "bg-cyan-50 border-cyan-200 text-[#0d6084]")
+                  )}>
+                    <m.icon className="h-5 w-5" />
+                  </div>
+
+                  <div className="flex-1 min-w-0 text-left">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className={cn("font-bold text-base", isDark ? "text-white" : "text-slate-900")}>
+                        {m.name}
+                      </h3>
+                      <span className={cn(
+                        "text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shrink-0",
+                        isActive
+                          ? "bg-cyan-500/20 border-cyan-400/40 text-cyan-300"
+                          : (isDark ? "bg-white/5 border-white/10 text-slate-400" : "bg-slate-100 border-slate-200 text-slate-600")
+                      )}>
+                        {m.tagline}
+                      </span>
+                    </div>
+
+                    <p className={cn("text-xs leading-relaxed mt-1.5", isDark ? "text-slate-300/90" : "text-slate-600")}>
+                      {m.desc}
+                    </p>
+
+                    <div className="pt-2 flex items-center gap-1 text-[11px] font-bold text-cyan-400 group">
+                      <span>Ver Demonstração Interativa</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </div>
+                  </div>
+                </motion.div>
+              )
             })}
           </div>
-        </motion.div>
 
-        {/* Conteúdo das Abas com Animação */}
+        </div>
+
+        {/* DEMONSTRAÇÃO INTERATIVA DO MÓDULO SELECIONADO */}
         <motion.div 
           variants={scaleIn}
           className={cn(
-            "rounded-3xl border p-6 sm:p-10 backdrop-blur-md shadow-xl max-w-6xl mx-auto min-h-[460px] flex items-center",
+            "rounded-3xl border p-6 sm:p-10 backdrop-blur-2xl shadow-2xl max-w-6xl mx-auto min-h-[460px] flex items-center transition-all duration-300",
             isDark 
-              ? "bg-[#08101d]/60 border-cyan-500/10 bi2b-border-glow shadow-cyan-950/40" 
-              : "bg-white border-slate-200 shadow-2xl shadow-slate-200/60"
+              ? "bg-[#040914]/80 border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] shadow-cyan-950/20" 
+              : "bg-white border-slate-200/90 shadow-2xl shadow-slate-200/60"
           )}
         >
           <AnimatePresence mode="wait">
@@ -511,7 +725,9 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
             )}
           </AnimatePresence>
         </motion.div>
+
       </div>
     </motion.section>
   )
 }
+

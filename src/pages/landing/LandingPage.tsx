@@ -16,10 +16,10 @@ import logoPng from '@/assets/logo.png'
 // ===== SECTIONS =====
 import { HeroSection } from './sections/HeroSection'
 import { MarqueeSection } from './sections/MarqueeSection'
-import { FeaturesSection } from './sections/FeaturesSection'
-import { SecuritySection } from './sections/SecuritySection'
 import { HowItWorksSection } from './sections/HowItWorksSection'
+import { FeaturesSection } from './sections/FeaturesSection'
 import { ProductivitySection } from './sections/ProductivitySection'
+import { TestimonialsSection } from './sections/TestimonialsSection'
 import { PricingSection } from './sections/PricingSection'
 import { FaqSection } from './sections/FaqSection'
 import { ContactSection } from './sections/ContactSection'
@@ -42,10 +42,10 @@ export function LandingPage() {
   }, [headerBg])
 
   const navItems = [
-    { label: 'Funcionalidades', href: '#funcionalidades' },
-    { label: 'Segurança', href: '#seguranca' },
     { label: 'Como Funciona', href: '#como-funciona' },
-    { label: 'Produtividade', href: '#produtividade' },
+    { label: 'Soluções', href: '#solucoes' },
+    { label: 'Resultados', href: '#resultados' },
+    { label: 'Depoimentos', href: '#depoimentos' },
     { label: 'Planos', href: '#planos' },
     { label: 'FAQ', href: '#faq' },
   ]
@@ -70,35 +70,35 @@ export function LandingPage() {
     <div
       className={cn(
         "min-h-screen font-sans relative overflow-x-hidden theme-transition-sync",
-        isDark ? "bg-[#050b14] text-slate-100 selection:bg-cyan-500 selection:text-slate-950" : "bg-slate-50 text-slate-900 selection:bg-[#0d6084]/20 selection:text-slate-900"
+        isDark ? "bg-[#040914] text-slate-100 selection:bg-cyan-500 selection:text-slate-950" : "bg-slate-50 text-slate-900 selection:bg-[#0d6084]/20 selection:text-slate-900"
       )}
     >
       
-      {/* Background Glows (Bi2B Identity) */}
+      {/* Background Glows (Bi2B Consultoria Identity) */}
       <div 
         className={cn(
-          "absolute top-0 left-1/4 h-[700px] w-[700px] -translate-x-1/2 rounded-full blur-[140px] -z-10 pointer-events-none",
-          isDark ? "bg-[#0d6084]/15" : "bg-[#0d6084]/5"
+          "absolute top-0 left-1/4 h-[750px] w-[750px] -translate-x-1/2 rounded-full blur-[150px] -z-10 pointer-events-none",
+          isDark ? "bg-[#0d6084]/25" : "bg-[#0d6084]/8"
         )} 
       />
       <div 
         className={cn(
-          "absolute top-[18%] right-1/4 h-[600px] w-[600px] rounded-full blur-[130px] -z-10 pointer-events-none",
-          isDark ? "bg-[#0d6084]/20" : "bg-[#38bdf8]/10"
+          "absolute top-[18%] right-1/4 h-[650px] w-[650px] rounded-full blur-[140px] -z-10 pointer-events-none",
+          isDark ? "bg-[#0a4a62]/30" : "bg-[#38bdf8]/12"
         )} 
       />
       <div 
         className={cn(
-          "absolute bottom-[20%] left-1/3 h-[800px] w-[800px] rounded-full blur-[160px] -z-10 pointer-events-none",
-          isDark ? "bg-[#0a4a62]/10" : "bg-[#0d6084]/5"
+          "absolute bottom-[20%] left-1/3 h-[850px] w-[850px] rounded-full blur-[170px] -z-10 pointer-events-none",
+          isDark ? "bg-[#0d6084]/20" : "bg-[#0d6084]/8"
         )} 
       />
       
-      {/* Dot Grid Background Overlay */}
+      {/* Grid Pattern Background Overlay */}
       <div 
         className={cn(
           "absolute inset-0 grid-pattern pointer-events-none",
-          isDark ? "opacity-40" : "opacity-25"
+          isDark ? "opacity-30" : "opacity-20"
         )} 
       />
 
@@ -111,26 +111,28 @@ export function LandingPage() {
       >
         <div 
           className={cn(
-            "mx-auto max-w-7xl rounded-full px-6 py-3 flex items-center justify-between border",
-            headerOpacity > 0.3
+            "mx-auto max-w-7xl rounded-full px-6 py-3 flex items-center justify-between transition-all duration-300 border backdrop-blur-xl",
+            headerOpacity > 0.1
               ? (isDark 
-                  ? "bg-[#050b14]/85 border-cyan-500/15 backdrop-blur-md shadow-lg shadow-cyan-950/20" 
-                  : "bg-white/90 border-slate-200 backdrop-blur-md shadow-lg shadow-slate-200/40")
-              : "bg-transparent border-transparent"
+                  ? "bg-[#040914]/85 border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] shadow-cyan-950/20" 
+                  : "bg-white/90 border-slate-200/80 shadow-lg shadow-slate-200/40")
+              : (isDark
+                  ? "bg-[#040914]/40 border-white/5"
+                  : "bg-white/40 border-slate-200/40")
           )}
         >
-          <div className="flex items-center cursor-pointer" onClick={() => navigate(ROUTES.HOME)}>
+          <div className="flex items-center cursor-pointer transition-transform hover:scale-105" onClick={() => navigate(ROUTES.HOME)}>
             <img src={logoPng} alt={APP_NAME} className="h-8 w-auto object-contain" />
           </div>
 
-          <nav className="hidden lg:flex items-center gap-5">
+          <nav className="hidden lg:flex items-center gap-1 bg-white/[0.03] border border-white/10 rounded-full px-3 py-1.5 backdrop-blur-md">
             {navItems.map((item) => (
               <button
                 key={item.href}
                 onClick={() => scrollTo(item.href)}
                 className={cn(
-                  "font-semibold text-xs uppercase tracking-wider cursor-pointer nav-link-hover py-1 transition-colors duration-200",
-                  isDark ? "text-slate-300 hover:text-cyan-400" : "text-slate-600 hover:text-[#0d6084]"
+                  "font-bold text-[11px] uppercase tracking-[0.18em] cursor-pointer px-4 py-1.5 rounded-full transition-all duration-300",
+                  isDark ? "text-slate-300 hover:text-white hover:bg-white/10" : "text-slate-600 hover:text-[#0d6084] hover:bg-slate-200/60"
                 )}
               >
                 {item.label}
@@ -142,25 +144,25 @@ export function LandingPage() {
             <button
               onClick={toggleTheme}
               className={cn(
-                "rounded-full p-2 cursor-pointer transition-all duration-300 hover:scale-110",
-                isDark ? "text-slate-400 hover:bg-slate-800/50 hover:text-cyan-400" : "text-slate-500 hover:bg-slate-200 hover:text-[#0d6084]"
+                "rounded-full p-2 cursor-pointer transition-all duration-300 border border-white/10 hover:scale-110",
+                isDark ? "text-slate-300 bg-white/5 hover:bg-white/10 hover:text-cyan-300" : "text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-[#0d6084]"
               )}
               title="Alternar Tema"
             >
-              {isDark ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <button
               onClick={handleClientLogin}
               className={cn(
-                "hidden lg:block px-5 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95",
-                isDark ? "text-slate-300 hover:text-cyan-400" : "text-slate-600 hover:text-[#0d6084]"
+                "hidden lg:inline-flex items-center justify-center px-5 py-2 rounded-full border border-white/15 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all duration-300 hover:border-white/30 hover:scale-105 active:scale-95",
+                isDark ? "bg-white/5 text-slate-200 hover:bg-white/10" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               )}
             >
               Entrar
             </button>
             <button
               onClick={handleClientRegister}
-              className="hidden lg:block bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:brightness-110 border border-cyan-500/20 text-white font-bold text-xs uppercase tracking-wider px-6 py-2.5 rounded-full shadow-lg shadow-cyan-950/40 hover-elevate active-elevate-2 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+              className="hidden lg:inline-flex items-center justify-center bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] border border-cyan-400/30 text-white font-bold text-xs uppercase tracking-wider px-6 py-2.5 rounded-full shadow-[0_8px_25px_rgba(13,96,132,0.35)] hover:shadow-[0_12px_35px_rgba(13,96,132,0.5)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95 cursor-pointer"
             >
               Teste Grátis!
             </button>
@@ -171,11 +173,11 @@ export function LandingPage() {
             <button 
               onClick={() => setMobileMenu(!mobileMenu)}
               className={cn(
-                "p-2 cursor-pointer",
-                isDark ? "text-slate-300 hover:text-cyan-400" : "text-slate-700 hover:text-[#0d6084]"
+                "p-2 rounded-full border border-white/10 cursor-pointer",
+                isDark ? "text-slate-300 bg-white/5" : "text-slate-700 bg-slate-100"
               )}
             >
-              {mobileMenu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {mobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
@@ -188,8 +190,8 @@ export function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               className={cn(
-                "absolute left-4 right-4 top-20 rounded-2xl border p-6 backdrop-blur-xl shadow-2xl flex flex-col gap-4 lg:hidden",
-                isDark ? "border-cyan-500/10 bg-[#050b14]/95" : "border-slate-200 bg-white/95 text-slate-800"
+                "absolute left-4 right-4 top-20 rounded-2xl border p-6 backdrop-blur-2xl shadow-2xl flex flex-col gap-4 lg:hidden",
+                isDark ? "border-white/15 bg-[#040914]/95 text-slate-100 shadow-cyan-950/30" : "border-slate-200 bg-white/95 text-slate-800"
               )}
             >
               {navItems.map((item) => (
@@ -197,27 +199,27 @@ export function LandingPage() {
                   key={item.href}
                   onClick={() => scrollTo(item.href)}
                   className={cn(
-                    "block w-full py-2.5 text-left text-sm font-semibold uppercase tracking-wider cursor-pointer",
-                    isDark ? "text-slate-300 hover:text-cyan-400" : "text-slate-700 hover:text-[#0d6084]"
+                    "block w-full py-2.5 text-left text-xs font-bold uppercase tracking-widest cursor-pointer transition-colors",
+                    isDark ? "text-slate-300 hover:text-cyan-300" : "text-slate-700 hover:text-[#0d6084]"
                   )}
                 >
                   {item.label}
                 </button>
               ))}
-              <div className={cn("h-px my-2", isDark ? "bg-slate-800/60" : "bg-slate-200")} />
-              <div className="flex flex-col gap-2">
+              <div className={cn("h-px my-2", isDark ? "bg-white/10" : "bg-slate-200")} />
+              <div className="flex flex-col gap-3">
                 <button
                   onClick={() => { setMobileMenu(false); handleClientLogin() }}
                   className={cn(
-                    "w-full rounded-full py-3 text-center text-xs font-bold uppercase tracking-wider cursor-pointer border",
-                    isDark ? "border-slate-700 text-slate-300" : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                    "w-full rounded-full py-3 text-center text-xs font-bold uppercase tracking-wider cursor-pointer border transition-all",
+                    isDark ? "border-white/20 bg-white/5 text-slate-200 hover:bg-white/10" : "border-slate-300 text-slate-700 hover:bg-slate-50"
                   )}
                 >
                   Entrar
                 </button>
                 <button
                   onClick={() => { setMobileMenu(false); handleClientRegister() }}
-                  className="w-full rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] border border-cyan-500/20 py-3 text-center text-xs font-bold uppercase tracking-wider text-white cursor-pointer"
+                  className="w-full rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] border border-cyan-400/30 py-3 text-center text-xs font-bold uppercase tracking-wider text-white shadow-[0_8px_25px_rgba(13,96,132,0.35)] cursor-pointer"
                 >
                   Criar Conta
                 </button>
@@ -227,13 +229,13 @@ export function LandingPage() {
         </AnimatePresence>
       </header>
 
-      {/* ===== PAGE SECTIONS ===== */}
+      {/* ===== PAGE SECTIONS (Ordem Proposta: Hero → Prova Social → Como Funciona → Soluções/Ecossistema → Resultados → Depoimentos → Planos → FAQ → CTA Final → Footer) ===== */}
       <HeroSection isDark={isDark} />
       <MarqueeSection isDark={isDark} />
-      <FeaturesSection isDark={isDark} />
-      <SecuritySection isDark={isDark} />
       <HowItWorksSection isDark={isDark} />
+      <FeaturesSection isDark={isDark} />
       <ProductivitySection isDark={isDark} />
+      <TestimonialsSection isDark={isDark} />
       <PricingSection isDark={isDark} />
       <FaqSection isDark={isDark} />
       <ContactSection isDark={isDark} />
@@ -241,3 +243,4 @@ export function LandingPage() {
     </div>
   )
 }
+

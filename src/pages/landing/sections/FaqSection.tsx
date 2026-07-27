@@ -39,37 +39,44 @@ export function FaqSection({ isDark }: FaqSectionProps) {
       viewport={{ once: true, margin: '-100px' }}
       variants={staggerContainer}
       className={cn(
-        "py-28 border-b relative",
-        isDark ? "border-cyan-950/40" : "border-slate-200"
+        "py-28 border-b relative overflow-hidden",
+        isDark ? "bg-[#040914]/60 border-white/10" : "bg-slate-100/50 border-slate-200"
       )}
     >
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center space-y-12">
         <motion.div variants={fadeInUp} className="space-y-4">
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400">Dúvidas Frequentes</span>
-          <h2 className={cn("font-heading text-3xl sm:text-4xl font-extrabold", isDark ? "text-white" : "text-slate-900")}>
+          <span className={cn(
+            "inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(13,96,132,0.2)]",
+            isDark ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300" : "border-[#0d6084]/20 bg-[#0d6084]/5 text-[#0d6084]"
+          )}>
+            Dúvidas Frequentes
+          </span>
+          <h2 className={cn("font-sans text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight", isDark ? "text-white" : "text-slate-900")}>
             Perguntas Frequentes
           </h2>
         </motion.div>
 
-        <div className="space-y-3 text-left">
+        <div className="space-y-4 text-left">
           {faqData.map((faq, i) => (
             <motion.div
               key={i}
               variants={fadeInUp}
               className={cn(
-                "rounded-2xl border overflow-hidden hover:border-cyan-500/30 transition-all duration-300",
-                isDark ? "border-cyan-500/5 bg-[#08101d]/50" : "border-slate-200 bg-white shadow-md shadow-slate-100/50"
+                "rounded-3xl border overflow-hidden backdrop-blur-2xl transition-all duration-300 shadow-xl",
+                isDark 
+                  ? "border-white/10 bg-[#040914]/70 hover:border-cyan-400/30 shadow-[0_10px_30px_rgba(0,0,0,0.4)]" 
+                  : "border-slate-200 bg-white shadow-md shadow-slate-100/50 hover:border-slate-300"
               )}
             >
               <button
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 className={cn(
-                  "flex w-full items-center justify-between px-6 py-5 text-left text-sm font-semibold cursor-pointer",
-                  isDark ? "text-slate-200 hover:text-white" : "text-slate-700 hover:text-slate-900"
+                  "flex w-full items-center justify-between px-7 py-5 text-left text-sm font-bold cursor-pointer transition-colors",
+                  isDark ? "text-slate-200 hover:text-cyan-300" : "text-slate-700 hover:text-[#0d6084]"
                 )}
               >
-                <span className="pr-4">{faq.q}</span>
-                <ChevronDown className={cn("h-4.5 w-4.5 shrink-0 transition-transform duration-300", openFaq === i ? "rotate-180 text-cyan-400" : "text-slate-500")} />
+                <span className="pr-4 leading-snug">{faq.q}</span>
+                <ChevronDown className={cn("h-5 w-5 shrink-0 transition-transform duration-300", openFaq === i ? "rotate-180 text-cyan-400" : "text-slate-400")} />
               </button>
               <AnimatePresence initial={false}>
                 {openFaq === i && (
@@ -80,8 +87,8 @@ export function FaqSection({ isDark }: FaqSectionProps) {
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     className="overflow-hidden"
                   >
-                    <div className={cn("px-6 pb-5 pt-1 border-t", isDark ? "border-slate-800/60" : "border-slate-100")}>
-                      <p className={cn("text-xs leading-relaxed pt-3.5", isDark ? "text-slate-400" : "text-slate-500")}>{faq.a}</p>
+                    <div className={cn("px-7 pb-6 pt-1 border-t", isDark ? "border-white/10" : "border-slate-100")}>
+                      <p className={cn("text-xs sm:text-sm leading-relaxed pt-3", isDark ? "text-slate-300/90" : "text-slate-600")}>{faq.a}</p>
                     </div>
                   </motion.div>
                 )}

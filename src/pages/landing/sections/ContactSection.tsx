@@ -64,8 +64,8 @@ export function ContactSection({ isDark }: ContactSectionProps) {
       viewport={{ once: true, margin: '-100px' }}
       variants={staggerContainer}
       className={cn(
-        "py-28 relative",
-        isDark ? "bg-[#0b1329]/40" : "bg-slate-100/50"
+        "py-28 relative overflow-hidden",
+        isDark ? "bg-[#040914]/40" : "bg-slate-100/50"
       )}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -73,41 +73,46 @@ export function ContactSection({ isDark }: ContactSectionProps) {
           
           {/* Texto Informativo */}
           <motion.div variants={fadeInUp} className="lg:col-span-5 text-left space-y-6">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400">Atendimento Imediato</span>
-            <h2 className={cn("font-heading text-3xl sm:text-4xl font-extrabold leading-tight", isDark ? "text-white" : "text-slate-900")}>
+            <span className={cn(
+              "inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(13,96,132,0.2)]",
+              isDark ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300" : "border-[#0d6084]/20 bg-[#0d6084]/5 text-[#0d6084]"
+            )}>
+              Atendimento Imediato
+            </span>
+            <h2 className={cn("font-sans text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight tracking-tight", isDark ? "text-white" : "text-slate-900")}>
               Solicite uma demonstração da plataforma
             </h2>
-            <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
+            <p className={cn("text-sm sm:text-base leading-relaxed", isDark ? "text-slate-300/90" : "text-slate-600")}>
               Descubra em primeira mão como o ecossistema do Portal Bi2B agiliza o fluxo de notas fiscais, certidões federais e atendimento contábil.
             </p>
 
             <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <div
                   className={cn(
-                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
-                    isDark ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400" : "bg-cyan-50 border-cyan-200 text-[#0d6084]"
+                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border shadow-inner",
+                    isDark ? "bg-gradient-to-br from-[#0d6084] to-[#0a4a62] border-cyan-400/30 text-cyan-200 shadow-[0_6px_20px_rgba(13,96,132,0.3)]" : "bg-cyan-50 border-cyan-200 text-[#0d6084]"
                   )}
                 >
                   <Phone className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Contato Comercial</p>
-                  <p className={cn("text-sm font-semibold", isDark ? "text-slate-200" : "text-slate-700")}>(11) 99999-9999</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Contato Comercial</p>
+                  <p className={cn("text-base font-bold", isDark ? "text-white" : "text-slate-800")}>(11) 99999-9999</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <div
                   className={cn(
-                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
-                    isDark ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400" : "bg-cyan-50 border-cyan-200 text-[#0d6084]"
+                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border shadow-inner",
+                    isDark ? "bg-gradient-to-br from-[#0d6084] to-[#0a4a62] border-cyan-400/30 text-cyan-200 shadow-[0_6px_20px_rgba(13,96,132,0.3)]" : "bg-cyan-50 border-cyan-200 text-[#0d6084]"
                   )}
                 >
                   <Mail className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">E-mail Corporativo</p>
-                  <p className={cn("text-sm font-semibold", isDark ? "text-slate-200" : "text-slate-700")}>comercial@bi2b.com.br</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">E-mail Corporativo</p>
+                  <p className={cn("text-base font-bold", isDark ? "text-white" : "text-slate-800")}>comercial@bi2b.com.br</p>
                 </div>
               </div>
             </div>
@@ -117,13 +122,13 @@ export function ContactSection({ isDark }: ContactSectionProps) {
           <motion.div variants={scaleIn} className="lg:col-span-7">
             <div
               className={cn(
-                "rounded-3xl border p-8 shadow-2xl backdrop-blur-md max-w-xl mx-auto",
+                "rounded-3xl border p-8 sm:p-10 shadow-2xl backdrop-blur-2xl max-w-xl mx-auto transition-all duration-300",
                 isDark
-                  ? "bg-[#08101d]/90 glass-bi2b bi2b-border-glow border-cyan-500/10 shadow-cyan-950/30"
+                  ? "bg-[#040914]/80 border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] shadow-cyan-950/20"
                   : "bg-white border-slate-200/80 shadow-2xl shadow-slate-200/50"
               )}
             >
-              <form onSubmit={handleLeadSubmit} className="space-y-4">
+              <form onSubmit={handleLeadSubmit} className="space-y-5">
                 {/* Honeypot protection */}
                 <div className="hidden" aria-hidden="true">
                   <input
@@ -136,9 +141,9 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                   />
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-5 sm:grid-cols-2">
                   <div className="text-left">
-                    <label htmlFor="lead-name" className={cn("block text-[10px] font-bold uppercase tracking-wider mb-1.5", isDark ? "text-slate-400" : "text-slate-600")}>Nome Completo *</label>
+                    <label htmlFor="lead-name" className={cn("block text-[11px] font-bold uppercase tracking-wider mb-2", isDark ? "text-slate-300" : "text-slate-700")}>Nome Completo *</label>
                     <input
                       id="lead-name"
                       type="text"
@@ -147,15 +152,15 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                       value={leadName}
                       onChange={(e) => setLeadName(e.target.value)}
                       className={cn(
-                        "w-full rounded-lg border px-4 py-3 text-xs placeholder:text-slate-500 focus:outline-none transition-all font-mono input-glow-focus",
+                        "w-full rounded-xl border px-4 py-3.5 text-xs placeholder:text-slate-500 focus:outline-none transition-all duration-300",
                         isDark
-                          ? "border-slate-800 bg-[#050b14]/90 text-white"
-                          : "border-slate-200 bg-slate-50 text-slate-900 focus:bg-white"
+                          ? "border-white/10 bg-[#040914]/90 text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                          : "border-slate-200 bg-slate-50 text-slate-900 focus:bg-white focus:border-[#0d6084]"
                       )}
                     />
                   </div>
                   <div className="text-left">
-                    <label htmlFor="lead-email" className={cn("block text-[10px] font-bold uppercase tracking-wider mb-1.5", isDark ? "text-slate-400" : "text-slate-600")}>E-mail Corporativo *</label>
+                    <label htmlFor="lead-email" className={cn("block text-[11px] font-bold uppercase tracking-wider mb-2", isDark ? "text-slate-300" : "text-slate-700")}>E-mail Corporativo *</label>
                     <input
                       id="lead-email"
                       type="email"
@@ -164,18 +169,18 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                       value={leadEmail}
                       onChange={(e) => setLeadEmail(e.target.value)}
                       className={cn(
-                        "w-full rounded-lg border px-4 py-3 text-xs placeholder:text-slate-500 focus:outline-none transition-all font-mono input-glow-focus",
+                        "w-full rounded-xl border px-4 py-3.5 text-xs placeholder:text-slate-500 focus:outline-none transition-all duration-300",
                         isDark
-                          ? "border-slate-800 bg-[#050b14]/90 text-white"
-                          : "border-slate-200 bg-slate-50 text-slate-900 focus:bg-white"
+                          ? "border-white/10 bg-[#040914]/90 text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                          : "border-slate-200 bg-slate-50 text-slate-900 focus:bg-white focus:border-[#0d6084]"
                       )}
                     />
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-5 sm:grid-cols-2">
                   <div className="text-left">
-                    <label htmlFor="lead-phone" className={cn("block text-[10px] font-bold uppercase tracking-wider mb-1.5", isDark ? "text-slate-400" : "text-slate-600")}>WhatsApp / Celular *</label>
+                    <label htmlFor="lead-phone" className={cn("block text-[11px] font-bold uppercase tracking-wider mb-2", isDark ? "text-slate-300" : "text-slate-700")}>WhatsApp / Celular *</label>
                     <input
                       id="lead-phone"
                       type="tel"
@@ -184,15 +189,15 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                       value={leadPhone}
                       onChange={(e) => setLeadPhone(e.target.value)}
                       className={cn(
-                        "w-full rounded-lg border px-4 py-3 text-xs placeholder:text-slate-500 focus:outline-none transition-all font-mono input-glow-focus",
+                        "w-full rounded-xl border px-4 py-3.5 text-xs placeholder:text-slate-500 focus:outline-none transition-all duration-300",
                         isDark
-                          ? "border-slate-800 bg-[#050b14]/90 text-white"
-                          : "border-slate-200 bg-slate-50 text-slate-900 focus:bg-white"
+                          ? "border-white/10 bg-[#040914]/90 text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                          : "border-slate-200 bg-slate-50 text-slate-900 focus:bg-white focus:border-[#0d6084]"
                       )}
                     />
                   </div>
                   <div className="text-left">
-                    <label htmlFor="lead-cnpj" className={cn("block text-[10px] font-bold uppercase tracking-wider mb-1.5", isDark ? "text-slate-400" : "text-slate-600")}>CNPJ da Empresa</label>
+                    <label htmlFor="lead-cnpj" className={cn("block text-[11px] font-bold uppercase tracking-wider mb-2", isDark ? "text-slate-300" : "text-slate-700")}>CNPJ da Empresa</label>
                     <input
                       id="lead-cnpj"
                       type="text"
@@ -200,27 +205,27 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                       value={leadCnpj}
                       onChange={(e) => setLeadCnpj(e.target.value)}
                       className={cn(
-                        "w-full rounded-lg border px-4 py-3 text-xs focus:outline-none transition-all input-glow-focus",
+                        "w-full rounded-xl border px-4 py-3.5 text-xs placeholder:text-slate-500 focus:outline-none transition-all duration-300",
                         isDark
-                          ? "border-slate-800 bg-[#050b14]/90 text-white"
-                          : "border-slate-200 bg-slate-50 text-slate-900 focus:bg-white"
+                          ? "border-white/10 bg-[#040914]/90 text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                          : "border-slate-200 bg-slate-50 text-slate-900 focus:bg-white focus:border-[#0d6084]"
                       )}
                     />
                   </div>
                 </div>
 
-                <div className="pt-2 text-left space-y-3">
+                <div className="pt-2 text-left space-y-4">
                   <button
                     type="submit"
-                    className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] py-4 text-xs font-bold uppercase tracking-wider text-white border border-cyan-500/20 shadow-lg hover:brightness-110 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer hover:shadow-cyan-500/10"
+                    className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] py-4 text-xs font-bold uppercase tracking-wider text-white border border-cyan-400/30 shadow-[0_8px_25px_rgba(13,96,132,0.4)] hover:shadow-[0_12px_35px_rgba(13,96,132,0.55)] transition-all duration-300 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                   >
                     <Send className="h-4 w-4" />
                     Solicitar Demonstração Gratuita
                   </button>
                   {/* LGPD seal */}
-                  <div className="flex items-center justify-center gap-1.5">
-                    <ShieldCheck className={cn("h-3 w-3", isDark ? "text-cyan-500/60" : "text-slate-400")} />
-                    <span className={cn("text-[9px] font-medium", isDark ? "text-slate-500" : "text-slate-400")}>
+                  <div className="flex items-center justify-center gap-2">
+                    <ShieldCheck className={cn("h-4 w-4", isDark ? "text-cyan-400" : "text-[#0d6084]")} />
+                    <span className={cn("text-[10px] font-medium uppercase tracking-wider", isDark ? "text-slate-400" : "text-slate-500")}>
                       Seus dados estão protegidos pela LGPD (Lei nº 13.709/2018)
                     </span>
                   </div>
