@@ -16,11 +16,14 @@ export default defineConfig({
     open: true,
   },
   build: {
-    chunkSizeWarningLimit: 800,
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            if (id.includes('react/') || id.includes('react-dom/') || id.includes('react-router-dom/')) {
+              return 'vendor-react'
+            }
             if (id.includes('recharts') || id.includes('d3')) {
               return 'vendor-recharts'
             }
@@ -30,10 +33,13 @@ export default defineConfig({
             if (id.includes('lucide-react')) {
               return 'vendor-lucide'
             }
-            if (id.includes('@supabase') || id.includes('websocket')) {
+            if (id.includes('@supabase')) {
               return 'vendor-supabase'
             }
-            return 'vendor-core'
+            if (id.includes('@tanstack') || id.includes('react-query')) {
+              return 'vendor-query'
+            }
+            return 'vendor-utils'
           }
         },
       },

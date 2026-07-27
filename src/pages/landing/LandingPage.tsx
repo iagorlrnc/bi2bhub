@@ -74,22 +74,22 @@ export function LandingPage() {
       )}
     >
       
-      {/* Background Glows (Bi2B Consultoria Identity) */}
+      {/* Background Glows (Bi2B Consultoria Identity) - Otimizado para Mobile */}
       <div 
         className={cn(
-          "absolute top-0 left-1/4 h-[750px] w-[750px] -translate-x-1/2 rounded-full blur-[150px] -z-10 pointer-events-none",
+          "hidden md:block absolute top-0 left-1/4 h-[750px] w-[750px] -translate-x-1/2 rounded-full blur-[150px] -z-10 pointer-events-none",
           isDark ? "bg-[#0d6084]/25" : "bg-[#0d6084]/8"
         )} 
       />
       <div 
         className={cn(
-          "absolute top-[18%] right-1/4 h-[650px] w-[650px] rounded-full blur-[140px] -z-10 pointer-events-none",
+          "hidden md:block absolute top-[18%] right-1/4 h-[650px] w-[650px] rounded-full blur-[140px] -z-10 pointer-events-none",
           isDark ? "bg-[#0a4a62]/30" : "bg-[#38bdf8]/12"
         )} 
       />
       <div 
         className={cn(
-          "absolute bottom-[20%] left-1/3 h-[850px] w-[850px] rounded-full blur-[170px] -z-10 pointer-events-none",
+          "hidden md:block absolute bottom-[20%] left-1/3 h-[850px] w-[850px] rounded-full blur-[170px] -z-10 pointer-events-none",
           isDark ? "bg-[#0d6084]/20" : "bg-[#0d6084]/8"
         )} 
       />

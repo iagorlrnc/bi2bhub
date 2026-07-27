@@ -31,10 +31,10 @@ interface HeroSectionProps {
 export function HeroSection({ isDark }: HeroSectionProps) {
   return (
     <section className="relative pt-32 pb-16 px-4 sm:px-6 md:px-8 md:pt-40 lg:pt-44 md:pb-24 overflow-hidden">
-      {/* Dynamic Background Light Accents */}
+      {/* Dynamic Background Light Accents - Otimizado para Mobile */}
       <div 
         className={cn(
-          "absolute top-12 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full blur-[160px] pointer-events-none -z-10",
+          "hidden sm:block absolute top-12 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full blur-[160px] pointer-events-none -z-10",
           isDark ? "bg-gradient-to-tr from-cyan-500/15 via-[#0d6084]/20 to-transparent" : "bg-gradient-to-tr from-[#0d6084]/10 via-cyan-400/15 to-transparent"
         )} 
       />

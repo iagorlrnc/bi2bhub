@@ -113,7 +113,7 @@ export function AdminLayout() {
   const userInitial = profile?.full_name?.charAt(0)?.toUpperCase() ?? 'A'
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-900">
+    <div className="flex h-screen h-[100dvh] overflow-hidden bg-[#fafafa] dark:bg-slate-900">
       {/* Overlay Mobile */}
       {mobileOpen && (
         <div

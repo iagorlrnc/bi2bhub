@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ROUTES } from '@/constants/routes'
 import { AuthGuard, RoleGuard, GuestGuard, PermissionGuard } from '@/routes/guards'
@@ -10,37 +11,49 @@ import { AuthLayout } from '@/layouts/AuthLayout'
 import { ClientLayout } from '@/layouts/ClientLayout'
 import { AdminLayout } from '@/layouts/AdminLayout'
 
-// Páginas — Landing Page (Apresentação)
-import { LandingPage } from '@/pages/landing/LandingPage'
+// Loading Fallback super leve
+function PageLoader() {
+  return (
+    <div className="flex min-h-[50vh] w-full items-center justify-center p-4">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#0d6084] border-t-transparent dark:border-cyan-400" />
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Carregando...</span>
+      </div>
+    </div>
+  )
+}
 
-// Páginas — Autenticação
-import { LoginPage } from '@/pages/auth/LoginPage'
-import { AdminLoginPage } from '@/pages/auth/AdminLoginPage'
-import { RegisterPage } from '@/pages/auth/RegisterPage'
-import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
-import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
+// Páginas — Landing Page (Apresentação) - Lazy Loading
+const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })))
 
-// Páginas — Área do Cliente
-import { TaxesPage } from '@/pages/client/TaxesPage'
-import { TasksPage } from '@/pages/client/TasksPage.tsx'
-import { DrivePage } from '@/pages/client/DrivePage'
-import { TicketsPage } from '@/pages/client/TicketsPage'
-import { TeamPage } from '@/pages/client/TeamPage'
-import { SettingsPage } from '@/pages/client/SettingsPage'
-import { ProfilePage } from '@/pages/client/ProfilePage'
-import { NotificationsPage } from '@/pages/client/NotificationsPage'
+// Páginas — Autenticação - Lazy Loading
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then(m => ({ default: m.LoginPage })))
+const AdminLoginPage = lazy(() => import('@/pages/auth/AdminLoginPage').then(m => ({ default: m.AdminLoginPage })))
+const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then(m => ({ default: m.RegisterPage })))
+const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })))
+const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })))
 
-// Páginas — Área de Administração (Staff)
-import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
-import { CompaniesPage } from '@/pages/admin/CompaniesPage'
-import { UsersPage } from '@/pages/admin/UsersPage'
-import { StaffPage } from '@/pages/admin/StaffPage'
-import { AdminTicketsPage } from '@/pages/admin/AdminTicketsPage'
-import { AuditPage } from '@/pages/admin/AuditPage'
-import { AdminDrivePage } from '@/pages/admin/AdminDrivePage'
-import { AdminMonthlyPage } from '@/pages/admin/AdminMonthlyPage'
-import { AdminTaxesPage } from '@/pages/admin/AdminTaxesPage'
-import { AdminNotificationsPage } from '@/pages/admin/AdminNotificationsPage.tsx'
+// Páginas — Área do Cliente - Lazy Loading
+const TaxesPage = lazy(() => import('@/pages/client/TaxesPage').then(m => ({ default: m.TaxesPage })))
+const TasksPage = lazy(() => import('@/pages/client/TasksPage.tsx').then(m => ({ default: m.TasksPage })))
+const DrivePage = lazy(() => import('@/pages/client/DrivePage').then(m => ({ default: m.DrivePage })))
+const TicketsPage = lazy(() => import('@/pages/client/TicketsPage').then(m => ({ default: m.TicketsPage })))
+const TeamPage = lazy(() => import('@/pages/client/TeamPage').then(m => ({ default: m.TeamPage })))
+const SettingsPage = lazy(() => import('@/pages/client/SettingsPage').then(m => ({ default: m.SettingsPage })))
+const ProfilePage = lazy(() => import('@/pages/client/ProfilePage').then(m => ({ default: m.ProfilePage })))
+const NotificationsPage = lazy(() => import('@/pages/client/NotificationsPage').then(m => ({ default: m.NotificationsPage })))
+
+// Páginas — Área de Administração (Staff) - Lazy Loading
+const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })))
+const CompaniesPage = lazy(() => import('@/pages/admin/CompaniesPage').then(m => ({ default: m.CompaniesPage })))
+const UsersPage = lazy(() => import('@/pages/admin/UsersPage').then(m => ({ default: m.UsersPage })))
+const StaffPage = lazy(() => import('@/pages/admin/StaffPage').then(m => ({ default: m.StaffPage })))
+const AdminTicketsPage = lazy(() => import('@/pages/admin/AdminTicketsPage').then(m => ({ default: m.AdminTicketsPage })))
+const AuditPage = lazy(() => import('@/pages/admin/AuditPage').then(m => ({ default: m.AuditPage })))
+const AdminDrivePage = lazy(() => import('@/pages/admin/AdminDrivePage').then(m => ({ default: m.AdminDrivePage })))
+const AdminMonthlyPage = lazy(() => import('@/pages/admin/AdminMonthlyPage').then(m => ({ default: m.AdminMonthlyPage })))
+const AdminTaxesPage = lazy(() => import('@/pages/admin/AdminTaxesPage').then(m => ({ default: m.AdminTaxesPage })))
+const AdminNotificationsPage = lazy(() => import('@/pages/admin/AdminNotificationsPage.tsx').then(m => ({ default: m.AdminNotificationsPage })))
 
 // Componente para direcionar a raiz '/' conforme o subdomínio ativo
 function RootDomainHandler() {
@@ -203,7 +216,10 @@ function SubdomainRoutes() {
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <SubdomainRoutes />
+      <Suspense fallback={<PageLoader />}>
+        <SubdomainRoutes />
+      </Suspense>
     </BrowserRouter>
   )
 }
+

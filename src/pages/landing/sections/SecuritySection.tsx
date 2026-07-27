@@ -79,9 +79,9 @@ export function SecuritySection({ isDark }: SecuritySectionProps) {
         isDark ? "bg-[#040914]/40 border-white/10" : "bg-slate-100/50 border-slate-200/60"
       )}
     >
-      {/* Subtle background glow */}
+      {/* Subtle background glow - Otimizado para Mobile */}
       <div className={cn(
-        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[180px] pointer-events-none",
+        "hidden sm:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[180px] pointer-events-none",
         isDark ? "bg-cyan-500/10" : "bg-[#0d6084]/5"
       )} />
 
