@@ -9,61 +9,6 @@ export interface AuditLogParams {
   metadata?: Record<string, any>
 }
 
-let cachedIpPromise: Promise<string> | null = null
-
-/**
- * Obtém o endereço IP público real do dispositivo utilizado através de serviços de IP lookup.
- * O valor obtido é salvo no sessionStorage para otimizar chamadas subsequentes.
- */
-export async function getUserIP(): Promise<string> {
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    const storedIp = sessionStorage.getItem('bi2b_user_ip')
-    if (storedIp && storedIp !== '127.0.0.1' && storedIp !== 'Desconhecido') {
-      return storedIp
-    }
-  }
-
-  if (cachedIpPromise) {
-    return cachedIpPromise
-  }
-
-  cachedIpPromise = (async () => {
-    const services = [
-      { url: 'https://api.ipify.org?format=json', key: 'ip' },
-      { url: 'https://api64.ipify.org?format=json', key: 'ip' },
-      { url: 'https://ipapi.co/json/', key: 'ip' }
-    ]
-
-    for (const service of services) {
-      try {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 3000)
-
-        const response = await fetch(service.url, { signal: controller.signal })
-        clearTimeout(timeoutId)
-
-        if (response.ok) {
-          const data = await response.json()
-          const ip = data[service.key]
-          if (ip && typeof ip === 'string' && ip.trim().length >= 7) {
-            const cleanIp = ip.trim()
-            if (typeof window !== 'undefined' && window.sessionStorage) {
-              sessionStorage.setItem('bi2b_user_ip', cleanIp)
-            }
-            return cleanIp
-          }
-        }
-      } catch {
-        // Tentar próximo serviço se houver falha de rede/timeout
-      }
-    }
-
-    return '127.0.0.1'
-  })()
-
-  return cachedIpPromise
-}
-
 /**
  * Converte uma string de User-Agent do navegador em um modelo legível e amigável.
  * Exemplo: "Google Chrome 126 em Windows 10/11 (Desktop)"
@@ -149,12 +94,6 @@ export async function logAuditActivity({
     const rawUserAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown'
     const parsedUa = parseUserAgent(rawUserAgent)
 
-    // Obter IP real do dispositivo
-    let ipAddress = metadata?.ip_address
-    if (!ipAddress || ipAddress === '127.0.0.1') {
-      ipAddress = await getUserIP()
-    }
-
     const payload = {
       user_id: finalUserId,
       company_id: companyId || null,
@@ -168,7 +107,7 @@ export async function logAuditActivity({
         browser_name: parsedUa.browser,
         os_name: parsedUa.os,
         device_type: parsedUa.device,
-        ip_address: ipAddress,
+        ip_address: metadata?.ip_address || '127.0.0.1',
         timestamp: new Date().toISOString()
       }
     }
@@ -188,4 +127,3 @@ export async function logAuditActivity({
     return false
   }
 }
-

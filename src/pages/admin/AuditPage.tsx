@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
   ScrollText, Search, Eye, Terminal, Loader2, Download,
-  RefreshCw, Filter, X, ShieldAlert, LogIn, Edit3, Copy, Check, ChevronLeft, ChevronRight, AlertCircle, FileText, Globe
+  RefreshCw, Filter, X, ShieldAlert, LogIn, Edit3, Copy, Check, ChevronLeft, ChevronRight, AlertCircle, FileText
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
-import { parseUserAgent, getUserIP } from '@/lib/audit'
+import { parseUserAgent } from '@/lib/audit'
 import { toast } from 'sonner'
 
 export function AuditPage() {
@@ -13,7 +13,6 @@ export function AuditPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [currentDeviceIp, setCurrentDeviceIp] = useState<string>('')
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('')
@@ -64,9 +63,6 @@ export function AuditPage() {
 
   useEffect(() => {
     fetchLogs(false, false)
-    getUserIP().then(ip => {
-      if (ip) setCurrentDeviceIp(ip)
-    })
 
     const handleGlobalRefresh = () => {
       fetchLogs(false, true)
@@ -75,12 +71,6 @@ export function AuditPage() {
     window.addEventListener('bi2b:refresh-data', handleGlobalRefresh)
     return () => window.removeEventListener('bi2b:refresh-data', handleGlobalRefresh)
   }, [])
-
-  const getDisplayIp = (log: any) => {
-    const ip = log?.metadata?.ip_address
-    if (ip && ip !== '127.0.0.1' && ip !== 'Desconhecido') return ip
-    return currentDeviceIp || ip || '127.0.0.1'
-  }
 
   // Classificação padronizada de Ação (LOGIN, INSERT, UPDATE, DELETE, SECURITY)
   const getActionType = (action: string): 'LOGIN' | 'INSERT' | 'UPDATE' | 'DELETE' | 'SECURITY' | 'OUTROS' => {
@@ -103,7 +93,7 @@ export function AuditPage() {
       const action = log.action || ''
       const actionType = getActionType(log.action)
       const entity = log.entity_type || ''
-      const ip = getDisplayIp(log)
+      const ip = log.metadata?.ip_address || ''
       const metadataStr = JSON.stringify(log.metadata || {})
 
       // 1. Pesquisa global por texto
@@ -203,7 +193,7 @@ export function AuditPage() {
       `"${l.action || ''}"`,
       getActionType(l.action),
       `"${l.entity_type || ''}"`,
-      getDisplayIp(l),
+      l.metadata?.ip_address || '127.0.0.1',
       `"${JSON.stringify(l.metadata || {}).replace(/"/g, '""')}"`
     ])
 
@@ -275,13 +265,6 @@ export function AuditPage() {
 
         {/* Botões de Ação Superior */}
         <div className="flex flex-wrap items-center gap-2">
-          {currentDeviceIp && (
-            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-brand-500/20 bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-mono font-bold shadow-2xs" title="Endereço IP real do dispositivo atual">
-              <Globe className="h-3.5 w-3.5" />
-              <span>Seu IP: {currentDeviceIp}</span>
-            </div>
-          )}
-
           <button
             type="button"
             onClick={() => fetchLogs(true)}
@@ -541,7 +524,7 @@ export function AuditPage() {
                             {log.metadata?.browser_info || parseUserAgent(log.metadata?.user_agent).formatted}
                           </span>
                           <span className="text-[10px] font-mono text-[hsl(var(--muted-foreground))]">
-                            IP: {getDisplayIp(log)}
+                            IP: {log.metadata?.ip_address || '127.0.0.1'}
                           </span>
                         </div>
                       </td>
@@ -701,7 +684,7 @@ export function AuditPage() {
                   {selectedLog.metadata?.browser_info || parseUserAgent(selectedLog.metadata?.user_agent).formatted}
                 </p>
                 <p className="text-[11px] text-[hsl(var(--muted-foreground))] font-mono mt-0.5">
-                  IP: {getDisplayIp(selectedLog)}
+                  IP: {selectedLog.metadata?.ip_address || '127.0.0.1'}
                 </p>
               </div>
             </div>

@@ -24,7 +24,7 @@ export function AutoRefreshButton() {
   useEffect(() => {
     const interval = setInterval(() => {
       triggerRefresh()
-    }, 10000)
+    }, 3000)
 
     return () => clearInterval(interval)
   }, [triggerRefresh])
