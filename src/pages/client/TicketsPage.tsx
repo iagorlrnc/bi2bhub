@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
-  Search, Plus, RefreshCw, MessageSquare, Star,
+  Search, Plus, MessageSquare, Star,
   ChevronLeft, ChevronRight
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -144,14 +144,14 @@ export function TicketsPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-heading font-extrabold text-2xl text-[hsl(var(--foreground))] tracking-tight">
-              Suporte & Chamados
+              Chamados & Suporte
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
               {tickets.filter(t => t.status !== 'fechado' && t.status !== 'resolvido').length} chamados em aberto
             </span>
           </div>
           <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
-            Abra solicitações, tire dúvidas fiscais ou acompanhe os atendimentos da sua empresa.
+            Abra solicitações, tire dúvidas ou acompanhe os atendimentos da sua empresa.
           </p>
         </div>
 
@@ -161,7 +161,7 @@ export function TicketsPage() {
             <input
               id="client-ticket-search"
               type="text"
-              placeholder="Pesquisar chamados... (/)"
+              placeholder="Pesquisar chamados..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] py-2 pl-9 pr-3 text-xs font-medium text-[hsl(var(--foreground))] focus:outline-none focus:border-brand-500 shadow-2xs"
@@ -170,19 +170,11 @@ export function TicketsPage() {
 
           <button
             type="button"
-            onClick={fetchTickets}
-            className="p-2.5 rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--card))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]"
-          >
-            <RefreshCw className={cn('h-4 w-4 text-brand-500', isLoading && 'animate-spin')} />
-          </button>
-
-          <button
-            type="button"
             onClick={() => setIsNewModalOpen(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-md shadow-brand-500/20"
           >
             <Plus className="h-4 w-4" />
-            <span>Abrir Chamado (N)</span>
+            <span>Abrir Chamado</span>
           </button>
         </div>
       </div>

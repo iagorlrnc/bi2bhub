@@ -40,7 +40,7 @@ const userSteps = [
     icon: UserPlus,
     title: 'Cadastro & Perfil',
     subtitle: 'Criação de Conta',
-    desc: 'Preencha suas informações corporativas básicas: nome, e-mail e defina a senha Master de acesso seguro.',
+    desc: 'Preencha suas informações corporativas básicas: nome, e-mail e defina a senha de Gestor de acesso seguro.',
     mockup: (isDark: boolean) => (
       <div className={cn("rounded-xl border p-3 font-mono text-[10px] space-y-2", isDark ? "bg-[#050b14]/90 border-cyan-500/15" : "bg-slate-50 border-slate-200")}>
         <div className="flex items-center justify-between border-b pb-1.5" style={{ borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }}>

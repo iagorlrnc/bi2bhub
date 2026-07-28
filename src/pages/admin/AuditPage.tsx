@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
   ScrollText, Search, Eye, Terminal, Loader2, Download,
-  RefreshCw, Filter, X, ShieldAlert, LogIn, Edit3, Copy, Check, ChevronLeft, ChevronRight, AlertCircle, FileText
+  Filter, X, ShieldAlert, LogIn, Edit3, Copy, Check, ChevronLeft, ChevronRight, AlertCircle, FileText
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
@@ -11,7 +11,6 @@ import { toast } from 'sonner'
 export function AuditPage() {
   const [logs, setLogs] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const [copied, setCopied] = useState(false)
 
   // Filtros
@@ -28,9 +27,7 @@ export function AuditPage() {
   const [selectedLog, setSelectedLog] = useState<any | null>(null)
 
   const fetchLogs = async (showToast = false, isSilent = false) => {
-    if (showToast) {
-      setIsRefreshing(true)
-    } else if (!isSilent && logs.length === 0) {
+    if (!isSilent && logs.length === 0) {
       setIsLoading(true)
     }
 
@@ -57,7 +54,6 @@ export function AuditPage() {
       if (showToast) toast.error('Erro ao carregar logs de auditoria do banco.')
     } finally {
       setIsLoading(false)
-      setIsRefreshing(false)
     }
   }
 
@@ -258,24 +254,13 @@ export function AuditPage() {
               Logs de Auditoria de Segurança
             </h1>
             <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">
-              Rastreamento de acessos, alterações de banco de dados, privilégios e logs de auditoria em tempo real.
+              Rastreamento de acessos, alterações de banco de dados e logs em tempo real.
             </p>
           </div>
         </div>
 
         {/* Botões de Ação Superior */}
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => fetchLogs(true)}
-            disabled={isRefreshing}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))] text-xs font-semibold text-[hsl(var(--foreground))] transition-colors disabled:opacity-50"
-            title="Atualizar lista de logs"
-          >
-            <RefreshCw className={cn('h-3.5 w-3.5 text-brand-500', isRefreshing && 'animate-spin')} />
-            <span>Atualizar</span>
-          </button>
-
           <button
             type="button"
             onClick={exportToCSV}
@@ -339,7 +324,7 @@ export function AuditPage() {
 
         <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))]">Ações Críticas / Deleções</span>
+            <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))]">Ações Críticas / Remoções</span>
             <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
               <ShieldAlert className="h-4 w-4" />
             </div>
@@ -406,7 +391,7 @@ export function AuditPage() {
               onChange={(e) => setModuleFilter(e.target.value)}
               className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] py-2 px-3 text-xs font-medium text-[hsl(var(--foreground))] focus:outline-none focus:border-brand-500 shadow-2xs transition-colors"
             >
-              <option value="all">Todos os Módulos</option>
+              <option value="all">Todas as Tabelas</option>
               {uniqueModules.map((mod) => (
                 <option key={mod} value={mod}>
                   {mod}
@@ -441,9 +426,9 @@ export function AuditPage() {
                 <th className="p-3.5">Usuário / E-mail</th>
                 <th className="p-3.5">Tipo de Ação</th>
                 <th className="p-3.5">Ação Real Executada</th>
-                <th className="p-3.5">Módulo / Tabela</th>
+                <th className="p-3.5">Tabela</th>
                 <th className="p-3.5">Endereço IP</th>
-                <th className="p-3.5 text-center pr-4">Payload</th>
+                <th className="p-3.5 text-center pr-4">Dados</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[hsl(var(--border))] text-xs font-mono">
@@ -632,7 +617,7 @@ export function AuditPage() {
                 </div>
                 <div>
                   <h3 className="font-heading font-extrabold text-lg text-[hsl(var(--foreground))]">
-                    Payload & Metadados do Evento
+                    Metadados do Evento
                   </h3>
                   <p className="text-xs text-[hsl(var(--muted-foreground))] font-mono">
                     ID: {selectedLog.id}

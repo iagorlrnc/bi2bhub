@@ -117,8 +117,14 @@ export function TicketFilters({
 
       {/* Aba Lateral Direita com todas as opções de Filtro */}
       {isDrawerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-[hsl(var(--card))] h-full flex flex-col p-5 space-y-5 shadow-2xl border-l border-[hsl(var(--border))]">
+        <div 
+          onClick={() => setIsDrawerOpen(false)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end animate-in fade-in duration-200 cursor-pointer"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-[hsl(var(--card))] h-full flex flex-col p-5 space-y-5 shadow-2xl border-l border-[hsl(var(--border))] cursor-default"
+          >
             {/* Cabeçalho da Aba Lateral */}
             <div className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-3.5">
               <div className="flex items-center gap-2">
@@ -127,7 +133,6 @@ export function TicketFilters({
                 </div>
                 <div>
                   <h3 className="font-heading font-bold text-sm text-[hsl(var(--foreground))]">Filtros de Chamados</h3>
-                  <p className="text-[11px] text-[hsl(var(--muted-foreground))]">Refine a exibição da lista</p>
                 </div>
               </div>
               <button

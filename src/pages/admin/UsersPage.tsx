@@ -145,8 +145,7 @@ export function UsersPage() {
     try {
       const { data, error } = await supabase
         .from('empresas')
-        .select('id, name, codigo_exclusivo')
-        .eq('is_active', true)
+        .select('id, name, codigo_exclusivo, is_active')
         .order('name', { ascending: true })
       if (error) throw error
       setCompanies(data || [])
@@ -242,7 +241,7 @@ export function UsersPage() {
     setEditFullName(user.full_name || '')
     setEditUserType(user.user_type || 'client_user')
     const companyUserObj = Array.isArray(user.company_users) ? user.company_users[0] : user.company_users
-    const isRemoved = user.status_reason === 'Removido pelo Usuário Master' || (!companyUserObj && user.user_type !== 'admin' && user.user_type !== 'staff')
+    const isRemoved = user.status_reason === 'Removido pelo Gestor' || user.status_reason === 'Removido pelo Usuário Master' || (!companyUserObj && user.user_type !== 'admin' && user.user_type !== 'staff')
     const linkedCompanyId = isRemoved
       ? ''
       : (user.company_id || companyUserObj?.company_id || companyUserObj?.company?.id || '')
@@ -256,7 +255,7 @@ export function UsersPage() {
 
     setIsSaving(true)
     try {
-      // Validar limite de 1 usuário master por empresa
+      // Validar limite de 1 gestor por empresa
       if (editUserType === 'client_master') {
         if (!editCompanyId) {
           toast.error('Selecione uma empresa para vincular o usuário.')
@@ -274,7 +273,7 @@ export function UsersPage() {
 
         if (masterCheckError) throw masterCheckError
         if (existingMaster) {
-          toast.error('Esta empresa já possui um usuário Master. Cada empresa pode ter apenas 1 usuário Master.')
+          toast.error('Esta empresa já possui um Gestor. Cada empresa pode ter apenas 1 Gestor.')
           setIsSaving(false)
           return
         }
@@ -469,9 +468,9 @@ export function UsersPage() {
               {type === 'all'
                 ? 'Todos'
                 : type === 'client_master'
-                ? 'Usuário Master'
+                ? 'Gestor'
                 : type === 'client_user'
-                ? 'Usuário Comum'
+                ? 'Colaborador'
                 : type === 'staff'
                 ? 'Contador'
                 : type === 'admin'
@@ -508,7 +507,7 @@ export function UsersPage() {
               ) : filteredUsers.length > 0 ? (
                 filteredUsers.map(user => {
                   const companyUserObj = Array.isArray(user.company_users) ? user.company_users[0] : user.company_users
-                  const isRemoved = user.status_reason === 'Removido pelo Usuário Master' || (!companyUserObj && user.user_type !== 'admin' && user.user_type !== 'staff')
+                  const isRemoved = user.status_reason === 'Removido pelo Gestor' || user.status_reason === 'Removido pelo Usuário Master' || (!companyUserObj && user.user_type !== 'admin' && user.user_type !== 'staff')
                   
                   const matchedCompany = isRemoved ? null : companies.find(c => 
                     c.id === user.company_id || 
@@ -519,7 +518,7 @@ export function UsersPage() {
                   const rawName = isRemoved ? null : (companyUserObj?.company?.name || user.empresa?.name || matchedCompany?.name)
                   const rawCode = isRemoved ? null : (user.codigo_empresa || companyUserObj?.company?.codigo_exclusivo || matchedCompany?.codigo_exclusivo || null)
                   const companyName = user.user_type === 'admin' || user.user_type === 'staff'
-                    ? 'Escritório Contábil'
+                    ? 'Bi2B Consultoria'
                     : rawName
                     ? `${rawName}${rawCode ? ` (ID: ${rawCode})` : ''}`
                     : 'Sem Empresa Vinculada'
@@ -540,7 +539,7 @@ export function UsersPage() {
                           user.user_type === 'client_master' && 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20',
                           user.user_type === 'client_user' && 'bg-gray-100 text-gray-700 dark:bg-gray-800'
                         )}>
-                          {user.user_type === 'client_master' ? 'Usuário Master' : user.user_type === 'client_user' ? 'Usuário' : user.user_type === 'staff' ? 'Contador' : user.user_type}
+                          {user.user_type === 'client_master' ? 'Gestor' : user.user_type === 'client_user' ? 'Colaborador' : user.user_type === 'staff' ? 'Contador' : user.user_type}
                         </span>
                       </td>
                       <td className="p-4 text-[hsl(var(--muted-foreground))]">
@@ -684,8 +683,8 @@ export function UsersPage() {
                   onChange={(e) => setEditUserType(e.target.value as any)}
                   className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none disabled:bg-[hsl(var(--muted))] disabled:cursor-not-allowed text-[hsl(var(--foreground))]"
                 >
-                  <option value="client_user">Usuário Comum</option>
-                  <option value="client_master">Usuário Master</option>
+                  <option value="client_user">Colaborador</option>
+                  <option value="client_master">Gestor</option>
                   <option value="staff">Contador (Contabilidade)</option>
                   <option value="admin">Administrador (Contabilidade)</option>
                 </select>

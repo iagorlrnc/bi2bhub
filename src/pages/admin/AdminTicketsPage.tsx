@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
-  Search, Plus, RefreshCw, MessageSquare, Star,
-  ChevronLeft, ChevronRight, Eye
+  Search, Plus, MessageSquare, Star,
+  ChevronLeft, ChevronRight
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -232,54 +232,6 @@ export function AdminTicketsPage() {
     }
   }
 
-  const handleQuickAssignStaff = async (e: React.ChangeEvent<HTMLSelectElement>, ticketId: string) => {
-    e.stopPropagation()
-    const staffId = e.target.value
-    const assigned = staffId === 'none' ? null : staffId
-    const selectedStaff = staffList.find(s => s.id === staffId)
-
-    // Atualizar estado local imediatamente para renderizar o nome na UI
-    setTickets(prev => prev.map(t => {
-      if (t.id === ticketId) {
-        return {
-          ...t,
-          assigned_to: assigned,
-          status: assigned && t.status === 'aberto' ? 'em_andamento' : t.status,
-          assigned: selectedStaff ? { id: selectedStaff.id, full_name: selectedStaff.full_name } : null
-        }
-      }
-      return t
-    }))
-
-    try {
-      const { error } = await supabase
-        .from('chamados')
-        .update({
-          assigned_to: assigned,
-          status: assigned ? 'em_andamento' : undefined
-        })
-        .eq('id', ticketId)
-
-      if (error) {
-        console.warn('Alerta API ao atribuir responsável (mantido estado local):', error)
-      } else {
-        logAuditActivity({
-          userId: profile?.id,
-          action: 'ATRIBUIR_TECNICO_CHAMADO',
-          entityType: 'chamados',
-          entityId: ticketId,
-          metadata: { assigned_to: assigned, staff_name: selectedStaff?.full_name || 'Nenhum' }
-        })
-      }
-
-      toast.success(
-        selectedStaff ? `Chamado atribuído para ${selectedStaff.full_name}!` : 'Responsável removido com sucesso.',
-        { id: `assign-staff-${ticketId}` }
-      )
-    } catch (err) {
-      console.error('Erro ao atribuir técnico:', err)
-    }
-  }
 
   const openTicketDrawer = (id: string) => {
     setActiveTicketId(id)
@@ -312,7 +264,7 @@ export function AdminTicketsPage() {
             <input
               id="ticket-search-input"
               type="text"
-              placeholder="Pesquisar chamados... (/)"
+              placeholder="Pesquisar chamados..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] py-2 pl-9 pr-3 text-xs font-medium text-[hsl(var(--foreground))] focus:outline-none focus:border-brand-500 shadow-2xs transition-colors"
@@ -327,16 +279,6 @@ export function AdminTicketsPage() {
             )}
           </div>
 
-          {/* Botão Atualizar */}
-          <button
-            type="button"
-            onClick={fetchTickets}
-            className="p-2.5 rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--card))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors"
-            title="Atualizar lista"
-          >
-            <RefreshCw className={cn('h-4 w-4 text-brand-500', isLoading && 'animate-spin')} />
-          </button>
-
           {/* Botão Novo Chamado */}
           <button
             type="button"
@@ -344,7 +286,7 @@ export function AdminTicketsPage() {
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-md shadow-brand-500/20 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            <span>Novo Chamado (N)</span>
+            <span>Novo Chamado</span>
           </button>
         </div>
       </div>
@@ -386,7 +328,6 @@ export function AdminTicketsPage() {
                     <th className="p-3.5">Responsável</th>
                     <th className="p-3.5">Prioridade</th>
                     <th className="p-3.5">Status</th>
-                    <th className="p-3.5">SLA</th>
                     <th className="p-3.5">Abertura</th>
                     <th className="p-3.5 text-right">Ações Rápidas</th>
                   </tr>
@@ -433,25 +374,9 @@ export function AdminTicketsPage() {
                           </span>
                         </td>
 
-                        {/* Responsável / Contador */}
-                        <td className="p-3.5" onClick={(e) => e.stopPropagation()}>
-                          <select
-                            value={t.assigned_to || 'none'}
-                            onChange={(e) => handleQuickAssignStaff(e, t.id)}
-                            className={cn(
-                              'text-[11px] border rounded-lg px-2 py-1 font-semibold cursor-pointer focus:outline-none max-w-[150px] truncate transition-colors',
-                              t.assigned_to
-                                ? 'bg-brand-50/50 border-brand-300 text-brand-700 dark:bg-brand-950/20 dark:text-brand-300 dark:border-brand-800'
-                                : 'bg-[hsl(var(--background))] border-[hsl(var(--input))] text-[hsl(var(--muted-foreground))]'
-                            )}
-                          >
-                            <option value="none">Sem Responsável</option>
-                            {staffList.map(s => (
-                              <option key={s.id} value={s.id}>
-                                {s.full_name}
-                              </option>
-                            ))}
-                          </select>
+                        {/* Responsável */}
+                        <td className="p-3.5 font-semibold text-[hsl(var(--foreground))] max-w-[160px] truncate">
+                          {t.assigned?.full_name || staffList.find(s => s.id === t.assigned_to)?.full_name || 'Sem Responsável'}
                         </td>
 
                         {/* Prioridade */}
@@ -471,11 +396,6 @@ export function AdminTicketsPage() {
                           {t.status === 'aberto' && <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 font-bold text-[10px]">Aberto</span>}
                         </td>
 
-                        {/* SLA */}
-                        <td className="p-3.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                          ✓ No prazo
-                        </td>
-
                         {/* Data Abertura */}
                         <td className="p-3.5 text-[11px] text-[hsl(var(--muted-foreground))] whitespace-nowrap">
                           {new Date(t.created_at).toLocaleDateString('pt-BR')}
@@ -483,7 +403,6 @@ export function AdminTicketsPage() {
 
                         {/* Ações Rápidas */}
                         <td className="p-3.5 text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-1.5">
                             <select
                               value={t.status}
                               onChange={(e) => handleQuickStatusChange(e, t.id)}
@@ -495,16 +414,6 @@ export function AdminTicketsPage() {
                               <option value="resolvido">Resolvido</option>
                               <option value="fechado">Encerrado</option>
                             </select>
-
-                            <button
-                              type="button"
-                              onClick={() => openTicketDrawer(t.id)}
-                              className="p-1.5 rounded-lg border border-[hsl(var(--input))] text-[hsl(var(--muted-foreground))] hover:text-brand-500 hover:bg-[hsl(var(--muted))] transition-colors"
-                              title="Visualizar Detalhes"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
                         </td>
                       </tr>
                     )

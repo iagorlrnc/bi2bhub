@@ -7,6 +7,7 @@ import { ROUTES } from '@/constants/routes'
 import { cn } from '@/lib/utils'
 import { APP_NAME } from '@/constants'
 import { AutoRefreshButton } from '@/components/AutoRefreshButton'
+import { toast } from 'sonner'
 import {
   Shield,
   FolderOpen,
@@ -14,7 +15,6 @@ import {
   Users,
   Settings,
   Bell,
-  Search,
   Menu,
   X,
   LogOut,
@@ -25,7 +25,9 @@ import {
   PanelLeft,
   HelpCircle,
   ChevronRight,
-  ChevronDown,
+  Building2,
+  Copy,
+  Check,
 } from 'lucide-react'
 
 import logoPng from '@/assets/logo.png'
@@ -155,6 +157,7 @@ export function ClientLayout() {
 
   // Verificar acesso ao módulo
   const hasModuleAccess = (module: string) => {
+    if (module === 'team') return isClientMaster
     if (isClientMaster) return true
     const permissions = companyUser?.permissions ?? []
     return Array.isArray(permissions) && permissions.includes(module)
@@ -168,6 +171,28 @@ export function ClientLayout() {
   const userInitial = profile?.full_name?.charAt(0)?.toUpperCase() ?? 'U'
   const companyName = company?.trade_name ?? company?.name ?? 'Empresa'
   const companyInitial = companyName.charAt(0).toUpperCase()
+  const [copiedCompanyId, setCopiedCompanyId] = useState(false)
+
+  const formatCnpj = (value?: string | null) => {
+    if (!value) return ''
+    const digits = value.replace(/\D/g, '')
+    if (digits.length <= 2) return digits
+    if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`
+    if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`
+    if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12, 14)}`
+  }
+
+  const handleCopyCompanyId = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const idToCopy = company?.codigo_exclusivo || company?.id
+    if (idToCopy) {
+      navigator.clipboard.writeText(idToCopy)
+      setCopiedCompanyId(true)
+      toast.success('ID da Empresa copiado!')
+      setTimeout(() => setCopiedCompanyId(false), 2000)
+    }
+  }
 
   // Se o cliente não possuir empresa vinculada ativa
   if (!company) {
@@ -198,7 +223,7 @@ export function ClientLayout() {
   }
 
   return (
-    <div className="flex h-screen h-[100dvh] overflow-hidden bg-[#fafafa] dark:bg-slate-900">
+    <div className="flex h-screen h-[100dvh] overflow-hidden bg-[#fafafa] dark:bg-slate-950">
       {/* Overlay Mobile */}
       {mobileOpen && (
         <div
@@ -210,36 +235,36 @@ export function ClientLayout() {
       {/* Sidebar Fingu-style */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200/80 bg-[#f8f9fa] text-slate-800 transition-all duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 lg:static lg:z-0',
+          'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[#0a4d6a]/40 bg-[#0d6084] text-white transition-all duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 lg:relative lg:z-30',
           isCollapsed ? 'lg:w-[68px]' : 'lg:w-[240px]',
           mobileOpen ? 'w-[240px] translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
         {/* Header da Sidebar (Logo Fingu-style) */}
         {!isCollapsed ? (
-          <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/60 px-4 dark:border-slate-800/60">
+          <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/15 px-4 dark:border-slate-800/60">
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <img src={logoPng} alt={APP_NAME} className="h-8 w-auto shrink-0 object-contain" />
+              <img src={logoPng} alt={APP_NAME} className="h-8 w-auto shrink-0 object-contain drop-shadow" />
               <div className="flex flex-col min-w-0">
-                <span className="font-heading text-sm font-bold leading-tight text-slate-900 dark:text-white">
-                  Bi2B
+                <span className="font-heading text-sm font-bold leading-tight text-white dark:text-white">
+                  Consultoria
                 </span>
-                <span className="text-[10px] font-medium text-slate-500">
+                <span className="text-[10px] font-medium text-sky-200 dark:text-slate-500">
                   Gestão Contábil
                 </span>
               </div>
             </div>
             <button
               onClick={() => setMobileOpen(false)}
-              className="rounded-lg p-1 text-slate-400 hover:text-slate-600 lg:hidden"
+              className="rounded-lg p-1 text-sky-200 hover:bg-white/10 hover:text-white dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 lg:hidden"
               title="Fechar menu"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         ) : (
-          <div className="flex h-16 shrink-0 items-center justify-center border-b border-slate-200/60 dark:border-slate-800/60">
-            <img src={logoPng} alt={APP_NAME} className="h-7 w-auto object-contain" />
+          <div className="flex h-16 shrink-0 items-center justify-center border-b border-white/15 dark:border-slate-800/60">
+            <img src={logoPng} alt={APP_NAME} className="h-7 w-auto object-contain drop-shadow" />
           </div>
         )}
 
@@ -248,34 +273,53 @@ export function ClientLayout() {
           {/* Seção Empresas Fingu-style Dropdown */}
           {!isCollapsed ? (
             <div className="px-2">
-              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Empresas
-              </p>
-              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="inline-flex items-center rounded-md bg-brand-500/10 px-1.5 py-0.5 text-[10px] font-bold text-brand-600 dark:text-brand-400 shrink-0">
-                    Ativa
-                  </span>
-                  <span className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    {companyName}
-                  </span>
-                </div>
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-              </div>
-              {company.cnpj && (
-                <p className="mt-1 px-1 text-[10px] text-slate-400">
-                  CNPJ: {company.cnpj}
+              <div className="mb-1.5 flex items-center justify-between">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-sky-200/80 dark:text-slate-400">
+                  Empresa
                 </p>
-              )}
+              </div>
+
+              <div className="rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm p-3 shadow-sm transition-all hover:border-white/30 dark:border-slate-800/60 dark:bg-slate-950/90 dark:hover:border-brand-500/30">
+                <div className="flex items-start gap-2.5">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white dark:bg-brand-500/10 dark:text-brand-400 font-bold text-xs">
+                    <Building2 className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-bold text-white dark:text-slate-100" title={companyName}>
+                      {companyName}
+                    </p>
+                    {company.cnpj && (
+                      <p className="truncate text-[10px] text-sky-200/80 dark:text-slate-400">
+                        CNPJ: {formatCnpj(company.cnpj)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-2.5 flex items-center justify-between border-t border-white/15 pt-2 text-[10px] dark:border-slate-800/60">
+                  <span className="text-sky-200/70 font-medium dark:text-slate-400">ID da Empresa</span>
+                  <button
+                    type="button"
+                    onClick={handleCopyCompanyId}
+                    className="flex items-center gap-1 font-mono font-bold text-white hover:text-sky-200 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
+                    title="Copiar ID da Empresa"
+                  >
+                    #{company.codigo_exclusivo || company.id.slice(0, 8)}
+                    {copiedCompanyId ? <Check className="h-3 w-3 text-emerald-400 dark:text-emerald-500" /> : <Copy className="h-3 w-3 text-sky-200 dark:text-slate-400" />}
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="group relative flex justify-center my-1">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-bold text-brand-600 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-xs font-bold text-white shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-brand-600">
                 {companyInitial}
               </div>
-              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
-                {companyName}
-              </span>
+              <div className="pointer-events-none fixed left-[76px] z-[9999] hidden flex-col rounded-xl border border-slate-700/50 bg-slate-900 p-2.5 text-xs text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-900">
+                <span className="font-bold text-white">{companyName}</span>
+                {company.cnpj && <span className="text-[10px] text-slate-400">CNPJ: {formatCnpj(company.cnpj)}</span>}
+                <span className="text-[10px] font-mono font-bold text-brand-400 mt-0.5">ID: #{company.codigo_exclusivo || company.id.slice(0, 8)}</span>
+              </div>
             </div>
           )}
 
@@ -290,12 +334,12 @@ export function ClientLayout() {
             return (
               <div key={category.title} className="space-y-1">
                 {!isCollapsed ? (
-                  <p className="px-2 mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <p className="px-2 mb-1 text-[11px] font-semibold uppercase tracking-wider text-sky-200/70 dark:text-slate-400">
                     {category.title}
                   </p>
                 ) : (
                   catIdx > 0 && (
-                    <div className="my-2 h-[1px] bg-slate-200/60 dark:bg-slate-800/60" />
+                    <div className="my-2 h-[1px] bg-white/15 dark:bg-slate-800/60" />
                   )
                 )}
 
@@ -311,15 +355,15 @@ export function ClientLayout() {
                           cn(
                             'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
                             isActive
-                              ? 'bg-slate-200/70 text-slate-900 font-semibold dark:bg-slate-800 dark:text-white'
-                              : 'text-slate-600 hover:bg-slate-200/40 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100',
+                              ? 'bg-white text-[#0d6084] font-bold shadow-md dark:bg-slate-800 dark:text-white'
+                              : 'text-sky-100/90 hover:bg-white/10 hover:text-white dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100',
                             isCollapsed && 'justify-center px-0 py-2.5'
                           )
                         }
                       >
                         {({ isActive }) => (
                           <>
-                            <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400')} />
+                            <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-[#0d6084] dark:text-brand-400' : 'text-sky-200 group-hover:text-white dark:text-slate-400')} />
                             {!isCollapsed && <span className="truncate">{item.label}</span>}
                             {isCollapsed && (
                               <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
@@ -339,16 +383,16 @@ export function ClientLayout() {
 
         {/* Rodapé da Sidebar Fingu-style */}
         {!isCollapsed ? (
-          <div className="mt-auto border-t border-slate-200/60 p-3 space-y-3 dark:border-slate-800/60">
+          <div className="mt-auto border-t border-white/15 p-3 space-y-3 dark:border-slate-800/60">
             <div className="flex items-center gap-2.5 rounded-lg p-1">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white shadow-sm">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] shadow-sm dark:bg-brand-600 dark:text-white">
                 {userInitial}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">
+                <p className="truncate text-xs font-semibold text-white dark:text-slate-200">
                   {profile?.full_name ?? 'Usuário'}
                 </p>
-                <p className="truncate text-[10px] text-slate-400">
+                <p className="truncate text-[10px] text-sky-200/80 dark:text-slate-400">
                   {profile?.email}
                 </p>
               </div>
@@ -356,24 +400,24 @@ export function ClientLayout() {
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 onClick={() => navigate(ROUTES.SETTINGS)}
-                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-xs font-medium text-white shadow-sm hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
               >
-                <HelpCircle className="h-3.5 w-3.5 text-slate-500" />
+                <HelpCircle className="h-3.5 w-3.5 text-sky-200 dark:text-slate-500" />
                 <span>Ajuda</span>
               </button>
               <button
                 onClick={handleSignOut}
-                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-xs font-medium text-white shadow-sm hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
               >
-                <LogOut className="h-3.5 w-3.5 text-slate-500" />
+                <LogOut className="h-3.5 w-3.5 text-sky-200 dark:text-slate-500" />
                 <span>Sair</span>
               </button>
             </div>
           </div>
         ) : (
-          <div className="mt-auto border-t border-slate-200/60 p-2 flex flex-col items-center gap-2 dark:border-slate-800/60">
+          <div className="mt-auto border-t border-white/15 p-2 flex flex-col items-center gap-2 dark:border-slate-800/60">
             <div className="group relative flex justify-center">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white shadow-sm">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] shadow-sm dark:bg-brand-600 dark:text-white">
                 {userInitial}
               </div>
               <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
@@ -382,7 +426,7 @@ export function ClientLayout() {
             </div>
             <button
               onClick={() => navigate(ROUTES.SETTINGS)}
-              className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+              className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
             >
               <HelpCircle className="h-4 w-4" />
               <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
@@ -391,7 +435,7 @@ export function ClientLayout() {
             </button>
             <button
               onClick={handleSignOut}
-              className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+              className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
             >
               <LogOut className="h-4 w-4" />
               <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
@@ -405,7 +449,7 @@ export function ClientLayout() {
       {/* Conteúdo Principal */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Topbar / Header */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 bg-white px-4 lg:px-6 dark:border-slate-800 dark:bg-slate-900">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 bg-white px-4 lg:px-6 dark:border-slate-800 dark:bg-slate-950">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
@@ -444,16 +488,6 @@ export function ClientLayout() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Campo de Busca (Fingu style) */}
-            <div className="relative hidden md:block">
-              <input
-                type="text"
-                placeholder="Buscar..."
-                className="w-48 lg:w-60 rounded-full border border-slate-200 bg-slate-50 py-1.5 pl-4 pr-9 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 transition-all"
-              />
-              <Search className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-            </div>
-
             {/* Notificações */}
             <button
               onClick={handleNotificationsClick}
@@ -492,7 +526,7 @@ export function ClientLayout() {
         </header>
 
         {/* Conteúdo das Páginas */}
-        <main className="flex-1 overflow-y-auto bg-[#fafafa] p-4 md:p-6 lg:p-8 dark:bg-slate-900">
+        <main className="flex-1 overflow-y-auto bg-[#fafafa] p-4 md:p-6 lg:p-8 dark:bg-slate-950">
           <Outlet />
         </main>
       </div>

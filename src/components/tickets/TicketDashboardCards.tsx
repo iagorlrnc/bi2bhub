@@ -97,7 +97,7 @@ export function TicketDashboardCards({ tickets }: TicketDashboardCardsProps) {
           <div
             key={idx}
             className={cn(
-              'relative overflow-hidden rounded-xl border p-3 shadow-xs transition-all duration-200 hover:shadow-md hover:-translate-y-0.5',
+              'relative overflow-hidden rounded-xl border p-3 shadow-md transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5',
               card.borderColor,
               card.bgColor
             )}

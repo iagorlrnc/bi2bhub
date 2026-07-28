@@ -95,7 +95,7 @@ const comparisonRows = [
   {
     module: 'Gestão de Equipe',
     manual: 'Sem controle de quem acessa o que — tudo no e-mail do dono',
-    bi2b: 'Convites, permissões modulares e controle Master por colaborador',
+    bi2b: 'Convites, permissões modulares e controle de Gestor por colaborador',
     saved: '-93.3%',
     hoursManual: '3h',
     hoursBi2b: '0.2h',

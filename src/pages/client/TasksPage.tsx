@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import {
   CheckSquare,
   Upload,
-  RefreshCw,
   Loader2,
   FileText,
   FileCode,
@@ -43,7 +42,7 @@ const MONTHLY_CATEGORIES: MonthlyCategory[] = [
   {
     slug: 'extrato_ofx',
     label: 'Extrato Bancário OFX',
-    description: 'Extratos de contas corporativas em formato OFX para conciliação.',
+    description: 'Extratos de contas corporativas em formato OFX para verificação.',
     accept: '.ofx',
     category: 'contabil'
   },
@@ -120,6 +119,12 @@ export function TasksPage() {
     if (company?.id) {
       fetchMonthlyDocuments()
     }
+
+    const handleRefresh = () => {
+      if (company?.id) fetchMonthlyDocuments()
+    }
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
   }, [company?.id, selectedMonth, authLoading])
 
   const handleUploadMonthlyDoc = async (slug: string, label: string, category: string, file: File) => {
@@ -201,11 +206,6 @@ export function TasksPage() {
     }
   }
 
-  const handleRefresh = async () => {
-    await fetchMonthlyDocuments()
-    toast.success('Status dos documentos mensais atualizado!')
-  }
-
   return (
     <div className="space-y-6">
       {/* Cabeçalho */}
@@ -217,17 +217,10 @@ export function TasksPage() {
           <div>
             <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Tarefas Mensais</h1>
             <p className="text-sm text-[hsl(var(--muted-foreground))]">
-              Envio mensal de notas fiscais, extratos bancários e documentos para conciliação contábil e fiscal
+              Envio mensal de notas fiscais, extratos bancários e documentos para verificação contábil e fiscal.
             </p>
           </div>
         </div>
-        <button
-          onClick={handleRefresh}
-          className="flex items-center gap-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-2 text-sm font-medium text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Atualizar Status
-        </button>
       </div>
 
       {/* HUB DE OBRIGAÇÕES MENSAIS */}
@@ -243,7 +236,7 @@ export function TasksPage() {
                 <h2 className="font-heading text-lg font-bold text-[hsl(var(--foreground))]">Documentos do Período</h2>
                 {loadingMonthly && <Loader2 className="h-4 w-4 animate-spin text-brand-500" />}
               </div>
-              <p className="text-xs text-[hsl(var(--muted-foreground))]">Selecione o mês para enviar a documentação obrigatória do período</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))]">Selecione o mês para enviar a documentação do período.</p>
             </div>
           </div>
           

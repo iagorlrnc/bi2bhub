@@ -233,9 +233,9 @@ export function AdminDrivePage() {
     fetchCompanies()
   }, [])
 
-  const fetchData = async () => {
+  const fetchData = async (isSilent = false) => {
     if (!selectedCompanyId) return
-    setIsLoading(true)
+    if (!isSilent) setIsLoading(true)
     try {
       // 1. Buscar pastas da empresa selecionada
       const { data: folderData, error: folderError } = await supabase
@@ -263,9 +263,9 @@ export function AdminDrivePage() {
       if (import.meta.env.DEV) {
         console.error('Erro ao buscar dados do drive:', err)
       }
-      toast.error('Erro ao carregar arquivos do Drive.')
+      if (!isSilent) toast.error('Erro ao carregar arquivos do Drive.')
     } finally {
-      setIsLoading(false)
+      if (!isSilent) setIsLoading(false)
     }
   }
 
@@ -276,6 +276,12 @@ export function AdminDrivePage() {
       setFolders([])
       setFiles([])
     }
+
+    const handleRefresh = () => {
+      if (selectedCompanyId) fetchData(true)
+    }
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
   }, [selectedCompanyId])
 
   // Lógica de Filtro
@@ -558,7 +564,7 @@ export function AdminDrivePage() {
           </div>
           <div>
             <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Drive de Documentos</h1>
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Gerencie arquivos, declarações fiscais e pastas das empresas clientes</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">Gerencie arquivos e pastas das empresas vinculadas</p>
           </div>
         </div>
 
@@ -744,23 +750,23 @@ export function AdminDrivePage() {
                           <div
                             key={folder.id}
                             onClick={() => setActiveFolderId(folder.id)}
-                            className="group relative flex items-center justify-between gap-4.5 rounded-2xl border bg-[hsl(var(--card))] p-4.5 shadow-sm hover:shadow-md cursor-pointer transition-all hover-lift"
+                            className="group relative flex items-center justify-between gap-4.5 rounded-2xl border bg-[hsl(var(--card))] p-4.5 shadow-sm hover:shadow-md cursor-pointer transition-all hover-lift min-w-0 overflow-hidden"
                             style={{ 
                               borderColor: dynamicBorderColor,
                               backgroundColor: dynamicBgColor
                             }}
                           >
-                            <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="flex items-center gap-3.5 min-w-0 flex-1">
                               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-900/60 shadow-sm border border-[hsl(var(--border))]/40">
                                 <FolderOpen className="h-6 w-6" style={{ color: folder.color || '#3b82f6' }} />
                               </div>
                               <div className="min-w-0 flex-1">
-                                <h4 className="truncate text-sm font-bold text-[hsl(var(--foreground))]">{folder.name}</h4>
+                                <h4 className="truncate text-sm font-bold text-[hsl(var(--foreground))]" title={folder.name}>{folder.name}</h4>
                                 <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium mt-0.5">{folder.count} arquivos</p>
                               </div>
                             </div>
                             {/* Folder actions */}
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={(e) => e.stopPropagation()}>
                               <button
                                 onClick={() => handleStartEditFolder(folder)}
                                 className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-brand-600 hover:bg-[hsl(var(--muted))] transition-colors"
@@ -783,14 +789,14 @@ export function AdminDrivePage() {
                   ) : (
                     <div className="overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm">
                       <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                        <table className="w-full text-left border-collapse table-fixed">
                           <thead>
                             <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
-                              <th className="py-3.5 px-5">Nome da Pasta</th>
-                              <th className="py-3.5 px-4 hidden sm:table-cell">Tipo</th>
-                              <th className="py-3.5 px-4 hidden sm:table-cell">Quantidade de Arquivos</th>
-                              <th className="py-3.5 px-4 hidden lg:table-cell">Criado Em</th>
-                              <th className="py-3.5 px-5 text-right">Ações</th>
+                              <th className="py-3.5 px-5 w-[45%] sm:w-[40%]">Nome da Pasta</th>
+                              <th className="py-3.5 px-4 hidden sm:table-cell w-[20%]">Tipo</th>
+                              <th className="py-3.5 px-4 hidden sm:table-cell w-[20%]">Quantidade de Arquivos</th>
+                              <th className="py-3.5 px-4 hidden lg:table-cell w-[15%]">Criado Em</th>
+                              <th className="py-3.5 px-5 text-right w-[90px]">Ações</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[hsl(var(--border))]">
@@ -801,12 +807,12 @@ export function AdminDrivePage() {
                                   onClick={() => setActiveFolderId(folder.id)}
                                   className="hover:bg-[hsl(var(--muted))]/30 cursor-pointer transition-colors group"
                                 >
-                                  <td className="py-3 px-5 font-medium font-semibold">
+                                  <td className="py-3 px-5 font-medium min-w-0 max-w-0">
                                     <div className="flex items-center gap-3 min-w-0">
                                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-900/60 shadow-sm border border-[hsl(var(--border))]/40">
                                         <FolderOpen className="h-5 w-5" style={{ color: folder.color || '#3b82f6' }} />
                                       </div>
-                                      <span className="truncate text-sm font-semibold text-[hsl(var(--foreground))] group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                                      <span className="truncate block min-w-0 text-sm font-semibold text-[hsl(var(--foreground))] group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors" title={folder.name}>
                                         {folder.name}
                                       </span>
                                     </div>
@@ -870,14 +876,14 @@ export function AdminDrivePage() {
                     {viewMode === 'list' && (
                       <div className="overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm">
                         <div className="overflow-x-auto">
-                          <table className="w-full text-left border-collapse">
+                          <table className="w-full text-left border-collapse table-fixed">
                             <thead>
                               <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
-                                <th className="py-3.5 px-5">Nome</th>
-                                <th className="py-3.5 px-4 hidden md:table-cell">Categoria</th>
-                                <th className="py-3.5 px-4 hidden sm:table-cell">Tamanho</th>
-                                <th className="py-3.5 px-4 hidden lg:table-cell">Modificado</th>
-                                <th className="py-3.5 px-5 text-right">Ações</th>
+                                <th className="py-3.5 px-5 w-[45%] sm:w-[40%] md:w-[35%]">Nome</th>
+                                <th className="py-3.5 px-4 hidden md:table-cell w-[20%]">Categoria</th>
+                                <th className="py-3.5 px-4 hidden sm:table-cell w-[15%]">Tamanho</th>
+                                <th className="py-3.5 px-4 hidden lg:table-cell w-[15%]">Modificado</th>
+                                <th className="py-3.5 px-5 text-right w-[110px]">Ações</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-[hsl(var(--border))]">
@@ -885,16 +891,16 @@ export function AdminDrivePage() {
                                 const fileMeta = getFileIcon(file.name)
                                 return (
                                   <tr key={file.id} className="hover:bg-[hsl(var(--muted))]/30 transition-colors group">
-                                    <td className="py-3 px-5 font-medium">
+                                    <td className="py-3 px-5 font-medium min-w-0 max-w-0">
                                       <div 
                                         onClick={() => handleDownload(file)}
                                         className="flex items-center gap-3 min-w-0 cursor-pointer group/name hover:text-brand-600 dark:hover:text-brand-400"
-                                        title="Clique para baixar"
+                                        title={`Clique para baixar ${file.name}`}
                                       >
                                         <div className={cn("p-2 rounded-xl shrink-0 border border-[hsl(var(--border))]/40", fileMeta.colorClass)}>
                                           {fileMeta.icon}
                                         </div>
-                                        <span className="truncate text-sm font-semibold text-[hsl(var(--foreground))] group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors group-hover/name:underline">
+                                        <span className="truncate block min-w-0 text-sm font-semibold text-[hsl(var(--foreground))] group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors group-hover/name:underline" title={file.name}>
                                           {file.name}
                                         </span>
                                       </div>
@@ -950,17 +956,17 @@ export function AdminDrivePage() {
                           return (
                             <div 
                               key={file.id} 
-                              className="group relative flex flex-col justify-between rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-sm hover:shadow-md transition-all hover-lift"
+                              className="group relative flex flex-col justify-between rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-sm hover:shadow-md transition-all hover-lift min-w-0 overflow-hidden"
                             >
-                              <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-start justify-between gap-4 min-w-0">
                                 <div 
                                   onClick={() => handleDownload(file)}
-                                  className={cn("p-3 rounded-xl border border-[hsl(var(--border))]/40 cursor-pointer hover:scale-105 transition-transform", fileMeta.colorClass)}
+                                  className={cn("p-3 rounded-xl border border-[hsl(var(--border))]/40 cursor-pointer hover:scale-105 transition-transform shrink-0", fileMeta.colorClass)}
                                   title="Clique para baixar"
                                 >
                                   {fileMeta.icon}
                                 </div>
-                                <div className="flex items-center gap-0.5">
+                                <div className="flex items-center gap-0.5 shrink-0">
                                   <button
                                     onClick={() => handleToggleFavorite(file.id, file.is_favorite)}
                                     className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-amber-500 transition-colors"
@@ -988,16 +994,18 @@ export function AdminDrivePage() {
                               <div 
                                 onClick={() => handleDownload(file)}
                                 className="mt-4 min-w-0 cursor-pointer"
-                                title="Clique para baixar"
+                                title={`Clique para baixar ${file.name}`}
                               >
-                                <h4 className="truncate text-sm font-bold text-[hsl(var(--foreground))] group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors hover:underline" title={file.name}>
+                                <h4 className="truncate block min-w-0 text-sm font-bold text-[hsl(var(--foreground))] group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors hover:underline" title={file.name}>
                                   {file.name}
                                 </h4>
-                                <div className="flex items-center justify-between mt-2.5">
-                                  <span className="text-[10px] font-semibold text-[hsl(var(--muted-foreground))]">
+                                <div className="flex items-center justify-between gap-2 mt-2.5 min-w-0">
+                                  <span className="text-[10px] font-semibold text-[hsl(var(--muted-foreground))] shrink-0">
                                     {formatBytes(file.file_size)}
                                   </span>
-                                  {getCategoryBadge(file.category)}
+                                  <div className="truncate min-w-0">
+                                    {getCategoryBadge(file.category)}
+                                  </div>
                                 </div>
                               </div>
                             </div>

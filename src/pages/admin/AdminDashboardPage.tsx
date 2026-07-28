@@ -31,10 +31,11 @@ export function AdminDashboardPage() {
         .from('empresas')
         .select('id', { count: 'exact', head: true })
 
-      // 2. Total de Usuários
+      // 2. Total de Usuários (Apenas clientes - exclui admin e contadores/staff)
       const { count: uCount } = await supabase
         .from('usuarios')
         .select('id', { count: 'exact', head: true })
+        .in('user_type', ['client_master', 'client_user'])
 
       // 3. Chamados Pendentes
       const { count: tCount } = await supabase
@@ -64,44 +65,52 @@ export function AdminDashboardPage() {
 
       setRecentTickets(ticketsData || [])
 
-      // 6. Crescimento da carteira (todas as empresas para agrupar)
-      const { data: companiesList } = await supabase
-        .from('empresas')
-        .select('created_at')
-      
-      if (companiesList) {
-        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-        const sorted = [...companiesList].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-        
-        const countsMap: Record<string, { month: string, count: number }> = {}
-        let runningTotal = 0
-        
-        sorted.forEach(comp => {
-          const date = new Date(comp.created_at)
-          const year = date.getFullYear()
-          const monthNum = date.getMonth() + 1
-          const period = `${year}-${String(monthNum).padStart(2, '0')}`
-          
-          if (!countsMap[period]) {
-            countsMap[period] = {
-              month: months[monthNum - 1] || String(monthNum),
-              count: 0
-            }
-          }
-          countsMap[period].count += 1
-        })
-        
-        const chartList = Object.keys(countsMap).sort().map(period => {
-          const item = countsMap[period]
-          runningTotal += item.count
-          return {
-            month: item.month,
-            'Novas Empresas': item.count,
-            'Total Clientes': runningTotal
-          }
-        })
-        setGrowthData(chartList)
-      }
+      // 6. Crescimento de Empresas e Usuários (exclui contadores e admins do escritório)
+      const [{ data: companiesList }, { data: clientUsersList }] = await Promise.all([
+        supabase.from('empresas').select('created_at'),
+        supabase.from('usuarios').select('created_at').in('user_type', ['client_master', 'client_user'])
+      ])
+
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+      const periodsSet = new Set<string>()
+
+      const companyCountMap: Record<string, number> = {}
+      ;(companiesList || []).forEach(comp => {
+        const date = new Date(comp.created_at)
+        const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        periodsSet.add(period)
+        companyCountMap[period] = (companyCountMap[period] || 0) + 1
+      })
+
+      const userCountMap: Record<string, number> = {}
+      ;(clientUsersList || []).forEach(usr => {
+        const date = new Date(usr.created_at)
+        const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        periodsSet.add(period)
+        userCountMap[period] = (userCountMap[period] || 0) + 1
+      })
+
+      const sortedPeriods = Array.from(periodsSet).sort()
+
+      let runningCompanies = 0
+      let runningUsers = 0
+
+      const chartList = sortedPeriods.map(period => {
+        const [year, monthNumStr] = period.split('-')
+        const monthNum = parseInt(monthNumStr, 10)
+        const monthLabel = `${months[monthNum - 1]} ${year.slice(2)}`
+
+        runningCompanies += (companyCountMap[period] || 0)
+        runningUsers += (userCountMap[period] || 0)
+
+        return {
+          month: monthLabel,
+          'Total de Empresas': runningCompanies,
+          'Usuários Cadastrados': runningUsers
+        }
+      })
+
+      setGrowthData(chartList)
 
     } catch (err) {
       console.error('Erro ao buscar dados administrativos:', err)
@@ -116,7 +125,7 @@ export function AdminDashboardPage() {
 
   const adminStats = [
     { label: 'Total de Clientes', value: String(stats.companiesCount), icon: Building2, color: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30' },
-    { label: 'Usuários Ativos', value: String(stats.usersCount), icon: Users, color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' },
+    { label: 'Usuários Cadastrados', value: String(stats.usersCount), icon: Users, color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' },
     { label: 'Chamados Pendentes', value: String(stats.pendingTicketsCount), icon: MessageSquare, color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30' },
     { label: 'Documentos Armazenados', value: String(stats.documentsCount), icon: ScrollText, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30' },
   ]
@@ -156,8 +165,8 @@ export function AdminDashboardPage() {
             {/* Gráfico de linha de crescimento */}
             <div className="lg:col-span-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5">
               <div className="mb-4">
-                <h3 className="text-sm font-semibold text-[hsl(var(--foreground))]">Crescimento da Carteira de Clientes</h3>
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">Total de empresas ativas vs novos contratos</p>
+                <h3 className="text-sm font-semibold text-[hsl(var(--foreground))]">Crescimento de Empresas e Usuários Cadastrados</h3>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">Evolução de empresas clientes vs usuários cadastrados (exclui contadores e admins)</p>
               </div>
               <ResponsiveContainer width="100%" height={260}>
                 <LineChart data={growthData}>
@@ -166,8 +175,8 @@ export function AdminDashboardPage() {
                   <YAxis fontSize={12} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" />
                   <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
                   <Legend />
-                  <Line type="monotone" dataKey="Total Clientes" stroke="#6366f1" strokeWidth={3} name="Total Clientes" />
-                  <Line type="monotone" dataKey="Novas Empresas" stroke="#10b981" strokeWidth={2} name="Novas Empresas" />
+                  <Line type="monotone" dataKey="Total de Empresas" stroke="#6366f1" strokeWidth={3} name="Total de Empresas" />
+                  <Line type="monotone" dataKey="Usuários Cadastrados" stroke="#10b981" strokeWidth={3} name="Usuários Cadastrados" />
                 </LineChart>
               </ResponsiveContainer>
             </div>

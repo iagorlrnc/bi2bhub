@@ -15,7 +15,7 @@ export function TeamPage() {
   const [isOpenModal, setIsOpenModal] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<'usuario_master' | 'usuario_comum'>('usuario_comum')
-  const [selectedPermissions, setSelectedPermissions] = useState<string[]>(['dashboard', 'drive', 'tickets'])
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>(['strategic', 'monitoring', 'drive', 'tickets'])
   const [isLoading, setIsLoading] = useState(true)
 
   // Estados para edição de permissões
@@ -42,20 +42,22 @@ export function TeamPage() {
         const mappedPending: any[] = []
 
         rpcData.forEach((u: any) => {
+          const isMaster = u.role === 'usuario_master' || u.role === 'client_master' || u.user_type === 'client_master'
           const item = {
             id: u.id,
             companyUserId: u.company_user_id,
             name: u.full_name || (u.email ? u.email.split('@')[0] : 'Usuário'),
             email: u.email || '',
             phone: u.phone || '',
-            role: u.role || 'usuario_comum',
+            role: isMaster ? 'usuario_master' : 'usuario_comum',
+            userType: u.user_type,
             status: u.link_is_active ? 'active' : 'inactive',
             permissions: u.permissions || [],
             createdAt: u.link_created_at || u.created_at,
             statusReason: u.status_reason
           }
 
-          if (u.link_is_active || u.status_reason === 'Desativado pelo Usuário Master' || u.status_reason === 'Desativado pelo Administrador') {
+          if (u.link_is_active || u.status_reason === 'Desativado pelo Gestor' || u.status_reason === 'Desativado pelo Usuário Master' || u.status_reason === 'Desativado pelo Administrador') {
             mappedActive.push(item)
           } else if (!u.status_reason) {
             mappedPending.push(item)
@@ -99,6 +101,7 @@ export function TeamPage() {
             full_name,
             email,
             phone,
+            user_type,
             created_at,
             status_reason
           )
@@ -113,7 +116,7 @@ export function TeamPage() {
       if (allUserIds.length > 0) {
         const { data: extraUsers } = await supabase
           .from('usuarios')
-          .select('id, full_name, email, phone, created_at, status_reason')
+          .select('id, full_name, email, phone, user_type, created_at, status_reason')
           .in('id', allUserIds)
         
         if (extraUsers) {
@@ -125,7 +128,7 @@ export function TeamPage() {
 
       const { data: directCompanyUsers } = await supabase
         .from('usuarios')
-        .select('id, full_name, email, phone, created_at, status_reason')
+        .select('id, full_name, email, phone, user_type, created_at, status_reason')
         .or(`company_id.eq.${company.id},codigo_empresa.eq.${(company as any).codigo_exclusivo || company.id}`)
 
       if (directCompanyUsers) {
@@ -145,6 +148,7 @@ export function TeamPage() {
         const nameVal = userObj?.full_name || (userObj?.email ? userObj.email.split('@')[0] : 'Usuário')
         const emailVal = userObj?.email || ''
         const phoneVal = userObj?.phone || ''
+        const isMaster = tu.role === 'usuario_master' || tu.role === 'client_master' || userObj?.user_type === 'client_master'
 
         const item = {
           id: userObj?.id || tu.user_id,
@@ -152,14 +156,15 @@ export function TeamPage() {
           name: nameVal,
           email: emailVal,
           phone: phoneVal,
-          role: tu.role,
+          role: isMaster ? 'usuario_master' : 'usuario_comum',
+          userType: userObj?.user_type,
           status: tu.is_active ? 'active' : 'inactive',
           permissions: tu.permissions || [],
           createdAt: userObj?.created_at || tu.created_at,
           statusReason: userObj?.status_reason
         }
 
-        if (tu.is_active || userObj?.status_reason === 'Desativado pelo Usuário Master' || userObj?.status_reason === 'Desativado pelo Administrador') {
+        if (tu.is_active || userObj?.status_reason === 'Desativado pelo Gestor' || userObj?.status_reason === 'Desativado pelo Usuário Master' || userObj?.status_reason === 'Desativado pelo Administrador') {
           mappedActive.push(item)
         } else if (!userObj?.status_reason) {
           // Apenas solicitações pendentes de novos acessos entram em pendentes
@@ -263,7 +268,7 @@ export function TeamPage() {
               .from('usuarios')
               .update({
                 is_active: false,
-                status_reason: 'Solicitação recusada pelo Usuário Master',
+                status_reason: 'Solicitação recusada pelo Gestor',
                 company_id: null,
                 codigo_empresa: null
               })
@@ -318,7 +323,7 @@ export function TeamPage() {
           .from('usuarios')
           .update({
             is_active: false,
-            status_reason: 'Desativado pelo Usuário Master'
+            status_reason: 'Desativado pelo Gestor'
           })
           .eq('id', userId)
 
@@ -357,7 +362,7 @@ export function TeamPage() {
             .from('usuarios')
             .update({
               is_active: false,
-              status_reason: 'Removido pelo Usuário Master',
+              status_reason: 'Removido pelo Gestor',
               company_id: null,
               codigo_empresa: null
             })
@@ -636,13 +641,13 @@ export function TeamPage() {
                   {/* Permissões & Cargos/Funções */}
                   <div className="flex flex-wrap items-center gap-3">
                     <span className={cn(
-                      'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold',
-                      member.role === 'usuario_master'
-                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400'
-                        : 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400'
+                      'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border',
+                      member.role === 'usuario_master' || member.role === 'client_master' || member.userType === 'client_master'
+                        ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/40'
+                        : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/40'
                     )}>
                       <Shield className="h-3 w-3" />
-                      {member.role === 'usuario_master' ? 'Master' : 'Usuário'}
+                      {member.role === 'usuario_master' || member.role === 'client_master' || member.userType === 'client_master' ? 'Gestor' : 'Colaborador'}
                     </span>
                     
                     <span className={cn(
@@ -659,7 +664,7 @@ export function TeamPage() {
                         onClick={() => handleOpenEdit(member)}
                         disabled={member.role === 'usuario_master' || member.id === user?.id || !canManageAccess}
                         className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={member.id === user?.id ? 'Você não pode editar o seu próprio perfil' : member.role === 'usuario_master' ? 'Administradores Master possuem acesso total' : 'Editar permissões'}
+                        title={member.id === user?.id ? 'Você não pode editar o seu próprio perfil' : member.role === 'usuario_master' ? 'Gestores possuem acesso total' : 'Editar permissões'}
                       >
                         <Edit2 className="h-4 w-4" />
                       </button>
@@ -667,7 +672,7 @@ export function TeamPage() {
                         onClick={() => handleToggleStatus(member.id)}
                         disabled={member.role === 'usuario_master' || member.id === user?.id || !canManageAccess}
                         className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={member.id === user?.id ? 'Você não pode desativar o seu próprio perfil' : member.role === 'usuario_master' ? 'O usuário Master não pode ser desativado' : (member.status === 'active' ? 'Desativar usuário' : 'Ativar usuário')}
+                        title={member.id === user?.id ? 'Você não pode desativar o seu próprio perfil' : member.role === 'usuario_master' ? 'O Gestor não pode ser desativado' : (member.status === 'active' ? 'Desativar usuário' : 'Ativar usuário')}
                       >
                         {member.status === 'active' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                       </button>
@@ -697,7 +702,7 @@ export function TeamPage() {
             {!canManageAccess && (
               <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 p-3 text-xs text-amber-600">
                 <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>Apenas o Usuário Master ou Administrador pode aprovar novas solicitações.</span>
+                <span>Apenas o Gestor ou Administrador pode aprovar novas solicitações.</span>
               </div>
             )}
 
@@ -734,12 +739,12 @@ export function TeamPage() {
                           </td>
                           <td className="p-4">
                             <span className={cn(
-                              'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase',
-                              req.role === 'usuario_master'
-                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/30'
-                                : 'bg-gray-100 text-gray-700 dark:bg-gray-800'
+                              'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border',
+                              req.role === 'usuario_master' || req.role === 'client_master' || req.userType === 'client_master'
+                                ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/40'
+                                : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/40'
                             )}>
-                              {req.role === 'usuario_master' ? 'Usuário Master' : 'Usuário Comum'}
+                              {req.role === 'usuario_master' || req.role === 'client_master' || req.userType === 'client_master' ? 'Gestor' : 'Colaborador'}
                             </span>
                           </td>
                           <td className="p-4 text-[hsl(var(--muted-foreground))] text-xs font-medium">
@@ -854,8 +859,8 @@ export function TeamPage() {
                   onChange={(e) => setInviteRole(e.target.value as any)}
                   className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none"
                 >
-                  <option value="usuario_comum">Usuário padrão (Apenas módulos liberados)</option>
-                  <option value="usuario_master" disabled>Administrador Master (Limite de 1 por empresa atingido)</option>
+                  <option value="usuario_comum">Colaborador (Apenas módulos liberados)</option>
+                  <option value="usuario_master" disabled>Gestor (Limite de 1 por empresa atingido)</option>
                 </select>
               </div>
 
@@ -866,8 +871,9 @@ export function TeamPage() {
                     {[
                       { id: 'strategic', label: 'Guias e Impostos' },
                       { id: 'monitoring', label: 'Tarefas' },
-                      { id: 'drive', label: 'Drive de Arquivos' },
-                      { id: 'tickets', label: 'Central de Chamados' },
+                      { id: 'drive', label: 'Drive' },
+                      { id: 'tickets', label: 'Chamados' },
+                      { id: 'settings', label: 'Configurações' },
                     ].map(perm => (
                       <button
                         type="button"
@@ -940,12 +946,11 @@ export function TeamPage() {
                 <label className="block text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase mb-2">Módulos Liberados</label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { id: 'dashboard', label: 'Dashboard' },
-                    { id: 'strategic', label: 'Visão Estratégica' },
-                    { id: 'monitoring', label: 'Monitoramento' },
-                    { id: 'xml', label: 'XML Fiscal' },
-                    { id: 'drive', label: 'Drive de Arquivos' },
-                    { id: 'tickets', label: 'Central de Chamados' },
+                    { id: 'strategic', label: 'Guias e Impostos' },
+                    { id: 'monitoring', label: 'Tarefas' },
+                    { id: 'drive', label: 'Drive' },
+                    { id: 'tickets', label: 'Chamados' },
+                    { id: 'settings', label: 'Configurações' },
                   ].map(perm => (
                     <button
                       type="button"

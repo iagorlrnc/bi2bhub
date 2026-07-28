@@ -21,3 +21,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     },
   },
 })
+
+// Cliente do Supabase com sessão isolada para operações de cadastro Auth (evita alterar a sessão do Administrador logado)
+export const createIsolatedAuthClient = () => {
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  })
+}

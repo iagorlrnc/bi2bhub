@@ -276,10 +276,10 @@ export function TaxesPage() {
       </div>
 
       {/* Tabela de Guias */}
-      <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 space-y-4 shadow-sm">
+      <div className="relative z-10 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 space-y-4 shadow-sm">
         <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))]">Minhas Guias Tributárias</h3>
         <p className="text-xs text-[hsl(var(--muted-foreground))]">
-          Filtre, faça o download das guias em PDF enviadas pelo escritório contábil e envie o recibo de quitação para comprovação fiscal.
+          Faça o download das guias em PDF enviadas pelo contador Bi2B e envie o comprovante de quitação para comprovação fiscal.
         </p>
 
         {taxes.length > 0 ? (

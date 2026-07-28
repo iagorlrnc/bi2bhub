@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
+import { supabase, createIsolatedAuthClient } from '@/lib/supabase'
 import { logAuditActivity } from '@/lib/audit'
 import { z } from 'zod'
 
@@ -147,12 +147,13 @@ export function CompaniesPage() {
     fetchCompanyRequests()
   }, [])
 
-  // APROVAR SOLICITAÇÃO DA EMPRESA (Real Supabase: is_active -> true)
+  // APROVAR SOLICITAÇÃO DA EMPRESA E DO GESTOR VINCULADO (Real Supabase)
   const handleApproveRequest = async (req: any) => {
     try {
       const randomCode = req.codigo_exclusivo || String(Math.floor(1000 + Math.random() * 9000))
       
-      const { error } = await supabase
+      // 1. Ativar a Empresa no Supabase
+      const { error: companyErr } = await supabase
         .from('empresas')
         .update({
           is_active: true,
@@ -161,16 +162,117 @@ export function CompaniesPage() {
         })
         .eq('id', req.id)
 
-      if (error) throw error
+      if (companyErr) throw companyErr
+
+      // 2. Aprovar e Vincular o Gestor na tabela de Usuários e Vínculos
+      // Buscar o gestor vinculado a esta empresa na tabela 'usuarios' (criado na etapa do cadastro)
+      const { data: userByCompany } = await supabase
+        .from('usuarios')
+        .select('id, email')
+        .eq('company_id', req.id)
+        .eq('user_type', 'client_master')
+        .maybeSingle()
+
+      let existingUser: any = userByCompany
+      let gestorEmail = userByCompany?.email || req.admin_email || (req.email ? req.email.trim().toLowerCase() : '')
+
+      if (!existingUser && gestorEmail) {
+        const { data: userByEmail } = await supabase
+          .from('usuarios')
+          .select('id, email')
+          .eq('email', gestorEmail)
+          .maybeSingle()
+        existingUser = userByEmail
+      }
+
+      let gestorUserId: string | null = null
+
+      if (existingUser) {
+        gestorUserId = existingUser.id
+        // Atualizar perfil do gestor existente para master ativado e vinculado
+        await supabase
+          .from('usuarios')
+          .update({
+            user_type: 'client_master',
+            company_id: req.id,
+            codigo_empresa: randomCode,
+            is_active: true,
+            status_reason: null
+          })
+          .eq('id', existingUser.id)
+      } else if (gestorEmail) {
+        // Tentar registrar no Supabase Auth usando cliente isolado para não deslogar o Administrador
+        let authUserId: string | null = null
+        try {
+          const authClient = createIsolatedAuthClient()
+          const tempPassword = 'GestorPass' + randomCode + '!'
+          const { data: authData } = await authClient.auth.signUp({
+            email: gestorEmail,
+            password: tempPassword,
+            options: {
+              data: {
+                full_name: req.admin_name || 'Gestor Responsável',
+                phone: req.phone || null,
+                company_id: req.id,
+                codigo_empresa: randomCode,
+                user_type: 'client_master'
+              }
+            }
+          })
+          if (authData?.user?.id) {
+            authUserId = authData.user.id
+          }
+        } catch (e) {
+          if (import.meta.env.DEV) console.warn('Aviso Supabase Auth ao aprovar gestor:', e)
+        }
+
+        // Inserir perfil de Gestor em usuarios se ainda não existir
+        const newUserId = authUserId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'usr_' + Date.now())
+        const { data: newUser } = await supabase
+          .from('usuarios')
+          .insert({
+            id: newUserId,
+            email: gestorEmail,
+            full_name: req.admin_name || 'Gestor Responsável',
+            phone: req.phone || null,
+            user_type: 'client_master',
+            company_id: req.id,
+            codigo_empresa: randomCode,
+            is_active: true
+          })
+          .select('id')
+          .maybeSingle()
+
+        gestorUserId = newUser?.id || newUserId
+      }
+
+      // 3. Vincular em usuarios_empresa como 'usuario_master' com permissões totais ativadas
+      if (gestorUserId) {
+        await supabase
+          .from('usuarios_empresa')
+          .upsert({
+            company_id: req.id,
+            user_id: gestorUserId,
+            role: 'usuario_master',
+            permissions: ['all'],
+            is_active: true
+          }, { onConflict: 'company_id,user_id' })
+      }
 
       logAuditActivity({
         action: 'APROVAR_SOLICITACAO_EMPRESA',
         entityType: 'empresas',
         entityId: req.id,
-        metadata: { company_name: req.name, cnpj: req.cnpj, codigo_exclusivo: randomCode }
+        metadata: { 
+          company_name: req.name, 
+          cnpj: req.cnpj, 
+          codigo_exclusivo: randomCode,
+          gestor_name: req.admin_name,
+          gestor_email: gestorEmail
+        }
       })
 
-      toast.success(`Solicitação da empresa "${req.name}" APROVADA com sucesso! Empresa ativada no Supabase.`)
+      toast.success(`Empresa "${req.name}" APROVADA! O Gestor "${req.admin_name || 'Responsável'}" foi automaticamente aprovado e vinculado.`)
       if (selectedRequestModal?.id === req.id) {
         setSelectedRequestModal(null)
       }
@@ -178,7 +280,7 @@ export function CompaniesPage() {
       fetchCompanies()
       fetchCompanyRequests()
     } catch (err: any) {
-      toast.error(err.message || 'Erro ao aprovar empresa no Supabase.')
+      toast.error(err.message || 'Erro ao aprovar empresa e gestor no Supabase.')
     }
   }
 
@@ -415,7 +517,7 @@ export function CompaniesPage() {
             <Building2 className="h-5 w-5 text-brand-600 dark:text-brand-400" />
           </div>
           <div>
-            <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Gestão de Empresas (Tenants)</h1>
+            <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Gestão de Empresas</h1>
             <p className="text-sm text-[hsl(var(--muted-foreground))]">Gerencie empresas ativas e aprovações de solicitações do portal público</p>
           </div>
         </div>
@@ -489,7 +591,7 @@ export function CompaniesPage() {
               <thead>
                 <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/50 text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
                   <th className="p-4">Empresa</th>
-                  <th className="p-4">ID Exclusivo</th>
+                  <th className="p-4">ID</th>
                   <th className="p-4">Contato</th>
                   <th className="p-4">Plano</th>
                   <th className="p-4">Limite de Usuários</th>
@@ -617,7 +719,7 @@ export function CompaniesPage() {
               <span>Painel de Solicitações de Cadastro de Novas Empresas</span>
             </div>
             <p className="text-xs text-[hsl(var(--foreground))] leading-relaxed">
-              Exibindo as solicitações de empresas e escritórios cadastrados via aba pública do portal. Ao aprovar uma solicitação, a empresa será ativada e estará pronta para receber vínculos de colaboradores.
+              Exibindo as solicitações de empresas cadastradas via aba pública do portal.<br/>Ao aprovar uma solicitação, a empresa será ativada e estará pronta para receber vínculos de colaboradores.
             </p>
           </div>
 

@@ -116,13 +116,18 @@ export function PermissionGuard({ children, module, fallback }: PermissionGuardP
   // Administradores e equipe têm todas as permissões
   if (isAdmin || isStaff) return <>{children}</>
 
-  // Cliente master tem todas as permissões do módulo
-  if (isClientMaster) return <>{children}</>
+  // O módulo de Equipe é exclusivo para o Gestor (isClientMaster)
+  if (module === 'team') {
+    if (isClientMaster) return <>{children}</>
+  } else {
+    // Cliente master tem todas as permissões do módulo
+    if (isClientMaster) return <>{children}</>
 
-  // Usuário cliente precisa de permissão específica
-  const permissions = companyUser?.permissions ?? []
-  if (Array.isArray(permissions) && permissions.includes(module)) {
-    return <>{children}</>
+    // Usuário cliente precisa de permissão específica
+    const permissions = companyUser?.permissions ?? []
+    if (Array.isArray(permissions) && permissions.includes(module)) {
+      return <>{children}</>
+    }
   }
 
   if (fallback) return <>{fallback}</>

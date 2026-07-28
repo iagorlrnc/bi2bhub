@@ -32,7 +32,7 @@ const plans = [
     desc: 'Ideal para empresas individuais em crescimento e rotina contábil essencial.',
     monthly: '197',
     yearly: '145',
-    users: '1 Usuário Master',
+    users: '1 Gestor',
     cta: 'Começar Teste Grátis',
     isSpecialist: false,
     features: [

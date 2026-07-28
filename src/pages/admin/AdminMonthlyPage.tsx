@@ -287,7 +287,7 @@ export function AdminMonthlyPage() {
                 {loadingMonthly && <Loader2 className="h-4 w-4 animate-spin text-brand-500" />}
               </div>
               <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                Monitore e gerencie os envios mensais obrigatórios de documentos
+                Monitore e gerencie os envios mensais obrigatórios dos documentos
               </p>
             </div>
 

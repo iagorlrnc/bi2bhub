@@ -230,7 +230,7 @@ export function RegisterPage() {
         }, { onConflict: 'user_id' })
       }
 
-      toast.success('Solicitação de acesso enviada com sucesso! Aguarde a aprovação do usuário master ou administrador.')
+      toast.success('Solicitação de acesso enviada com sucesso! Aguarde a aprovação do gestor ou administrador.')
       navigate(ROUTES.LOGIN)
     } catch (err: any) {
       if (import.meta.env.DEV) {

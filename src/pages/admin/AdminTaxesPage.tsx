@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity } from '@/lib/audit'
+import { cn } from '@/lib/utils'
 
 interface TaxGuide {
   id: string
@@ -293,9 +294,9 @@ export function AdminTaxesPage() {
             <FileSpreadsheet className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Guias e Impostos (Admin)</h1>
+            <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Guias e Impostos</h1>
             <p className="text-sm text-[hsl(var(--muted-foreground))]">
-              Publique guias de recolhimento tributário para os clientes e monitore os comprovantes de pagamento
+              Publique guias para os clientes e monitore os comprovantes de pagamento
             </p>
           </div>
         </div>
@@ -480,7 +481,8 @@ export function AdminTaxesPage() {
             </div>
 
             <form onSubmit={handleCreateTax} className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
+              {/* Seleção de Tributo */}
+              <div className={cn("grid gap-4", taxType === 'Outro' ? "sm:grid-cols-2" : "grid-cols-1")}>
                 <div>
                   <label className="block text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase mb-1">Tributo / Guia</label>
                   <select
@@ -512,16 +514,17 @@ export function AdminTaxesPage() {
                 )}
               </div>
 
+              {/* Referência, Vencimento e Valor em 3 colunas perfeitamente alinhadas */}
               <div className="grid gap-4 sm:grid-cols-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase mb-1">Competência (MM/AAAA)</label>
+                  <label className="block text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase mb-1">Referência</label>
                   <input
                     type="text"
                     required
                     placeholder="Ex: 06/2026"
                     value={refPeriod}
                     onChange={(e) => setRefPeriod(e.target.value)}
-                    className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
+                    className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none focus:border-brand-500 font-medium"
                   />
                 </div>
 
@@ -532,7 +535,7 @@ export function AdminTaxesPage() {
                     required
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
+                    className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none focus:border-brand-500 font-medium"
                   />
                 </div>
 
@@ -545,11 +548,12 @@ export function AdminTaxesPage() {
                     placeholder="0.00"
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
-                    className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none focus:border-brand-500 font-semibold"
+                    className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none focus:border-brand-500 font-semibold text-emerald-600 dark:text-emerald-400"
                   />
                 </div>
               </div>
 
+              {/* Descrição */}
               <div>
                 <label className="block text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase mb-1">Descrição</label>
                 <input
@@ -561,15 +565,18 @@ export function AdminTaxesPage() {
                 />
               </div>
 
+              {/* Anexo da Guia */}
               <div>
                 <label className="block text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase mb-1">Anexo da Guia (PDF)</label>
-                <input
-                  type="file"
-                  required
-                  accept="application/pdf"
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
-                />
+                <div className="rounded-xl border border-dashed border-[hsl(var(--input))] bg-[hsl(var(--muted))]/20 p-3">
+                  <input
+                    type="file"
+                    required
+                    accept="application/pdf"
+                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    className="w-full text-xs text-[hsl(var(--muted-foreground))] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-500/10 file:text-brand-600 dark:file:text-brand-400 hover:file:bg-brand-500/20 cursor-pointer"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-4 border-t border-[hsl(var(--border))]">

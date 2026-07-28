@@ -145,7 +145,7 @@ export function StaffPage() {
       toast.error('Você não pode se remover da equipe de contadores.')
       return
     }
-    if (confirm(`Tem certeza que deseja desvincular o contador ${name} do escritório? ele será rebaixado a usuário comum.`)) {
+    if (confirm(`Tem certeza que deseja desvincular o contador ${name} do escritório? Ele será rebaixado a colaborador.`)) {
       try {
         const { error } = await supabase
           .from('usuarios')

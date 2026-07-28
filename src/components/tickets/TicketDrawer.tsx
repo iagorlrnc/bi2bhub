@@ -589,7 +589,7 @@ export function TicketDrawer({
                 )}
               >
                 <Info className="h-3.5 w-3.5" />
-                Detalhes & SLA
+                Detalhes
               </button>
             )}
 
@@ -866,10 +866,7 @@ export function TicketDrawer({
                     <span className="font-semibold text-emerald-600">{new Date(ticket.resolved_at).toLocaleString('pt-BR')}</span>
                   </div>
                 )}
-                <div className="p-3 flex items-center justify-between">
-                  <span className="text-[hsl(var(--muted-foreground))] font-medium">SLA de Atendimento</span>
-                  <span className="font-semibold text-brand-600 dark:text-brand-400">Dentro do Prazo (SLA OK)</span>
-                </div>
+
               </div>
             </div>
           )}

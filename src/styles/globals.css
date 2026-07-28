@@ -94,41 +94,41 @@
 }
 
 .dark {
-  --background: 198 40% 10%;
+  --background: 222 47% 8%;
   --foreground: 0 0% 95%;
-  --card: 198 30% 12%;
+  --card: 217 33% 13%;
   --card-foreground: 0 0% 95%;
-  --popover: 198 30% 12%;
+  --popover: 217 33% 13%;
   --popover-foreground: 0 0% 95%;
   --primary: 198 82% 40%;
   --primary-foreground: 0 0% 98%;
-  --secondary: 198 25% 18%;
+  --secondary: 217 25% 17%;
   --secondary-foreground: 0 0% 98%;
-  --muted: 198 25% 18%;
-  --muted-foreground: 198 15% 65%;
-  --accent: 198 25% 18%;
+  --muted: 217 25% 17%;
+  --muted-foreground: 217 15% 65%;
+  --accent: 217 25% 17%;
   --accent-foreground: 0 0% 98%;
   --destructive: 0 100% 50%;
   --destructive-foreground: 0 0% 98%;
-  --border: 198 25% 18%;
-  --input: 198 25% 18%;
+  --border: 217 25% 17%;
+  --input: 217 25% 17%;
   --ring: 198 82% 40%;
   --chart-1: 198 82% 40%;
   --chart-2: 262 83% 58%;
   --chart-3: 330 81% 60%;
   --chart-4: 173 80% 40%;
   --chart-5: 47 95% 53%;
-  --sidebar-background: 198 40% 8%;
+  --sidebar-background: 222 47% 8%;
   --sidebar-foreground: 0 0% 90%;
   --sidebar-primary: 198 82% 40%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 198 25% 15%;
+  --sidebar-accent: 217 25% 15%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 198 40% 11%;
+  --sidebar-border: 217 40% 11%;
   --sidebar-ring: 198 82% 40%;
 
-  --surface: 198 30% 12%;
-  --surface-elevated: 198 30% 16%;
+  --surface: 217 33% 13%;
+  --surface-elevated: 217 30% 17%;
 }
 
 /* Local overrides for sidebar text & border readability in light mode */
@@ -544,6 +544,105 @@ body {
 
 .shield-pulse {
   animation: shield-pulse 2.5s ease-in-out infinite;
+}
+
+/* ===== SOMBRAS E EFEITO DE RELEVO EM CARDS NOS TEMAS CLARO E ESCURO ===== */
+:root:not(.dark) main .bg-card,
+:root:not(.dark) main div[class*="bg-[hsl(var(--card))]"],
+:root:not(.dark) main section[class*="bg-[hsl(var(--card))]"],
+:root:not(.dark) div[class*="rounded-3xl"][class*="border"][class*="bg-"],
+:root:not(.dark) div[class*="rounded-2xl"][class*="border"][class*="p-5"],
+:root:not(.dark) div[class*="rounded-2xl"][class*="border"][class*="p-6"],
+:root:not(.dark) div[class*="rounded-2xl"][class*="border"][class*="p-8"] {
+  box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.22), 0 4px 12px -2px rgba(0, 0, 0, 0.14) !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark main .bg-card,
+.dark main div[class*="bg-[hsl(var(--card))]"],
+.dark main section[class*="bg-[hsl(var(--card))]"],
+.dark div[class*="rounded-3xl"][class*="border"][class*="bg-"],
+.dark div[class*="rounded-2xl"][class*="border"][class*="p-5"],
+.dark div[class*="rounded-2xl"][class*="border"][class*="p-6"],
+.dark div[class*="rounded-2xl"][class*="border"][class*="p-8"] {
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.55), 0 6px 16px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* Modais, Gavetas (Drawers) e Menus Flutuantes dos Painéis */
+:root:not(.dark) div[class*="fixed"] div[class*="bg-[hsl(var(--card))]"],
+:root:not(.dark) div[class*="fixed"] div[class*="max-w-"] {
+  box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.35), 0 10px 20px -5px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark div[class*="fixed"] div[class*="bg-[hsl(var(--card))]"],
+.dark div[class*="fixed"] div[class*="max-w-"] {
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.7), 0 12px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* Efeito Hover de Elevação para Cards Interativos */
+:root:not(.dark) main div[class*="hover-lift"]:hover,
+:root:not(.dark) div[class*="hover-lift"]:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.3), 0 8px 18px -3px rgba(0, 0, 0, 0.18) !important;
+}
+
+.dark main div[class*="hover-lift"]:hover,
+.dark div[class*="hover-lift"]:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 42px -5px rgba(0, 0, 0, 0.7), 0 10px 22px -3px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ===== REMOVER SOMBRAS DOS ÍCONES E EMBLEMAS PEQUENOS ===== */
+main svg,
+div[class*="shrink-0"][class*="rounded-"] svg,
+div[class*="h-"][class*="w-"] svg,
+main div[class*="shrink-0"][class*="rounded-xl"],
+main div[class*="shrink-0"][class*="rounded-2xl"],
+main div[class*="shrink-0"][class*="rounded-lg"],
+main div[class*="h-8"][class*="w-8"],
+main div[class*="h-9"][class*="w-9"],
+main div[class*="h-10"][class*="w-10"],
+main div[class*="h-11"][class*="w-11"],
+main div[class*="h-12"][class*="w-12"] {
+  box-shadow: none !important;
+  filter: none !important;
+  drop-shadow: none !important;
+}
+
+/* ===== SOMBRAS ELEVADAS PARA BOTÕES DE ADICIONAR E AÇÕES PRINCIPAIS ===== */
+button.gradient-brand,
+button[class*="gradient-brand"],
+button[class*="bg-brand"],
+button[class*="bg-emerald"],
+button[class*="bg-blue"],
+button:has(svg.lucide-plus),
+button:has(svg.lucide-plus-circle),
+button:has(svg.lucide-folder-plus),
+button:has(svg.lucide-file-plus),
+button[type="submit"] {
+  box-shadow: 0 8px 22px -3px rgba(13, 96, 132, 0.45), 0 4px 10px -2px rgba(0, 0, 0, 0.22) !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+button.gradient-brand:hover,
+button[class*="gradient-brand"]:hover,
+button[class*="bg-brand"]:hover,
+button[class*="bg-emerald"]:hover,
+button[class*="bg-blue"]:hover,
+button:has(svg.lucide-plus):hover,
+button:has(svg.lucide-plus-circle):hover,
+button:has(svg.lucide-folder-plus):hover,
+button:has(svg.lucide-file-plus):hover,
+button[type="submit"]:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 28px -3px rgba(13, 96, 132, 0.6), 0 6px 14px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+button.gradient-brand:active,
+button[class*="gradient-brand"]:active,
+button[type="submit"]:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 4px 12px -2px rgba(13, 96, 132, 0.4) !important;
 }
 
 
