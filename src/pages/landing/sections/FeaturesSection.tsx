@@ -15,8 +15,10 @@ import {
   Sparkles,
   ArrowUpRight,
   Layers,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTheme } from '@/contexts/ThemeContext'
 import bpontoPng from '@/assets/logo.png'
 
 const staggerContainer = {
@@ -38,11 +40,14 @@ const scaleIn = {
 } as const
 
 interface FeaturesSectionProps {
-  isDark: boolean
+  isDark?: boolean
 }
 
 export function FeaturesSection({ isDark }: FeaturesSectionProps) {
+  const { resolvedTheme } = useTheme()
+  const isDarkTheme = isDark ?? (resolvedTheme === 'dark')
   const [activeTab, setActiveTab] = useState<'xml' | 'monitor' | 'connect' | 'task' | 'drive'>('xml')
+  const [modalTab, setModalTab] = useState<'xml' | 'monitor' | 'connect' | 'task' | 'drive' | null>(null)
 
   // Chat Interativo no Bi2B Chamados
   const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'support' | 'client'; text: string; time: string }>>([
@@ -117,8 +122,10 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
       viewport={{ once: true, margin: '-100px' }}
       variants={staggerContainer}
       className={cn(
-        "py-28 border-b relative overflow-hidden",
-        isDark ? "bg-[#040914] border-white/10" : "bg-slate-50 border-slate-200"
+        "py-28 border-b relative overflow-hidden transition-colors duration-300",
+        isDarkTheme 
+          ? "bg-[#040914] border-white/10 dark:bg-[#040914] dark:border-white/10" 
+          : "bg-slate-50 border-slate-200 dark:bg-[#040914] dark:border-white/10"
       )}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -126,16 +133,24 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
         {/* Header da Seção */}
         <motion.div variants={fadeInUp} className="text-center space-y-4 mb-16">
           <span className={cn(
-            "inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] shadow-md",
-            isDark ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300" : "border-[#0d6084]/20 bg-[#0d6084]/5 text-[#0d6084]"
+            "inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] shadow-md transition-colors duration-300",
+            isDarkTheme 
+              ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 dark:border-cyan-400/30 dark:bg-cyan-500/10 dark:text-cyan-300" 
+              : "border-[#0d6084]/20 bg-[#0d6084]/5 text-[#0d6084] dark:border-cyan-400/30 dark:bg-cyan-500/10 dark:text-cyan-300"
           )}>
             <Layers className="w-3.5 h-3.5 text-cyan-400" />
             Ecossistema Integrado de Soluções
           </span>
-          <h2 className={cn("font-sans text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-balance", isDark ? "text-white" : "text-slate-900")}>
+          <h2 className={cn(
+            "font-sans text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-balance transition-colors duration-300",
+            isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white"
+          )}>
             Soluções conectadas em um único portal
           </h2>
-          <p className={cn("max-w-2xl mx-auto text-sm sm:text-base leading-relaxed text-balance", isDark ? "text-slate-300/90" : "text-slate-600")}>
+          <p className={cn(
+            "max-w-2xl mx-auto text-sm sm:text-base leading-relaxed text-balance transition-colors duration-300",
+            isDarkTheme ? "text-slate-300/90 dark:text-slate-300/90" : "text-slate-600 dark:text-slate-300/90"
+          )}>
             Tudo o que sua empresa e seu escritório contábil precisam para operar em sintonia, sem dispersão de dados ou ruído de comunicação.
           </p>
         </motion.div>
@@ -149,39 +164,39 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
             className="lg:col-span-6 relative flex justify-center items-center"
           >
             {/* Outer rotating light circle */}
-            <div className={cn("absolute inset-0 -m-8 border rounded-full animate-[spin_40s_linear_infinite]", isDark ? "border-cyan-500/10" : "border-slate-200/60")} />
-            <div className={cn("absolute inset-0 -m-16 border border-dashed rounded-full animate-[spin_60s_linear_infinite]", isDark ? "border-cyan-500/10" : "border-slate-200/50")} />
+            <div className={cn("absolute inset-0 -m-8 border rounded-full animate-[spin_40s_linear_infinite]", isDarkTheme ? "border-cyan-500/10 dark:border-cyan-500/10" : "border-slate-200/60 dark:border-cyan-500/10")} />
+            <div className={cn("absolute inset-0 -m-16 border border-dashed rounded-full animate-[spin_60s_linear_infinite]", isDarkTheme ? "border-cyan-500/10 dark:border-cyan-500/10" : "border-slate-200/50 dark:border-cyan-500/10")} />
 
             {/* Grafo do Ecossistema Interativo Preservado */}
             <div 
               className={cn(
-                "relative w-full aspect-square max-w-[420px] rounded-3xl border p-6 backdrop-blur-2xl flex items-center justify-center hover-elevate shadow-2xl",
-                isDark 
-                  ? "bg-[#040914]/80 border-cyan-500/20 bi2b-border-glow shadow-cyan-950/30" 
-                  : "bg-white border-slate-200/90 shadow-2xl shadow-slate-200/60"
+                "relative w-full aspect-square max-w-[420px] rounded-3xl border p-6 backdrop-blur-2xl flex items-center justify-center hover-elevate shadow-2xl transition-all duration-300",
+                isDarkTheme 
+                  ? "bg-[#040914]/80 border-cyan-500/20 bi2b-border-glow shadow-cyan-950/30 dark:bg-[#040914]/80 dark:border-cyan-500/20" 
+                  : "bg-white border-slate-200/90 shadow-2xl shadow-slate-200/60 dark:bg-[#040914]/80 dark:border-cyan-500/20"
               )}
             >
               <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 400">
                 {/* Linhas Conectoras Centrais */}
-                <motion.line x1="200" y1="200" x2="200" y2="70" stroke={isDark ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
-                <motion.line x1="200" y1="200" x2="310" y2="150" stroke={isDark ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
-                <motion.line x1="200" y1="200" x2="270" y2="300" stroke={isDark ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
-                <motion.line x1="200" y1="200" x2="130" y2="300" stroke={isDark ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
-                <motion.line x1="200" y1="200" x2="90" y2="150" stroke={isDark ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
+                <motion.line x1="200" y1="200" x2="200" y2="70" stroke={isDarkTheme ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
+                <motion.line x1="200" y1="200" x2="310" y2="150" stroke={isDarkTheme ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
+                <motion.line x1="200" y1="200" x2="270" y2="300" stroke={isDarkTheme ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
+                <motion.line x1="200" y1="200" x2="130" y2="300" stroke={isDarkTheme ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
+                <motion.line x1="200" y1="200" x2="90" y2="150" stroke={isDarkTheme ? "rgba(126, 231, 255, 0.25)" : "rgba(13, 96, 132, 0.3)"} strokeWidth="1.5" strokeDasharray="5,5" />
 
                 {/* Sinais luminosos em movimento */}
-                <motion.circle r="4" fill={isDark ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 200], cy: [200, 70] }} transition={{ repeat: Infinity, duration: 2.2, ease: 'linear' }} />
-                <motion.circle r="4" fill={isDark ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 310], cy: [200, 150] }} transition={{ repeat: Infinity, duration: 2.5, ease: 'linear' }} />
-                <motion.circle r="4" fill={isDark ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 270], cy: [200, 300] }} transition={{ repeat: Infinity, duration: 2.8, ease: 'linear' }} />
-                <motion.circle r="4" fill={isDark ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 130], cy: [200, 300] }} transition={{ repeat: Infinity, duration: 2.6, ease: 'linear' }} />
-                <motion.circle r="4" fill={isDark ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 90], cy: [200, 150] }} transition={{ repeat: Infinity, duration: 2.4, ease: 'linear' }} />
+                <motion.circle r="4" fill={isDarkTheme ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 200], cy: [200, 70] }} transition={{ repeat: Infinity, duration: 2.2, ease: 'linear' }} />
+                <motion.circle r="4" fill={isDarkTheme ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 310], cy: [200, 150] }} transition={{ repeat: Infinity, duration: 2.5, ease: 'linear' }} />
+                <motion.circle r="4" fill={isDarkTheme ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 270], cy: [200, 300] }} transition={{ repeat: Infinity, duration: 2.8, ease: 'linear' }} />
+                <motion.circle r="4" fill={isDarkTheme ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 130], cy: [200, 300] }} transition={{ repeat: Infinity, duration: 2.6, ease: 'linear' }} />
+                <motion.circle r="4" fill={isDarkTheme ? "#7ee7ff" : "#0d6084"} animate={{ cx: [200, 90], cy: [200, 150] }} transition={{ repeat: Infinity, duration: 2.4, ease: 'linear' }} />
               </svg>
 
               {/* Nó Central Bi2B */}
               <div 
                 className={cn(
                   "absolute w-20 h-20 rounded-full bg-gradient-to-br from-[#0d6084] to-[#0a4a62] border flex flex-col items-center justify-center shadow-xl z-10 p-2 cursor-pointer transition-transform hover:scale-110",
-                  isDark ? "border-cyan-400/40 shadow-cyan-500/20" : "border-cyan-400/30 shadow-slate-300"
+                  isDarkTheme ? "border-cyan-400/40 shadow-cyan-500/20" : "border-cyan-400/30 shadow-slate-300"
                 )}
               >
                 <img src={bpontoPng} alt="Bi2B Icon" className="h-10 w-10 object-contain animate-pulse" />
@@ -190,7 +205,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
 
               {/* Satellite Node 1: Guias Bi2B */}
               <div 
-                onClick={() => setActiveTab('xml')}
+                onClick={() => { setActiveTab('xml'); setModalTab('xml') }}
                 className="absolute top-6 flex flex-col items-center gap-1 cursor-pointer group"
               >
                 <div 
@@ -198,17 +213,17 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                     "w-12 h-12 rounded-xl border flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110",
                     activeTab === 'xml'
                       ? "bg-[#0d6084] border-cyan-400 text-white shadow-cyan-500/30"
-                      : (isDark ? "bg-[#08101d] border-cyan-500/20 text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084]")
+                      : (isDarkTheme ? "bg-[#08101d] border-cyan-500/20 text-cyan-400 dark:bg-[#08101d] dark:border-cyan-500/20 dark:text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084] dark:bg-[#08101d] dark:border-cyan-500/20 dark:text-cyan-400")
                   )}
                 >
                   <FileCode2 className="h-5 w-5" />
                 </div>
-                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'xml' ? "text-cyan-400" : (isDark ? "text-slate-300" : "text-slate-700"))}>Guias Bi2B</span>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'xml' ? "text-cyan-400" : (isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-700 dark:text-slate-300"))}>Guias Bi2B</span>
               </div>
 
               {/* Satellite Node 2: Monitora Bi2B */}
               <div 
-                onClick={() => setActiveTab('monitor')}
+                onClick={() => { setActiveTab('monitor'); setModalTab('monitor') }}
                 className="absolute right-6 top-[28%] flex flex-col items-center gap-1 cursor-pointer group"
               >
                 <div 
@@ -216,17 +231,17 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                     "w-12 h-12 rounded-xl border flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110",
                     activeTab === 'monitor'
                       ? "bg-[#0d6084] border-cyan-400 text-white shadow-cyan-500/30"
-                      : (isDark ? "bg-[#08101d] border-cyan-500/20 text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084]")
+                      : (isDarkTheme ? "bg-[#08101d] border-cyan-500/20 text-cyan-400 dark:bg-[#08101d] dark:border-cyan-500/20 dark:text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084] dark:bg-[#08101d] dark:border-cyan-500/20 dark:text-cyan-400")
                   )}
                 >
                   <Shield className="h-5 w-5" />
                 </div>
-                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'monitor' ? "text-cyan-400" : (isDark ? "text-slate-300" : "text-slate-700"))}>Monitora Bi2B</span>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'monitor' ? "text-cyan-400" : (isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-700 dark:text-slate-300"))}>Monitora Bi2B</span>
               </div>
 
               {/* Satellite Node 3: Bi2B Chamados */}
               <div 
-                onClick={() => setActiveTab('connect')}
+                onClick={() => { setActiveTab('connect'); setModalTab('connect') }}
                 className="absolute right-12 bottom-8 flex flex-col items-center gap-1 cursor-pointer group"
               >
                 <div 
@@ -234,17 +249,17 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                     "w-12 h-12 rounded-xl border flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110",
                     activeTab === 'connect'
                       ? "bg-[#0d6084] border-cyan-400 text-white shadow-cyan-500/30"
-                      : (isDark ? "bg-[#08101d] border-cyan-500/20 text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084]")
+                      : (isDarkTheme ? "bg-[#08101d] border-cyan-500/20 text-cyan-400 dark:bg-[#08101d] dark:border-cyan-500/20 dark:text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084] dark:bg-[#08101d] dark:border-cyan-500/20 dark:text-cyan-400")
                   )}
                 >
                   <MessageSquare className="h-5 w-5" />
                 </div>
-                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'connect' ? "text-cyan-400" : (isDark ? "text-slate-300" : "text-slate-700"))}>Bi2B Chamados</span>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'connect' ? "text-cyan-400" : (isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-700 dark:text-slate-300"))}>Bi2B Chamados</span>
               </div>
 
               {/* Satellite Node 4: Tarefas Bi2B */}
               <div 
-                onClick={() => setActiveTab('task')}
+                onClick={() => { setActiveTab('task'); setModalTab('task') }}
                 className="absolute left-12 bottom-8 flex flex-col items-center gap-1 cursor-pointer group"
               >
                 <div 
@@ -252,17 +267,17 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                     "w-12 h-12 rounded-xl border flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110",
                     activeTab === 'task'
                       ? "bg-[#0d6084] border-cyan-400 text-white shadow-cyan-500/30"
-                      : (isDark ? "bg-[#08101d] border-cyan-500/20 text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084]")
+                      : (isDarkTheme ? "bg-[#08101d] border-cyan-500/20 text-cyan-400 dark:bg-[#08101d] dark:border-cyan-500/20 dark:text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084] dark:bg-[#08101d] dark:border-cyan-500/20 dark:text-cyan-400")
                   )}
                 >
                   <Activity className="h-5 w-5" />
                 </div>
-                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'task' ? "text-cyan-400" : (isDark ? "text-slate-300" : "text-slate-700"))}>Tarefas Bi2B</span>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'task' ? "text-cyan-400" : (isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-700 dark:text-slate-300"))}>Tarefas Bi2B</span>
               </div>
 
               {/* Satellite Node 5: Bi2B Drive */}
               <div 
-                onClick={() => setActiveTab('drive')}
+                onClick={() => { setActiveTab('drive'); setModalTab('drive') }}
                 className="absolute left-6 top-[28%] flex flex-col items-center gap-1 cursor-pointer group"
               >
                 <div 
@@ -270,33 +285,33 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                     "w-12 h-12 rounded-lg border flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110",
                     activeTab === 'drive'
                       ? "bg-[#0d6084] border-cyan-400 text-white shadow-cyan-500/30"
-                      : (isDark ? "bg-[#08101d] border-cyan-500/20 text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084]")
+                      : (isDarkTheme ? "bg-[#08101d] border-cyan-500/20 text-cyan-400 dark:bg-[#08101d] dark:border-cyan-500/20 dark:text-cyan-400" : "bg-slate-50 border-slate-200 text-[#0d6084] dark:bg-[#08101d] dark:border-cyan-500/20 dark:text-cyan-400")
                   )}
                 >
                   <FolderOpen className="h-5 w-5" />
                 </div>
-                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'drive' ? "text-cyan-400" : (isDark ? "text-slate-300" : "text-slate-700"))}>Bi2B Drive</span>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'drive' ? "text-cyan-400" : (isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-700 dark:text-slate-300"))}>Bi2B Drive</span>
               </div>
             </div>
           </motion.div>
 
-          {/* Cards Conectados do Ecossistema — HubStrom Style */}
+          {/* Cards Conectados do Ecossistema */}
           <div className="lg:col-span-6 space-y-4">
             {modulesList.map((m) => {
               const isActive = activeTab === m.id
               return (
                 <motion.div
                   key={m.id}
-                  onClick={() => setActiveTab(m.id)}
+                  onClick={() => { setActiveTab(m.id); setModalTab(m.id) }}
                   className={cn(
-                    "rounded-2xl border p-5 transition-all duration-300 cursor-pointer flex items-start gap-4 hover:-translate-y-0.5 relative overflow-hidden backdrop-blur-xl shadow-lg",
+                    "rounded-2xl border p-5 transition-all duration-300 cursor-pointer flex items-start gap-4 hover:-translate-y-0.5 relative overflow-hidden backdrop-blur-xl shadow-lg group",
                     isActive
-                      ? (isDark
-                          ? "bg-[#08152b] border-cyan-400 shadow-[0_8px_30px_rgba(13,96,132,0.3)]"
-                          : "bg-white border-[#0d6084] shadow-xl shadow-slate-200/60")
-                      : (isDark
-                          ? "bg-[#040914]/70 border-white/10 hover:border-cyan-400/30"
-                          : "bg-white/80 border-slate-200/80 hover:border-slate-300")
+                      ? (isDarkTheme
+                          ? "bg-[#08152b] border-cyan-400 shadow-[0_8px_30px_rgba(13,96,132,0.3)] dark:bg-[#08152b] dark:border-cyan-400"
+                          : "bg-white border-[#0d6084] shadow-xl shadow-slate-200/60 dark:bg-[#08152b] dark:border-cyan-400")
+                      : (isDarkTheme
+                          ? "bg-[#040914]/70 border-white/10 hover:border-cyan-400/30 dark:bg-[#040914]/70 dark:border-white/10"
+                          : "bg-white/80 border-slate-200/80 hover:border-slate-300 dark:bg-[#040914]/70 dark:border-white/10")
                   )}
                 >
                   {isActive && (
@@ -307,27 +322,27 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                     "w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 transition-transform duration-300",
                     isActive
                       ? "bg-gradient-to-br from-[#0d6084] to-[#0a4a62] border-cyan-400/40 text-cyan-200 shadow-md"
-                      : (isDark ? "bg-white/5 border-white/10 text-cyan-400" : "bg-cyan-50 border-cyan-200 text-[#0d6084]")
+                      : (isDarkTheme ? "bg-white/5 border-white/10 text-cyan-400 dark:bg-white/5 dark:border-white/10 dark:text-cyan-400" : "bg-cyan-50 border-cyan-200 text-[#0d6084] dark:bg-white/5 dark:border-white/10 dark:text-cyan-400")
                   )}>
                     <m.icon className="h-5 w-5" />
                   </div>
 
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className={cn("font-bold text-base", isDark ? "text-white" : "text-slate-900")}>
+                      <h3 className={cn("font-bold text-base transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>
                         {m.name}
                       </h3>
                       <span className={cn(
-                        "text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shrink-0",
+                        "text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shrink-0 transition-colors duration-300",
                         isActive
                           ? "bg-cyan-500/20 border-cyan-400/40 text-cyan-300"
-                          : (isDark ? "bg-white/5 border-white/10 text-slate-400" : "bg-slate-100 border-slate-200 text-slate-600")
+                          : (isDarkTheme ? "bg-white/5 border-white/10 text-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-slate-400" : "bg-slate-100 border-slate-200 text-slate-600 dark:bg-white/5 dark:border-white/10 dark:text-slate-400")
                       )}>
                         {m.tagline}
                       </span>
                     </div>
 
-                    <p className={cn("text-xs leading-relaxed mt-1.5", isDark ? "text-slate-300/90" : "text-slate-600")}>
+                    <p className={cn("text-xs leading-relaxed mt-1.5 transition-colors duration-300", isDarkTheme ? "text-slate-300/90 dark:text-slate-300/90" : "text-slate-600 dark:text-slate-300/90")}>
                       {m.desc}
                     </p>
 
@@ -343,388 +358,442 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
 
         </div>
 
-        {/* DEMONSTRAÇÃO INTERATIVA DO MÓDULO SELECIONADO */}
-        <motion.div 
-          variants={scaleIn}
-          className={cn(
-            "rounded-3xl border p-6 sm:p-10 backdrop-blur-2xl shadow-2xl max-w-6xl mx-auto min-h-[460px] flex items-center transition-all duration-300",
-            isDark 
-              ? "bg-[#040914]/80 border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] shadow-cyan-950/20" 
-              : "bg-white border-slate-200/90 shadow-2xl shadow-slate-200/60"
-          )}
-        >
-          <AnimatePresence mode="wait">
-            {activeTab === 'xml' && (
+        {/* DEMONSTRAÇÃO INTERATIVA EM MODAL AO CLICAR */}
+        <AnimatePresence>
+          {modalTab && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+              {/* Backdrop Overlay */}
               <motion.div
-                key="xml"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.4 }}
-                className="grid md:grid-cols-12 gap-8 items-center w-full"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setModalTab(null)}
+                className="fixed inset-0 bg-black/80 backdrop-blur-md"
+              />
+
+              {/* Modal Dialog Container */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className={cn(
+                  "relative w-full max-w-5xl rounded-3xl border p-6 sm:p-10 backdrop-blur-2xl shadow-2xl z-10 transition-colors duration-300 max-h-[90vh] overflow-y-auto",
+                  isDarkTheme 
+                    ? "bg-[#040914] border-cyan-500/30 text-white shadow-cyan-950/50 dark:bg-[#040914] dark:border-cyan-500/30" 
+                    : "bg-white border-slate-200 text-slate-900 shadow-2xl dark:bg-[#040914] dark:border-cyan-500/30"
+                )}
               >
-                <div className="md:col-span-6 space-y-6 text-left">
-                  <div 
-                    className={cn(
-                      "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner",
-                      isDark ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400" : "bg-cyan-50 border-cyan-200/60 text-[#0d6084]"
-                    )}
-                  >
-                    <FileCode2 className="h-6 w-6" />
-                  </div>
-                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>Guias Bi2B</h3>
-                  <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
-                    Sincronização imediata de Notas Fiscais Eletrônicas (NF-e, CT-e, NFS-e) emitidas e recebidas direto da base da SEFAZ, permitindo download em lote.
-                  </p>
-                  <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider", isDark ? "text-slate-400" : "text-slate-600")}>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Guarda eletrônica garantida por 5 anos
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Filtros de busca rápida por emitente
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Painel visualizador de chaves de acesso
-                    </li>
-                  </ul>
-                </div>
-                
-                {/* Prévia XML Fiscal */}
-                <div className="md:col-span-6">
-                  <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono", isDark ? "bg-[#050b14]/90 border-cyan-500/10" : "bg-slate-50 border-slate-200")}>
-                    <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3", isDark ? "border-cyan-950" : "border-slate-200")}>
-                      <span className={cn("font-bold", isDark ? "text-white" : "text-slate-800")}>XMLs Recentes (SEFAZ)</span>
-                      <span className="text-[9px] bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 px-2 py-0.5 rounded font-bold uppercase">Sincronizado</span>
-                    </div>
-                    <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
-                      {[
-                        { no: '102542', emit: 'Alfa Distribuidora', val: 'R$ 4.250,00' },
-                        { no: '102543', emit: 'Beta Indústria S/A', val: 'R$ 12.890,00' },
-                        { no: '102544', emit: 'Serviços Globais SP', val: 'R$ 890,00' }
-                      ].map((xml, idx) => (
-                        <div 
-                          key={idx} 
-                          className={cn(
-                            "flex justify-between items-center border rounded-lg p-2.5 hover:border-cyan-500/35 cursor-pointer hover:scale-[1.01] transition-transform duration-200",
-                            isDark ? "bg-[#08101d] border-cyan-500/5" : "bg-white border-slate-200"
-                          )}
-                        >
-                          <div>
-                            <div className={cn("font-bold", isDark ? "text-slate-200" : "text-slate-700")}>NF-e #{xml.no}</div>
-                            <div className="text-[9px] text-slate-500 truncate max-w-[120px]">{xml.emit}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className={cn("font-bold", isDark ? "text-white" : "text-slate-900")}>{xml.val}</div>
-                            <div className="text-[9px] text-cyan-500 flex items-center gap-0.5 justify-end">
-                              <Download className="w-2.5 h-2.5" /> Baixar
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
+                {/* Botão Fechar Modal */}
+                <button
+                  onClick={() => setModalTab(null)}
+                  className={cn(
+                    "absolute top-5 right-5 rounded-full p-2 border transition-all duration-200 cursor-pointer hover:scale-110 z-20",
+                    isDarkTheme
+                      ? "bg-white/5 border-white/15 text-slate-300 hover:bg-white/10 hover:text-white"
+                      : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+                  )}
+                  title="Fechar Demonstração"
+                >
+                  <X className="w-5 h-5" />
+                </button>
 
-            {activeTab === 'monitor' && (
-              <motion.div
-                key="monitor"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.4 }}
-                className="grid md:grid-cols-12 gap-8 items-center w-full"
-              >
-                <div className="md:col-span-6 space-y-6 text-left">
-                  <div 
-                    className={cn(
-                      "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner",
-                      isDark ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400" : "bg-cyan-50 border-cyan-200/60 text-[#0d6084]"
-                    )}
-                  >
-                    <Shield className="h-6 w-6" />
-                  </div>
-                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>Monitora Bi2B</h3>
-                  <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
-                    Varredura diária automatizada de certidões negativas de débitos (CNDs) federais, estaduais e municipais, emitindo alertas antes que qualquer prazo expire.
-                  </p>
-                  <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider", isDark ? "text-slate-400" : "text-slate-600")}>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Histórico permanente de certidões emitidas
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Alertas de prazos de DCTFWeb, CRF e FGTS
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Avisos via painel do cliente e e-mail
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Prévia Monitora Bi2B */}
-                <div className="md:col-span-6">
-                  <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono", isDark ? "bg-[#050b14]/90 border-cyan-500/10" : "bg-slate-50 border-slate-200")}>
-                    <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3", isDark ? "border-cyan-950" : "border-slate-200")}>
-                      <span className={cn("font-bold", isDark ? "text-white" : "text-slate-800")}>Varredura de CNDs</span>
-                      <span className="text-[9px] text-cyan-500">Varrendo...</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5 animate-pulse">
-                        <span className="text-emerald-500">CND Federal (RFB/PGFN)</span>
-                        <span className="bg-emerald-500/20 text-emerald-500 text-[9px] px-1.5 py-0.5 rounded font-bold border border-emerald-500/30">REGULAR</span>
-                      </div>
-                      <div className="flex justify-between items-center bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5">
-                        <span className="text-amber-400">Certidão do FGTS (CRF)</span>
-                        <span className="bg-amber-500/20 text-amber-400 text-[9px] px-1.5 py-0.5 rounded font-bold border border-amber-500/30">VENCE EM 8 DIAS</span>
-                      </div>
-                      <div className="flex justify-between items-center bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5">
-                        <span className="text-rose-400">CND Municipal (São Paulo)</span>
-                        <span className="bg-rose-500/20 text-rose-400 text-[9px] px-1.5 py-0.5 rounded font-bold border border-rose-500/30">EXPIRADA</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'connect' && (
-              <motion.div
-                key="connect"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.4 }}
-                className="grid md:grid-cols-12 gap-8 items-center w-full"
-              >
-                <div className="md:col-span-5 space-y-6 text-left">
-                  <div 
-                    className={cn(
-                      "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner",
-                      isDark ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400" : "bg-cyan-50 border-cyan-200/60 text-[#0d6084]"
-                    )}
-                  >
-                    <MessageSquare className="h-6 w-6" />
-                  </div>
-                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>Bi2B Chamados (Chat)</h3>
-                  <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
-                    Envie mensagens em tempo real para seu suporte contábil. Uma interface fluida e de resposta imediata com histórico completo dos chamados.
-                  </p>
-                  <div className={cn("border rounded-xl p-3 text-[10px] italic flex gap-2 items-center", isDark ? "bg-cyan-950/20 border-cyan-500/10 text-cyan-300" : "bg-cyan-50 border-cyan-200/50 text-[#0d6084]")}>
-                    <Sparkles className="w-4 h-4 shrink-0 text-cyan-500 animate-pulse" />
-                    Experimente digitar no chat ao lado! A inteligência de simulação responderá.
-                  </div>
-                </div>
-
-                {/* Chat Interativo Real */}
-                <div className="md:col-span-7">
-                  <div className={cn("rounded-2xl border p-4 shadow-2xl flex flex-col gap-3 h-[250px] justify-between", isDark ? "bg-[#050b14]/90 border-cyan-500/10" : "bg-slate-50 border-slate-200")}>
-                    {/* Topo do Chat */}
-                    <div className={cn("flex items-center justify-between border-b pb-2 text-xs", isDark ? "border-cyan-950" : "border-slate-200")}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                        <span className={cn("font-bold", isDark ? "text-white" : "text-slate-800")}>Suporte Contábil (Online)</span>
-                      </div>
-                      <span className="text-[9px] text-slate-500 uppercase">Chamado #1048</span>
-                    </div>
-
-                    {/* Lista de Mensagens */}
-                    <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 text-[11px] flex flex-col">
-                      {chatMessages.map((msg, i) => (
-                        <div
-                          key={i}
-                          className={cn(
-                            "max-w-[85%] rounded-2xl p-2.5 flex flex-col gap-0.5",
-                            msg.sender === 'client'
-                              ? (isDark 
-                                  ? "bg-cyan-950/60 border border-cyan-500/10 text-slate-100 self-end rounded-tr-none" 
-                                  : "bg-cyan-50 border border-cyan-200/60 text-slate-800 self-end rounded-tr-none")
-                              : (isDark 
-                                  ? "bg-slate-900 border border-slate-800 text-slate-300 self-start rounded-tl-none" 
-                                  : "bg-slate-200/60 border border-slate-300/40 text-slate-700 self-start rounded-tl-none")
-                          )}
-                        >
-                          <p className="leading-relaxed">{msg.text}</p>
-                          <span className="text-[8px] text-slate-500 text-right self-end mt-0.5">{msg.time}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Input do Chat */}
-                    <form onSubmit={handleSendChat} className={cn("flex gap-2 border-t pt-2.5", isDark ? "border-cyan-950" : "border-slate-200")}>
-                      <input
-                        type="text"
-                        placeholder="Digite sua dúvida contábil..."
-                        value={newMsg}
-                        onChange={(e) => setNewMsg(e.target.value)}
-                        className={cn("flex-1 border rounded-lg px-3 py-2 text-[11px] focus:outline-none", isDark ? "bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50" : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-[#0d6084]/50")}
-                      />
+                {/* Seletor de Abas no Topo do Modal */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-white/10 pr-10">
+                  {modulesList.map((m) => {
+                    const isSelected = modalTab === m.id
+                    return (
                       <button
-                        type="submit"
-                        className="bg-[#0d6084] hover:bg-[#0b5474] text-white rounded-lg px-3 flex items-center justify-center border border-cyan-500/20 cursor-pointer"
+                        key={m.id}
+                        onClick={() => { setActiveTab(m.id); setModalTab(m.id) }}
+                        className={cn(
+                          "flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer",
+                          isSelected
+                            ? "bg-[#0d6084] border-cyan-400 text-white shadow-md shadow-cyan-500/30"
+                            : (isDarkTheme ? "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10" : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200")
+                        )}
                       >
-                        <Send className="w-3.5 h-3.5" />
+                        <m.icon className="w-4 h-4" />
+                        <span>{m.name}</span>
                       </button>
-                    </form>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'task' && (
-              <motion.div
-                key="task"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.4 }}
-                className="grid md:grid-cols-12 gap-8 items-center w-full"
-              >
-                <div className="md:col-span-6 space-y-6 text-left">
-                  <div 
-                    className={cn(
-                      "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner",
-                      isDark ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400" : "bg-cyan-50 border-cyan-200/60 text-[#0d6084]"
-                    )}
-                  >
-                    <Activity className="h-6 w-6" />
-                  </div>
-                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>Tarefas Bi2B</h3>
-                  <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
-                    Gerenciador visual das guias mensais, impostos e obrigações trabalhistas. Evite atrasos acompanhando o status de cada entrega diretamente no seu painel.
-                  </p>
-                  <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider", isDark ? "text-slate-400" : "text-slate-600")}>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Data limite de entrega e prazos calculados
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Confirmação de recebimento assinada digitalmente
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Filtros de status (Em aberto, Concluído, Em atraso)
-                    </li>
-                  </ul>
+                    )
+                  })}
                 </div>
 
-                {/* Prévia Tarefas Bi2B */}
-                <div className="md:col-span-6">
-                  <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono", isDark ? "bg-[#050b14]/90 border-cyan-500/10" : "bg-slate-50 border-slate-200")}>
-                    <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3", isDark ? "border-cyan-950" : "border-slate-200")}>
-                      <span className={cn("font-bold", isDark ? "text-white" : "text-slate-800")}>Obrigações e Impostos</span>
-                      <span className="text-[9px] text-slate-500 font-mono">Julho 2025</span>
-                    </div>
-                    <div className="space-y-2">
-                      {[
-                        { task: 'Gerar DAS Simples Nacional', date: 'Vence em 20/07', status: 'Concluído', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-                        { task: 'Cálculo de Folha de Pagamento', date: 'Vence em 05/08', status: 'Em Aberto', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
-                        { task: 'Declaração Mensal ISS', date: 'Vence em 15/07', status: 'Atrasado', color: 'bg-rose-500/20 text-rose-400 border-rose-500/30' }
-                      ].map((t, idx) => (
+                <AnimatePresence mode="wait">
+                  {modalTab === 'xml' && (
+                    <motion.div
+                      key="xml"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid md:grid-cols-12 gap-8 items-center w-full"
+                    >
+                      <div className="md:col-span-6 space-y-6 text-left">
                         <div 
-                          key={idx} 
                           className={cn(
-                            "flex justify-between items-center border rounded-lg p-2.5",
-                            isDark ? "bg-[#08101d] border-cyan-500/5" : "bg-white border-slate-200"
+                            "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner transition-colors duration-300",
+                            isDarkTheme ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400 dark:bg-cyan-950/50 dark:border-cyan-500/20 dark:text-cyan-400" : "bg-cyan-50 border-cyan-200/60 text-[#0d6084] dark:bg-cyan-950/50 dark:border-cyan-500/20 dark:text-cyan-400"
                           )}
                         >
-                          <div>
-                            <div className={cn("font-bold", isDark ? "text-slate-200" : "text-slate-700")}>{t.task}</div>
-                            <div className="text-[9px] text-slate-500 flex items-center gap-1 mt-0.5">
-                              <Clock className="w-2.5 h-2.5" /> {t.date}
+                          <FileCode2 className="h-6 w-6" />
+                        </div>
+                        <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Guias Bi2B</h3>
+                        <p className={cn("text-sm leading-relaxed transition-colors duration-300", isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-600 dark:text-slate-300")}>
+                          Sincronização imediata de Notas Fiscais Eletrônicas (NF-e, CT-e, NFS-e) emitidas e recebidas direto da base da SEFAZ, permitindo download em lote.
+                        </p>
+                        <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-300", isDarkTheme ? "text-slate-400 dark:text-slate-400" : "text-slate-600 dark:text-slate-400")}>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Guarda eletrônica garantida por 5 anos
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Filtros de busca rápida por emitente
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Painel visualizador de chaves de acesso
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      {/* Prévia XML Fiscal */}
+                      <div className="md:col-span-6">
+                        <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono transition-colors duration-300", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
+                          <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
+                            <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>XMLs Recentes (SEFAZ)</span>
+                            <span className="text-[9px] bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 px-2 py-0.5 rounded font-bold uppercase">Sincronizado</span>
+                          </div>
+                          <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                            {[
+                              { no: '102542', emit: 'Alfa Distribuidora', val: 'R$ 4.250,00' },
+                              { no: '102543', emit: 'Beta Indústria S/A', val: 'R$ 12.890,00' },
+                              { no: '102544', emit: 'Serviços Globais SP', val: 'R$ 890,00' }
+                            ].map((xml, idx) => (
+                              <div 
+                                key={idx} 
+                                className={cn(
+                                  "flex justify-between items-center border rounded-lg p-2.5 hover:border-cyan-500/35 cursor-pointer hover:scale-[1.01] transition-all duration-200",
+                                  isDarkTheme ? "bg-[#08101d] border-cyan-500/5 dark:bg-[#08101d] dark:border-cyan-500/5" : "bg-white border-slate-200 dark:bg-[#08101d] dark:border-cyan-500/5"
+                                )}
+                              >
+                                <div>
+                                  <div className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-slate-200 dark:text-slate-200" : "text-slate-700 dark:text-slate-200")}>NF-e #{xml.no}</div>
+                                  <div className="text-[9px] text-slate-500 truncate max-w-[120px]">{xml.emit}</div>
+                                </div>
+                                <div className="text-right">
+                                  <div className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>{xml.val}</div>
+                                  <div className="text-[9px] text-cyan-500 flex items-center gap-0.5 justify-end">
+                                    <Download className="w-2.5 h-2.5" /> Baixar
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {modalTab === 'monitor' && (
+                    <motion.div
+                      key="monitor"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid md:grid-cols-12 gap-8 items-center w-full"
+                    >
+                      <div className="md:col-span-6 space-y-6 text-left">
+                        <div 
+                          className={cn(
+                            "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner transition-colors duration-300",
+                            isDarkTheme ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400 dark:bg-cyan-950/50 dark:border-cyan-500/20 dark:text-cyan-400" : "bg-cyan-50 border-cyan-200/60 text-[#0d6084] dark:bg-cyan-950/50 dark:border-cyan-500/20 dark:text-cyan-400"
+                          )}
+                        >
+                          <Shield className="h-6 w-6" />
+                        </div>
+                        <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Monitora Bi2B</h3>
+                        <p className={cn("text-sm leading-relaxed transition-colors duration-300", isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-600 dark:text-slate-300")}>
+                          Varredura diária automatizada de certidões negativas de débitos (CNDs) federais, estaduais e municipais, emitindo alertas antes que qualquer prazo expire.
+                        </p>
+                        <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-300", isDarkTheme ? "text-slate-400 dark:text-slate-400" : "text-slate-600 dark:text-slate-400")}>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Histórico permanente de certidões emitidas
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Alertas de prazos de DCTFWeb, CRF e FGTS
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Avisos via painel do cliente e e-mail
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Prévia Monitora Bi2B */}
+                      <div className="md:col-span-6">
+                        <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono transition-colors duration-300", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
+                          <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
+                            <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Varredura de CNDs</span>
+                            <span className="text-[9px] text-cyan-500">Varrendo...</span>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5 animate-pulse">
+                              <span className="text-emerald-500">CND Federal (RFB/PGFN)</span>
+                              <span className="bg-emerald-500/20 text-emerald-500 text-[9px] px-1.5 py-0.5 rounded font-bold border border-emerald-500/30">REGULAR</span>
+                            </div>
+                            <div className="flex justify-between items-center bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5">
+                              <span className="text-amber-400">Certidão do FGTS (CRF)</span>
+                              <span className="bg-amber-500/20 text-amber-400 text-[9px] px-1.5 py-0.5 rounded font-bold border border-amber-500/30">VENCE EM 8 DIAS</span>
+                            </div>
+                            <div className="flex justify-between items-center bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5">
+                              <span className="text-rose-400">CND Municipal (São Paulo)</span>
+                              <span className="bg-rose-500/20 text-rose-400 text-[9px] px-1.5 py-0.5 rounded font-bold border border-rose-500/30">EXPIRADA</span>
                             </div>
                           </div>
-                          <span className={cn("text-[9px] px-2 py-0.5 rounded font-bold border", t.color)}>{t.status}</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
+                      </div>
+                    </motion.div>
+                  )}
 
-            {activeTab === 'drive' && (
-              <motion.div
-                key="drive"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.4 }}
-                className="grid md:grid-cols-12 gap-8 items-center w-full"
-              >
-                <div className="md:col-span-6 space-y-6 text-left">
-                  <div 
-                    className={cn(
-                      "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner",
-                      isDark ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400" : "bg-cyan-50 border-cyan-200/60 text-[#0d6084]"
-                    )}
-                  >
-                    <FolderOpen className="h-6 w-6" />
-                  </div>
-                  <h3 className={cn("font-heading text-2xl font-bold", isDark ? "text-white" : "text-slate-900")}>Bi2B Drive</h3>
-                  <p className={cn("text-sm leading-relaxed", isDark ? "text-slate-300" : "text-slate-600")}>
-                    Gerenciamento inteligente de arquivos estruturados por categorias e pastas (Contrato Social, Balanços, RH, Fiscal). Faça uploads simples via drag-and-drop.
-                  </p>
-                  <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider", isDark ? "text-slate-400" : "text-slate-600")}>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Busca instantânea por nome ou tag
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Categorização automática por tipo de documento
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                      Armazenamento criptografado
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Prévia Bi2B Drive */}
-                <div className="md:col-span-6">
-                  <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono", isDark ? "bg-[#050b14]/90 border-cyan-500/10" : "bg-slate-50 border-slate-200")}>
-                    <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3", isDark ? "border-cyan-950" : "border-slate-200")}>
-                      <span className={cn("font-bold", isDark ? "text-white" : "text-slate-800")}>Arquivos Compartilhados</span>
-                      <span className="text-[9px] text-cyan-400 flex items-center gap-0.5 cursor-pointer"><Plus className="w-2.5 h-2.5" /> Enviar</span>
-                    </div>
-                    <div className="space-y-2">
-                      {[
-                        { file: 'Balanço Patrimonial 2025.pdf', size: '2.4 MB', cat: 'Contábil' },
-                        { file: 'Contrato Social Alterado.pdf', size: '1.8 MB', cat: 'Societário' },
-                        { file: 'Folha Pagamento Julho.xlsx', size: '950 KB', cat: 'RH / Trabalhista' }
-                      ].map((f, idx) => (
+                  {modalTab === 'connect' && (
+                    <motion.div
+                      key="connect"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid md:grid-cols-12 gap-8 items-center w-full"
+                    >
+                      <div className="md:col-span-5 space-y-6 text-left">
                         <div 
-                          key={idx} 
                           className={cn(
-                            "flex items-center gap-3 border rounded-lg p-2.5",
-                            isDark ? "bg-[#08101d] border-cyan-500/5" : "bg-white border-slate-200"
+                            "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner transition-colors duration-300",
+                            isDarkTheme ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400 dark:bg-cyan-950/50 dark:border-cyan-500/20 dark:text-cyan-400" : "bg-cyan-50 border-cyan-200/60 text-[#0d6084] dark:bg-cyan-950/50 dark:border-cyan-500/20 dark:text-cyan-400"
                           )}
                         >
-                          <FileText className="h-5 w-5 text-cyan-400 shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <div className={cn("font-bold truncate", isDark ? "text-slate-200" : "text-slate-700")}>{f.file}</div>
-                            <div className="text-[9px] text-slate-500 mt-0.5">{f.size} • {f.cat}</div>
-                          </div>
-                          <span className="text-[9px] text-cyan-400 cursor-pointer flex items-center gap-0.5">
-                            <Download className="w-2.5 h-2.5" /> Baixar
-                          </span>
+                          <MessageSquare className="h-6 w-6" />
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                        <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Bi2B Chamados (Chat)</h3>
+                        <p className={cn("text-sm leading-relaxed transition-colors duration-300", isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-600 dark:text-slate-300")}>
+                          Envie mensagens em tempo real para seu suporte contábil. Uma interface fluida e de resposta imediata com histórico completo dos chamados.
+                        </p>
+                        <div className={cn("border rounded-xl p-3 text-[10px] italic flex gap-2 items-center transition-colors duration-300", isDarkTheme ? "bg-cyan-950/20 border-cyan-500/10 text-cyan-300 dark:bg-cyan-950/20 dark:border-cyan-500/10 dark:text-cyan-300" : "bg-cyan-50 border-cyan-200/50 text-[#0d6084] dark:bg-cyan-950/20 dark:border-cyan-500/10 dark:text-cyan-300")}>
+                          <Sparkles className="w-4 h-4 shrink-0 text-cyan-500 animate-pulse" />
+                          Experimente digitar no chat ao lado! A inteligência de simulação responderá.
+                        </div>
+                      </div>
+
+                      {/* Chat Interativo Real */}
+                      <div className="md:col-span-7">
+                        <div className={cn("rounded-2xl border p-4 shadow-2xl flex flex-col gap-3 h-[280px] justify-between transition-colors duration-300", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
+                          {/* Topo do Chat */}
+                          <div className={cn("flex items-center justify-between border-b pb-2 text-xs transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                              <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Suporte Contábil (Online)</span>
+                            </div>
+                            <span className="text-[9px] text-slate-500 uppercase">Chamado #1048</span>
+                          </div>
+
+                          {/* Lista de Mensagens */}
+                          <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 text-[11px] flex flex-col">
+                            {chatMessages.map((msg, i) => (
+                              <div
+                                key={i}
+                                className={cn(
+                                  "max-w-[85%] rounded-2xl p-2.5 flex flex-col gap-0.5 transition-colors duration-300",
+                                  msg.sender === 'client'
+                                    ? (isDarkTheme 
+                                        ? "bg-cyan-950/60 border border-cyan-500/10 text-slate-100 self-end rounded-tr-none dark:bg-cyan-950/60 dark:border-cyan-500/10 dark:text-slate-100" 
+                                        : "bg-cyan-50 border border-cyan-200/60 text-slate-800 self-end rounded-tr-none dark:bg-cyan-950/60 dark:border-cyan-500/10 dark:text-slate-100")
+                                    : (isDarkTheme 
+                                        ? "bg-slate-900 border border-slate-800 text-slate-300 self-start rounded-tl-none dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300" 
+                                        : "bg-slate-200/60 border border-slate-300/40 text-slate-700 self-start rounded-tl-none dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300")
+                                )}
+                              >
+                                <p className="leading-relaxed">{msg.text}</p>
+                                <span className="text-[8px] text-slate-500 text-right self-end mt-0.5">{msg.time}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Input do Chat */}
+                          <form onSubmit={handleSendChat} className={cn("flex gap-2 border-t pt-2.5 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
+                            <input
+                              type="text"
+                              placeholder="Digite sua dúvida contábil..."
+                              value={newMsg}
+                              onChange={(e) => setNewMsg(e.target.value)}
+                              className={cn("flex-1 border rounded-lg px-3 py-2 text-[11px] focus:outline-none transition-colors duration-300", isDarkTheme ? "bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50 dark:bg-slate-950 dark:border-slate-800 dark:text-white" : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-[#0d6084]/50 dark:bg-slate-950 dark:border-slate-800 dark:text-white")}
+                            />
+                            <button
+                              type="submit"
+                              className="bg-[#0d6084] hover:bg-[#0b5474] text-white rounded-lg px-3 flex items-center justify-center border border-cyan-500/20 cursor-pointer"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {modalTab === 'task' && (
+                    <motion.div
+                      key="task"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid md:grid-cols-12 gap-8 items-center w-full"
+                    >
+                      <div className="md:col-span-6 space-y-6 text-left">
+                        <div 
+                          className={cn(
+                            "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner transition-colors duration-300",
+                            isDarkTheme ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400 dark:bg-cyan-950/50 dark:border-cyan-500/20 dark:text-cyan-400" : "bg-cyan-50 border-cyan-200/60 text-[#0d6084] dark:bg-cyan-950/50 dark:border-cyan-500/20 dark:text-cyan-400"
+                          )}
+                        >
+                          <Activity className="h-6 w-6" />
+                        </div>
+                        <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Tarefas Bi2B</h3>
+                        <p className={cn("text-sm leading-relaxed transition-colors duration-300", isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-600 dark:text-slate-300")}>
+                          Gerenciador visual das guias mensais, impostos e obrigações trabalhistas. Evite atrasos acompanhando o status de cada entrega diretamente no seu painel.
+                        </p>
+                        <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-300", isDarkTheme ? "text-slate-400 dark:text-slate-400" : "text-slate-600 dark:text-slate-400")}>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Data limite de entrega e prazos calculados
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Confirmação de recebimento assinada digitalmente
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Filtros de status (Em aberto, Concluído, Em atraso)
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Prévia Tarefas Bi2B */}
+                      <div className="md:col-span-6">
+                        <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono transition-colors duration-300", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
+                          <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
+                            <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Obrigações e Impostos</span>
+                            <span className="text-[9px] text-slate-500 font-mono">Julho 2025</span>
+                          </div>
+                          <div className="space-y-2">
+                            {[
+                              { task: 'Gerar DAS Simples Nacional', date: 'Vence em 20/07', status: 'Concluído', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+                              { task: 'Cálculo de Folha de Pagamento', date: 'Vence em 05/08', status: 'Em Aberto', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+                              { task: 'Declaração Mensal ISS', date: 'Vence em 15/07', status: 'Atrasado', color: 'bg-rose-500/20 text-rose-400 border-rose-500/30' }
+                            ].map((t, idx) => (
+                              <div 
+                                key={idx} 
+                                className={cn(
+                                  "flex justify-between items-center border rounded-lg p-2.5 transition-all duration-200",
+                                  isDarkTheme ? "bg-[#08101d] border-cyan-500/5 dark:bg-[#08101d] dark:border-cyan-500/5" : "bg-white border-slate-200 dark:bg-[#08101d] dark:border-cyan-500/5"
+                                )}
+                              >
+                                <div>
+                                  <div className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-slate-200 dark:text-slate-200" : "text-slate-700 dark:text-slate-200")}>{t.task}</div>
+                                  <div className="text-[9px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                    <Clock className="w-2.5 h-2.5" /> {t.date}
+                                  </div>
+                                </div>
+                                <span className={cn("text-[9px] px-2 py-0.5 rounded font-bold border", t.color)}>{t.status}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {modalTab === 'drive' && (
+                    <motion.div
+                      key="drive"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid md:grid-cols-12 gap-8 items-center w-full"
+                    >
+                      <div className="md:col-span-6 space-y-6 text-left">
+                        <div 
+                          className={cn(
+                            "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner transition-colors duration-300",
+                            isDarkTheme ? "bg-cyan-950/50 border-cyan-500/20 text-cyan-400 dark:bg-cyan-950/50 dark:border-cyan-500/20 dark:text-cyan-400" : "bg-cyan-50 border-cyan-200/60 text-[#0d6084] dark:bg-cyan-950/50 dark:border-cyan-500/20 dark:text-cyan-400"
+                          )}
+                        >
+                          <FolderOpen className="h-6 w-6" />
+                        </div>
+                        <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Bi2B Drive</h3>
+                        <p className={cn("text-sm leading-relaxed transition-colors duration-300", isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-600 dark:text-slate-300")}>
+                          Gerenciamento inteligente de arquivos estruturados por categorias e pastas (Contrato Social, Balanços, RH, Fiscal). Faça uploads simples via drag-and-drop.
+                        </p>
+                        <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-300", isDarkTheme ? "text-slate-400 dark:text-slate-400" : "text-slate-600 dark:text-slate-400")}>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Busca instantânea por nome ou tag
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Categorização automática por tipo de documento
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                            Armazenamento criptografado
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Prévia Bi2B Drive */}
+                      <div className="md:col-span-6">
+                        <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono transition-colors duration-300", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
+                          <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
+                            <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Arquivos Compartilhados</span>
+                            <span className="text-[9px] text-cyan-400 flex items-center gap-0.5 cursor-pointer"><Plus className="w-2.5 h-2.5" /> Enviar</span>
+                          </div>
+                          <div className="space-y-2">
+                            {[
+                              { file: 'Balanço Patrimonial 2025.pdf', size: '2.4 MB', cat: 'Contábil' },
+                              { file: 'Contrato Social Alterado.pdf', size: '1.8 MB', cat: 'Societário' },
+                              { file: 'Folha Pagamento Julho.xlsx', size: '950 KB', cat: 'RH / Trabalhista' }
+                            ].map((f, idx) => (
+                              <div 
+                                key={idx} 
+                                className={cn(
+                                  "flex items-center gap-3 border rounded-lg p-2.5 transition-all duration-200",
+                                  isDarkTheme ? "bg-[#08101d] border-cyan-500/5 dark:bg-[#08101d] dark:border-cyan-500/5" : "bg-white border-slate-200 dark:bg-[#08101d] dark:border-cyan-500/5"
+                                )}
+                              >
+                                <FileText className="h-5 w-5 text-cyan-400 shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <div className={cn("font-bold truncate transition-colors duration-300", isDarkTheme ? "text-slate-200 dark:text-slate-200" : "text-slate-700 dark:text-slate-200")}>{f.file}</div>
+                                  <div className="text-[9px] text-slate-500 mt-0.5">{f.size} • {f.cat}</div>
+                                </div>
+                                <span className="text-[9px] text-cyan-400 cursor-pointer flex items-center gap-0.5">
+                                  <Download className="w-2.5 h-2.5" /> Baixar
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
       </div>
     </motion.section>

@@ -1,5 +1,22 @@
 import { useState, useEffect } from 'react'
-import { Building2, Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight, Loader2, Copy, Check } from 'lucide-react'
+import { 
+  Building2, 
+  Plus, 
+  Search, 
+  Edit2, 
+  Trash2, 
+  ToggleLeft, 
+  ToggleRight, 
+  Loader2, 
+  Copy, 
+  Check, 
+  Clock, 
+  CheckCircle2, 
+  Eye, 
+  AlertCircle, 
+  UserCheck,
+  FileText, 
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
@@ -50,12 +67,17 @@ const companySchema = z.object({
 })
 
 export function CompaniesPage() {
+  // Controle de Sub-abas: 'empresas' (Cadastradas) ou 'solicitacoes' (Pendentes de Aprovação)
+  const [viewTab, setViewTab] = useState<'empresas' | 'solicitacoes'>('empresas')
+
   const [companies, setCompanies] = useState<any[]>([])
+  const [companyRequests, setCompanyRequests] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [isOpenModal, setIsOpenModal] = useState(false)
+  const [selectedRequestModal, setSelectedRequestModal] = useState<any | null>(null)
   
-  // Estado de Criação / Edição
+  // Estado de Criação / Edição Direta
   const [editingId, setEditingId] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [tradeName, setTradeName] = useState('')
@@ -76,34 +98,122 @@ export function CompaniesPage() {
 
   const [copiedCompanyId, setCopiedCompanyId] = useState<string | null>(null)
 
-  const handleCopyId = (company: any) => {
-    const code = company.codigo_exclusivo || company.id
+  const handleCopyId = (code: string, id: string) => {
     navigator.clipboard.writeText(code)
-    setCopiedCompanyId(company.id)
-    toast.success('ID de 4 dígitos copiado!')
+    setCopiedCompanyId(id)
+    toast.success('Chave de Acesso copiada!')
     setTimeout(() => setCopiedCompanyId(null), 2000)
   }
 
+  // Buscar Empresas Ativas (Real Supabase)
   const fetchCompanies = async () => {
     setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('empresas')
-        .select('id, name, trade_name, cnpj, email, phone, plan, max_users, is_active, created_at, address_city, address_state, codigo_exclusivo')
+        .select('*')
+        .eq('is_active', true)
         .order('name', { ascending: true })
       if (error) throw error
       setCompanies(data || [])
     } catch (err) {
       if (import.meta.env.DEV) console.error(err)
-      toast.error('Erro ao buscar empresas.')
+      toast.error('Erro ao buscar empresas ativas do Supabase.')
     } finally {
       setIsLoading(false)
     }
   }
 
+  // Buscar Solicitações Pendentes (Real Supabase: empresas com is_active = false)
+  const fetchCompanyRequests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('empresas')
+        .select('*')
+        .eq('is_active', false)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      setCompanyRequests(data || [])
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('Erro ao buscar solicitações pendentes do Supabase:', err)
+      setCompanyRequests([])
+    }
+  }
+
   useEffect(() => {
     fetchCompanies()
+    fetchCompanyRequests()
   }, [])
+
+  // APROVAR SOLICITAÇÃO DA EMPRESA (Real Supabase: is_active -> true)
+  const handleApproveRequest = async (req: any) => {
+    try {
+      const randomCode = req.codigo_exclusivo || String(Math.floor(1000 + Math.random() * 9000))
+      
+      const { error } = await supabase
+        .from('empresas')
+        .update({
+          is_active: true,
+          codigo_exclusivo: randomCode,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', req.id)
+
+      if (error) throw error
+
+      logAuditActivity({
+        action: 'APROVAR_SOLICITACAO_EMPRESA',
+        entityType: 'empresas',
+        entityId: req.id,
+        metadata: { company_name: req.name, cnpj: req.cnpj, codigo_exclusivo: randomCode }
+      })
+
+      toast.success(`Solicitação da empresa "${req.name}" APROVADA com sucesso! Empresa ativada no Supabase.`)
+      if (selectedRequestModal?.id === req.id) {
+        setSelectedRequestModal(null)
+      }
+
+      fetchCompanies()
+      fetchCompanyRequests()
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao aprovar empresa no Supabase.')
+    }
+  }
+
+  // RECUSAR SOLICITAÇÃO DA EMPRESA (Real Supabase: Deleta o registro pendente)
+  const handleRejectRequest = async (req: any) => {
+    if (!confirm(`Tem certeza que deseja recusar e excluir a solicitação da empresa "${req.name}"?`)) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('empresas')
+        .delete()
+        .eq('id', req.id)
+
+      if (error) throw error
+
+      logAuditActivity({
+        action: 'RECUSAR_SOLICITACAO_EMPRESA',
+        entityType: 'empresas',
+        entityId: req.id,
+        metadata: { company_name: req.name, cnpj: req.cnpj }
+      })
+
+      toast.success(`Solicitação de "${req.name}" recusada e removida do Supabase.`)
+      if (selectedRequestModal?.id === req.id) {
+        setSelectedRequestModal(null)
+      }
+
+      fetchCompanies()
+      fetchCompanyRequests()
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao recusar solicitação no Supabase.')
+    }
+  }
 
   const handleOpenCreate = () => {
     setEditingId(null)
@@ -155,7 +265,6 @@ export function CompaniesPage() {
     const cleanPhone = phone ? phone.replace(/\D/g, '') : null
     const cleanZip = addressZip ? addressZip.replace(/\D/g, '') : null
 
-    // Validar com Zod
     try {
       companySchema.parse({
         name,
@@ -285,8 +394,16 @@ export function CompaniesPage() {
   }
 
   const filteredCompanies = companies.filter(c => 
-    (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (c.cnpj || '').includes(searchTerm)
+    c.is_active !== false && (
+      (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (c.cnpj || '').includes(searchTerm)
+    )
+  )
+
+  const filteredRequests = companyRequests.filter(r =>
+    (r.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (r.cnpj || '').includes(searchTerm) ||
+    (r.admin_name || '').toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
@@ -299,15 +416,52 @@ export function CompaniesPage() {
           </div>
           <div>
             <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Gestão de Empresas (Tenants)</h1>
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Gerencie as contas corporativas dos clientes e limites de usuários ativos</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">Gerencie empresas ativas e aprovações de solicitações do portal público</p>
           </div>
         </div>
         <button
           onClick={handleOpenCreate}
-          className="flex items-center gap-2 rounded-lg gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/20"
+          className="flex items-center gap-2 rounded-lg gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/20 cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           Cadastrar Empresa
+        </button>
+      </div>
+
+      {/* SUB-NAVEGAÇÃO: EMPRESAS CADASTRADAS VS SOLICITAÇÕES PENDENTES */}
+      <div className="flex border-b border-[hsl(var(--border))] space-x-6 text-sm font-semibold">
+        <button
+          onClick={() => setViewTab('empresas')}
+          className={cn(
+            "pb-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer select-none",
+            viewTab === 'empresas'
+              ? "border-brand-500 text-brand-600 dark:text-brand-400 font-bold"
+              : "border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+          )}
+        >
+          <Building2 className="h-4 w-4" />
+          <span>Empresas Ativas</span>
+          <span className="ml-1 rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 text-xs font-bold">
+            {filteredCompanies.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setViewTab('solicitacoes')}
+          className={cn(
+            "pb-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer select-none relative",
+            viewTab === 'solicitacoes'
+              ? "border-brand-500 text-brand-600 dark:text-brand-400 font-bold"
+              : "border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+          )}
+        >
+          <Clock className="h-4 w-4" />
+          <span>Painel de Solicitações</span>
+          {companyRequests.length > 0 && (
+            <span className="rounded-full bg-amber-500 text-white px-2 py-0.5 text-xs font-extrabold animate-pulse shadow-xs">
+              {companyRequests.length}
+            </span>
+          )}
         </button>
       </div>
 
@@ -317,7 +471,7 @@ export function CompaniesPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[hsl(var(--muted-foreground))]" />
           <input
             type="text"
-            placeholder="Buscar por nome ou CNPJ..."
+            placeholder={viewTab === 'empresas' ? "Buscar por nome ou CNPJ..." : "Buscar solicitação por empresa, CNPJ ou gestor..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] py-2 pl-10 pr-4 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
@@ -325,128 +479,323 @@ export function CompaniesPage() {
         </div>
       </div>
 
-      {/* Lista de Empresas (Tabela) */}
-      <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/50 text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
-                <th className="p-4">Empresa</th>
-                <th className="p-4">ID Exclusivo</th>
-                <th className="p-4">Contato</th>
-                <th className="p-4">Plano</th>
-                <th className="p-4">Limite de Usuários</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[hsl(var(--border))] text-sm">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-brand-500" />
-                      <span>Carregando empresas...</span>
-                    </div>
-                  </td>
+      {/* ========================================================= */}
+      {/* VISÃO 1: TABELA DE EMPRESAS ATIVAS */}
+      {/* ========================================================= */}
+      {viewTab === 'empresas' && (
+        <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] overflow-hidden shadow-sm animate-fade-in">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/50 text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
+                  <th className="p-4">Empresa</th>
+                  <th className="p-4">ID Exclusivo</th>
+                  <th className="p-4">Contato</th>
+                  <th className="p-4">Plano</th>
+                  <th className="p-4">Limite de Usuários</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-center">Ações</th>
                 </tr>
-              ) : filteredCompanies.length > 0 ? (
-                filteredCompanies.map(company => (
-                  <tr key={company.id} className="hover:bg-[hsl(var(--muted))]/30 transition-colors">
-                    <td className="p-4">
-                      <div>
-                        <h4 className="font-semibold text-[hsl(var(--foreground))]">{company.name}</h4>
-                        <p className="text-xs text-[hsl(var(--muted-foreground))]">CNPJ: {formatCnpj(company.cnpj)}</p>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-xs font-bold tracking-widest text-[hsl(var(--foreground))] bg-[hsl(var(--muted))] px-2.5 py-1 rounded border border-[hsl(var(--border))] select-all">
-                          {company.codigo_exclusivo || company.id}
-                        </span>
-                        <button
-                          onClick={() => handleCopyId(company)}
-                          className="p-1 rounded text-[hsl(var(--muted-foreground))] hover:text-brand-500 transition-colors"
-                          title="Copiar ID de 4 dígitos"
-                        >
-                          {copiedCompanyId === company.id ? (
-                            <Check className="h-3.5 w-3.5 text-green-500" />
-                          ) : (
-                            <Copy className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="text-[hsl(var(--foreground))]">{company.email}</p>
-                    </td>
-                    <td className="p-4">
-                      <span className={cn(
-                        'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase',
-                        company.plan === 'plus' && 'bg-purple-100 text-purple-700 dark:bg-purple-950/30',
-                        company.plan === 'pró' && 'bg-blue-100 text-blue-700 dark:bg-blue-950/30',
-                        company.plan === 'básico' && 'bg-gray-100 text-gray-700 dark:bg-gray-800'
-                      )}>
-                        {company.plan}
-                      </span>
-                    </td>
-                    <td className="p-4 font-semibold text-[hsl(var(--foreground))]">
-                      {company.max_users} usuários
-                    </td>
-                    <td className="p-4">
-                      <span className={cn(
-                        'px-2 py-0.5 rounded text-xs font-semibold',
-                        company.is_active 
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400' 
-                          : 'bg-rose-100 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400'
-                      )}>
-                        {company.is_active ? 'Ativa' : 'Inativa'}
-                      </span>
-                    </td>
-                    <td className="p-4 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => handleToggleStatus(company.id, company.is_active)}
-                          className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))]"
-                          title={company.is_active ? 'Inativar empresa' : 'Ativar empresa'}
-                        >
-                          {company.is_active ? (
-                            <ToggleRight className="h-5 w-5 text-emerald-500" />
-                          ) : (
-                            <ToggleLeft className="h-5 w-5 text-[hsl(var(--muted-foreground))]" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleOpenEdit(company)}
-                          className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))]"
-                          title="Editar"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(company.id, company.name)}
-                          className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20"
-                          title="Deletar"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+              </thead>
+              <tbody className="divide-y divide-[hsl(var(--border))] text-sm">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-brand-500" />
+                        <span>Carregando empresas...</span>
                       </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
-                    Nenhuma empresa cadastrada.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ) : filteredCompanies.length > 0 ? (
+                  filteredCompanies.map(company => (
+                    <tr key={company.id} className="hover:bg-[hsl(var(--muted))]/30 transition-colors">
+                      <td className="p-4">
+                        <div>
+                          <h4 className="font-semibold text-[hsl(var(--foreground))]">{company.name}</h4>
+                          <p className="text-xs text-[hsl(var(--muted-foreground))]">CNPJ: {formatCnpj(company.cnpj)}</p>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-xs font-bold tracking-widest text-[hsl(var(--foreground))] bg-[hsl(var(--muted))] px-2.5 py-1 rounded border border-[hsl(var(--border))] select-all">
+                            {company.codigo_exclusivo || company.id}
+                          </span>
+                          <button
+                            onClick={() => handleCopyId(company.codigo_exclusivo || company.id, company.id)}
+                            className="p-1 rounded text-[hsl(var(--muted-foreground))] hover:text-brand-500 transition-colors cursor-pointer"
+                            title="Copiar ID de 4 dígitos"
+                          >
+                            {copiedCompanyId === company.id ? (
+                              <Check className="h-3.5 w-3.5 text-green-500" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <p className="text-[hsl(var(--foreground))]">{company.email}</p>
+                      </td>
+                      <td className="p-4">
+                        <span className={cn(
+                          'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase',
+                          company.plan === 'plus' && 'bg-purple-100 text-purple-700 dark:bg-purple-950/30',
+                          company.plan === 'pró' && 'bg-blue-100 text-blue-700 dark:bg-blue-950/30',
+                          company.plan === 'básico' && 'bg-gray-100 text-gray-700 dark:bg-gray-800'
+                        )}>
+                          {company.plan}
+                        </span>
+                      </td>
+                      <td className="p-4 font-semibold text-[hsl(var(--foreground))]">
+                        {company.max_users} usuários
+                      </td>
+                      <td className="p-4">
+                        <span className={cn(
+                          'px-2 py-0.5 rounded text-xs font-semibold',
+                          company.is_active 
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400' 
+                            : 'bg-rose-100 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400'
+                        )}>
+                          {company.is_active ? 'Ativa' : 'Inativa'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleToggleStatus(company.id, company.is_active)}
+                            className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] cursor-pointer"
+                            title={company.is_active ? 'Inativar empresa' : 'Ativar empresa'}
+                          >
+                            {company.is_active ? (
+                              <ToggleRight className="h-5 w-5 text-emerald-500" />
+                            ) : (
+                              <ToggleLeft className="h-5 w-5 text-[hsl(var(--muted-foreground))]" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(company)}
+                            className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] cursor-pointer"
+                            title="Editar"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(company.id, company.name)}
+                            className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20 cursor-pointer"
+                            title="Deletar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                      Nenhuma empresa ativa cadastrada.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Modal de Cadastro/Edição de Empresa (CRUD) */}
+      {/* ========================================================= */}
+      {/* VISÃO 2: PAINEL DE SOLICITAÇÕES PENDENTES DE EMPRESAS */}
+      {/* ========================================================= */}
+      {viewTab === 'solicitacoes' && (
+        <div className="space-y-6 animate-fade-in">
+          
+          {/* BANNER INFORMATIVO DO PAINEL */}
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 space-y-2.5 shadow-xs">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 font-bold text-sm">
+              <AlertCircle className="h-5 w-5 shrink-0 text-amber-500" />
+              <span>Painel de Solicitações de Cadastro de Novas Empresas</span>
+            </div>
+            <p className="text-xs text-[hsl(var(--foreground))] leading-relaxed">
+              Exibindo as solicitações de empresas e escritórios cadastrados via aba pública do portal. Ao aprovar uma solicitação, a empresa será ativada e estará pronta para receber vínculos de colaboradores.
+            </p>
+          </div>
+
+          {/* LISTA DE CARDS DE SOLICITAÇÕES */}
+          {filteredRequests.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredRequests.map((req) => (
+                <div 
+                  key={req.id} 
+                  className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-lg space-y-4 hover:border-brand-500/40 transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Badge e Token Topo */}
+                    <div className="flex items-center justify-between pb-3 border-b border-[hsl(var(--border))]">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[11px] font-bold border border-amber-500/20">
+                          <Clock className="h-3 w-3" />
+                          SOLICITAÇÃO PENDENTE
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Token:</span>
+                        <span className="font-mono text-xs font-black text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20">
+                          #{req.codigo_exclusivo || '8419'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Dados da Empresa */}
+                    <div className="pt-3 space-y-2">
+                      <div>
+                        <h3 className="font-bold text-base text-[hsl(var(--foreground))]">{req.name}</h3>
+                        {req.trade_name && req.trade_name !== req.name && (
+                          <p className="text-xs text-[hsl(var(--muted-foreground))]">Fantasia: {req.trade_name}</p>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                        <div>
+                          <span className="text-[hsl(var(--muted-foreground))]">CNPJ: </span>
+                          <span className="font-mono font-semibold text-[hsl(var(--foreground))]">{formatCnpj(req.cnpj)}</span>
+                        </div>
+                        <div>
+                          <span className="text-[hsl(var(--muted-foreground))]">E-mail: </span>
+                          <span className="font-semibold text-[hsl(var(--foreground))] truncate block">{req.email || 'Não informado'}</span>
+                        </div>
+                        <div>
+                          <span className="text-[hsl(var(--muted-foreground))]">Telefone: </span>
+                          <span className="font-semibold text-[hsl(var(--foreground))]">{req.phone ? formatPhone(req.phone) : 'Não informado'}</span>
+                        </div>
+                        <div>
+                          <span className="text-[hsl(var(--muted-foreground))]">Data: </span>
+                          <span className="font-semibold text-[hsl(var(--foreground))]">
+                            {new Date(req.created_at || Date.now()).toLocaleDateString('pt-BR')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Administrador Responsável */}
+                      <div className="mt-3 p-2.5 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--muted))]/40 space-y-1">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[hsl(var(--foreground))]">
+                          <UserCheck className="h-3.5 w-3.5 text-brand-500" />
+                          <span>Responsável: {req.admin_name || 'Gestor Master'}</span>
+                        </div>
+                        <p className="text-[11px] text-[hsl(var(--muted-foreground))] pl-5">
+                          Cargo: {req.admin_role || 'Administrador'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ações de Aprovação / Recusa */}
+                  <div className="pt-4 border-t border-[hsl(var(--border))] flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => setSelectedRequestModal(req)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-brand-500 hover:text-brand-600 transition-colors p-1"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Detalhes
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleRejectRequest(req)}
+                        className="px-3 py-1.5 rounded-lg border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        Recusar
+                      </button>
+                      <button
+                        onClick={() => handleApproveRequest(req)}
+                        className="px-4 py-1.5 rounded-lg gradient-brand text-white text-xs font-bold shadow-sm shadow-brand-500/20 hover:brightness-110 transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Aprovar Empresa
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-12 text-center text-xs text-[hsl(var(--muted-foreground))]">
+              <CheckCircle2 className="h-10 w-10 mx-auto text-emerald-500 mb-3 opacity-60" />
+              <p className="font-semibold text-sm text-[hsl(var(--foreground))]">Nenhuma solicitação pendente no momento</p>
+              <p className="mt-1">Todas as empresas enviadas via portal foram analisadas e processadas.</p>
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL DE DETALHES DA SOLICITAÇÃO DE EMPRESA */}
+      {/* ========================================================= */}
+      {selectedRequestModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl w-full max-w-lg shadow-2xl p-6 relative space-y-5 animate-fade-in">
+            <div className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-3">
+              <div className="flex items-center gap-2 text-brand-600 dark:text-brand-400 font-bold text-sm">
+                <FileText className="h-5 w-5" />
+                <span>Detalhes da Solicitação de Empresa</span>
+              </div>
+              <button
+                onClick={() => setSelectedRequestModal(null)}
+                className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30 p-3.5 space-y-2">
+                <p className="font-bold text-sm text-[hsl(var(--foreground))]">{selectedRequestModal.name}</p>
+                <p className="text-[hsl(var(--muted-foreground))]">CNPJ: <span className="font-mono text-[hsl(var(--foreground))]">{formatCnpj(selectedRequestModal.cnpj)}</span></p>
+                <p className="text-[hsl(var(--muted-foreground))]">E-mail Corporativo: <span className="text-[hsl(var(--foreground))] font-semibold">{selectedRequestModal.email}</span></p>
+                <p className="text-[hsl(var(--muted-foreground))]">Telefone Comercial: <span className="text-[hsl(var(--foreground))] font-semibold">{selectedRequestModal.phone ? formatPhone(selectedRequestModal.phone) : 'Não informado'}</span></p>
+              </div>
+
+              <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30 p-3.5 space-y-1.5">
+                <p className="font-bold text-xs text-[hsl(var(--foreground))] uppercase tracking-wider">Administrador Responsável</p>
+                <p className="text-[hsl(var(--foreground))] font-semibold">{selectedRequestModal.admin_name}</p>
+                <p className="text-[hsl(var(--muted-foreground))]">Cargo: {selectedRequestModal.admin_role}</p>
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-brand-500/30 bg-brand-500/10 p-3.5">
+                <div>
+                  <p className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Chave de Conexão Gerada</p>
+                  <p className="font-mono text-xl font-black text-brand-600 dark:text-brand-400">#{selectedRequestModal.codigo_exclusivo || '8419'}</p>
+                </div>
+                <button
+                  onClick={() => handleCopyId(selectedRequestModal.codigo_exclusivo || '8419', selectedRequestModal.id)}
+                  className="px-3 py-1.5 rounded-lg bg-brand-500 text-white font-bold text-xs hover:brightness-110 transition-all"
+                >
+                  Copiar Chave
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[hsl(var(--border))]">
+              <button
+                onClick={() => handleRejectRequest(selectedRequestModal)}
+                className="px-4 py-2 rounded-xl border border-rose-500/30 text-rose-600 dark:text-rose-400 font-bold text-xs hover:bg-rose-500/10 transition-colors"
+              >
+                Recusar Solicitação
+              </button>
+              <button
+                onClick={() => handleApproveRequest(selectedRequestModal)}
+                className="px-5 py-2 rounded-xl gradient-brand text-white font-bold text-xs shadow-md hover:brightness-110 transition-all flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Aprovar Empresa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Cadastro/Edição Direta de Empresa (CRUD) */}
       {isOpenModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl w-full max-w-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">

@@ -3,6 +3,7 @@ import { ROUTES } from '@/constants/routes'
 import { APP_NAME } from '@/constants'
 import { cn } from '@/lib/utils'
 import logoPng from '@/assets/logo.png'
+import logoAzulPng from '@/assets/logoazul.png'
 import { getAdminSubdomainUrl } from '@/utils/subdomain'
 import { MessageCircle, MapPin, Mail, Phone, ShieldCheck } from 'lucide-react'
 
@@ -12,6 +13,7 @@ interface FooterSectionProps {
 
 export function FooterSection({ isDark }: FooterSectionProps) {
   const navigate = useNavigate()
+  const currentLogo = isDark ? logoPng : logoAzulPng
 
   return (
     <footer
@@ -26,7 +28,7 @@ export function FooterSection({ isDark }: FooterSectionProps) {
           {/* Branding Column */}
           <div className="lg:col-span-2 space-y-4 pr-4">
             <div className="flex items-center cursor-pointer transition-transform hover:scale-105" onClick={() => navigate(ROUTES.HOME)}>
-              <img src={logoPng} alt={APP_NAME} className="h-9 w-auto object-contain" />
+              <img src={currentLogo} alt={APP_NAME} className="h-9 w-auto object-contain" />
             </div>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
               Bi2B Consultoria — Plataforma SaaS de gestão fiscal e contábil conectando empresas e contabilidade em tempo real com máxima segurança e automação.
