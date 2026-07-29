@@ -24,7 +24,6 @@ import {
   FileSpreadsheet,
   Bell,
   PanelLeft,
-  HelpCircle,
   ChevronRight,
 } from 'lucide-react'
 
@@ -165,7 +164,7 @@ export function AdminLayout() {
               <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-sky-200/80 dark:text-slate-400">
                 Escritório
               </p>
-              <div className="flex items-center justify-between rounded-lg border border-white/15 bg-white/10 backdrop-blur-sm p-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+              <div className="flex items-center justify-between rounded-lg border border-white/15 bg-white/10 backdrop-blur-sm p-2.5 dark:border-slate-800 dark:bg-slate-950">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="inline-flex items-center rounded-md bg-white/20 px-1.5 py-0.5 text-[10px] font-bold text-white dark:bg-brand-500/10 dark:text-brand-400 shrink-0">
                     Admin
@@ -178,10 +177,10 @@ export function AdminLayout() {
             </div>
           ) : (
             <div className="group relative flex justify-center my-1">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-xs font-bold text-white shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-brand-600">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-xs font-bold text-white dark:border-slate-800 dark:bg-slate-950 dark:text-brand-600">
                 A
               </div>
-              <div className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
+              <div className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                 Painel Admin
               </div>
             </div>
@@ -212,7 +211,7 @@ export function AdminLayout() {
                         cn(
                           'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
                           isActive
-                            ? 'bg-white text-[#0d6084] font-bold shadow-md dark:bg-slate-800 dark:text-white'
+                            ? 'bg-white text-[#0d6084] font-bold dark:bg-slate-800 dark:text-white'
                             : 'text-sky-100/90 hover:bg-white/10 hover:text-white dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100',
                           isCollapsed && 'justify-center px-0 py-2.5'
                         )
@@ -223,7 +222,7 @@ export function AdminLayout() {
                           <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-[#0d6084] dark:text-brand-400' : 'text-sky-200 group-hover:text-white dark:text-slate-400')} />
                           {!isCollapsed && <span className="truncate">{item.label}</span>}
                           {isCollapsed && (
-                            <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
+                            <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                               {item.label}
                             </span>
                           )}
@@ -241,7 +240,7 @@ export function AdminLayout() {
         {!isCollapsed ? (
           <div className="mt-auto border-t border-white/15 p-3 space-y-3 dark:border-slate-800/60">
             <div className="flex items-center gap-2.5 rounded-lg p-1">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] shadow-sm dark:bg-brand-600 dark:text-white">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] dark:bg-brand-600 dark:text-white">
                 {userInitial}
               </div>
               <div className="min-w-0 flex-1">
@@ -256,14 +255,14 @@ export function AdminLayout() {
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 onClick={() => navigate(ROUTES.ADMIN_SETTINGS)}
-                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-xs font-medium text-white shadow-sm hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-xs font-medium text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                <HelpCircle className="h-3.5 w-3.5 text-sky-200 dark:text-slate-500" />
-                <span>Ajuda</span>
+                <Settings className="h-3.5 w-3.5 text-sky-200 dark:text-slate-500" />
+                <span>Ajustes</span>
               </button>
               <button
                 onClick={handleSignOut}
-                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-xs font-medium text-white shadow-sm hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-xs font-medium text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <LogOut className="h-3.5 w-3.5 text-sky-200 dark:text-slate-500" />
                 <span>Sair</span>
@@ -273,20 +272,20 @@ export function AdminLayout() {
         ) : (
           <div className="mt-auto border-t border-white/15 p-2 flex flex-col items-center gap-2 dark:border-slate-800/60">
             <div className="group relative flex justify-center">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] shadow-sm dark:bg-brand-600 dark:text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] dark:bg-brand-600 dark:text-white">
                 {userInitial}
               </div>
-              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
+              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                 {profile?.full_name ?? 'Admin'}
               </span>
             </div>
             <button
               onClick={() => navigate(ROUTES.ADMIN_SETTINGS)}
-              className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+              className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 cursor-pointer"
             >
-              <HelpCircle className="h-4 w-4" />
-              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
-                Ajuda
+              <Settings className="h-4 w-4" />
+              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
+                Ajustes
               </span>
             </button>
             <button
@@ -294,7 +293,7 @@ export function AdminLayout() {
               className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
             >
               <LogOut className="h-4 w-4" />
-              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
+              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                 Sair
               </span>
             </button>
@@ -305,33 +304,33 @@ export function AdminLayout() {
       {/* Conteúdo Principal */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Topbar / Header */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 bg-white px-4 lg:px-6 dark:border-slate-800 dark:bg-slate-950">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden lg:flex items-center justify-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-              title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
-            >
-              <PanelLeft className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="flex lg:hidden items-center justify-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-              title="Abrir menu"
+              onClick={() => setMobileOpen(true)}
+              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden dark:text-slate-400 dark:hover:bg-slate-800"
             >
               <Menu className="h-5 w-5" />
             </button>
 
-            {/* Breadcrumb Navigation */}
-            <nav className="hidden items-center gap-1.5 text-xs sm:flex font-medium">
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="hidden lg:flex rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+              title={isCollapsed ? 'Expandir Menu' : 'Recolher Menu'}
+            >
+              <PanelLeft className="h-5 w-5" />
+            </button>
+
+            {/* Breadcrumb */}
+            <nav className="flex items-center gap-1.5 text-xs font-medium">
               {breadcrumbs.map((crumb, idx) => (
-                <span key={crumb.path} className="flex items-center gap-1.5">
+                <span key={crumb.label} className="flex items-center gap-1.5">
                   <span
-                    className={cn(
-                      crumb.isLast
-                        ? 'font-semibold text-slate-900 dark:text-slate-100'
-                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors'
-                    )}
+                    className={
+                      idx === breadcrumbs.length - 1
+                        ? 'font-bold text-slate-900 dark:text-white'
+                        : 'text-slate-500 dark:text-slate-400'
+                    }
                   >
                     {crumb.label}
                   </span>
@@ -357,7 +356,7 @@ export function AdminLayout() {
             <AutoRefreshButton />
 
             {/* Avatar do Usuário */}
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white shadow-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
               {userInitial}
             </div>
           </div>

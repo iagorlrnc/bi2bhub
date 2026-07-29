@@ -18,7 +18,7 @@ export function AutoRefreshButton() {
 
     setTimeout(() => {
       setIsSpinning(false)
-    }, 600)
+    }, 800)
   }, [queryClient])
 
   useEffect(() => {
@@ -33,19 +33,19 @@ export function AutoRefreshButton() {
     <button
       type="button"
       onClick={triggerRefresh}
-      className="group relative flex items-center justify-center rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-      title="Atualizar dados (Auto: a cada 3s)"
+      className="group relative flex items-center justify-center rounded-xl p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition-colors border border-[hsl(var(--border))]/40 bg-[hsl(var(--card))]"
+      title="Atualização automática a cada 3 segundos (Clique para atualizar agora)"
     >
       <RefreshCw
         className={cn(
-          'h-5 w-5 text-brand-500 transition-transform duration-500',
+          'h-4 w-4 text-brand-500 transition-transform duration-700',
           isSpinning && 'animate-spin'
         )}
       />
       {/* Indicador de Status Ativo em Tempo Real */}
-      <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+      <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
       </span>
     </button>
   )

@@ -31,9 +31,9 @@ export function TicketsPage() {
   const [pageSize, setPageSize] = useState(20)
 
   // Carregar Chamados da Empresa do Cliente
-  const fetchTickets = async () => {
+  const fetchTickets = async (silent = false) => {
     if (!company?.id) return
-    setIsLoading(true)
+    if (!silent) setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('chamados')
@@ -45,9 +45,9 @@ export function TicketsPage() {
       setTickets(data || [])
     } catch (err) {
       console.error('Erro ao buscar chamados:', err)
-      toast.error('Erro ao carregar chamados.', { id: 'client-fetch-tickets-err' })
+      if (!silent) toast.error('Erro ao carregar chamados.', { id: 'client-fetch-tickets-err' })
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }
 
@@ -59,17 +59,22 @@ export function TicketsPage() {
     }
     fetchTickets()
 
+    // Evento de Refresh Global
+    const handleRefresh = () => fetchTickets(true)
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+
     // Realtime para chamados da empresa
     const channel = supabase
       .channel(`client_tickets_${company.id}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'chamados', filter: `company_id=eq.${company.id}` },
-        () => fetchTickets()
+        () => fetchTickets(true)
       )
       .subscribe()
 
     return () => {
+      window.removeEventListener('bi2b:refresh-data', handleRefresh)
       supabase.removeChannel(channel)
     }
   }, [company?.id, authLoading])
@@ -140,7 +145,7 @@ export function TicketsPage() {
   return (
     <div className="space-y-5">
       {/* Cabeçalho */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-2xl shadow-2xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-2xs">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-heading font-extrabold text-2xl text-[hsl(var(--foreground))] tracking-tight">
@@ -188,7 +193,7 @@ export function TicketsPage() {
       />
 
       {/* Tabela / Cards */}
-      <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl shadow-2xs overflow-hidden">
+      <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="p-8 space-y-4">
             {[1, 2, 3, 4].map(i => (

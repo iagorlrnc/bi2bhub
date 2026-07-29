@@ -23,7 +23,6 @@ import {
   CheckSquare,
   FileSpreadsheet,
   PanelLeft,
-  HelpCircle,
   ChevronRight,
   Building2,
   Copy,
@@ -270,7 +269,7 @@ export function ClientLayout() {
 
         {/* Conteúdo da Sidebar */}
         <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden px-2 py-3 space-y-4">
-          {/* Seção Empresas Fingu-style Dropdown */}
+          
           {!isCollapsed ? (
             <div className="px-2">
               <div className="mb-1.5 flex items-center justify-between">
@@ -279,7 +278,7 @@ export function ClientLayout() {
                 </p>
               </div>
 
-              <div className="rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm p-3 shadow-sm transition-all hover:border-white/30 dark:border-slate-800/60 dark:bg-slate-950/90 dark:hover:border-brand-500/30">
+              <div className="rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm p-3 transition-all hover:border-white/30 dark:border-slate-800/60 dark:bg-slate-800/90 dark:hover:border-brand-500/30">
                 <div className="flex items-start gap-2.5">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white dark:bg-brand-500/10 dark:text-brand-400 font-bold text-xs">
                     <Building2 className="h-4 w-4" />
@@ -312,10 +311,10 @@ export function ClientLayout() {
             </div>
           ) : (
             <div className="group relative flex justify-center my-1">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-xs font-bold text-white shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-brand-600">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-xs font-bold text-white dark:border-slate-800 dark:bg-slate-950 dark:text-brand-600">
                 {companyInitial}
               </div>
-              <div className="pointer-events-none fixed left-[76px] z-[9999] hidden flex-col rounded-xl border border-slate-700/50 bg-slate-900 p-2.5 text-xs text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-900">
+              <div className="pointer-events-none fixed left-[76px] z-[9999] hidden flex-col rounded-xl border border-slate-700/50 bg-slate-900 p-2.5 text-xs text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-900">
                 <span className="font-bold text-white">{companyName}</span>
                 {company.cnpj && <span className="text-[10px] text-slate-400">CNPJ: {formatCnpj(company.cnpj)}</span>}
                 <span className="text-[10px] font-mono font-bold text-brand-400 mt-0.5">ID: #{company.codigo_exclusivo || company.id.slice(0, 8)}</span>
@@ -355,7 +354,7 @@ export function ClientLayout() {
                           cn(
                             'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
                             isActive
-                              ? 'bg-white text-[#0d6084] font-bold shadow-md dark:bg-slate-800 dark:text-white'
+                              ? 'bg-white text-[#0d6084] font-bold dark:bg-slate-800 dark:text-white'
                               : 'text-sky-100/90 hover:bg-white/10 hover:text-white dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100',
                             isCollapsed && 'justify-center px-0 py-2.5'
                           )
@@ -366,7 +365,7 @@ export function ClientLayout() {
                             <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-[#0d6084] dark:text-brand-400' : 'text-sky-200 group-hover:text-white dark:text-slate-400')} />
                             {!isCollapsed && <span className="truncate">{item.label}</span>}
                             {isCollapsed && (
-                              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
+                              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                                 {item.label}
                               </span>
                             )}
@@ -385,7 +384,7 @@ export function ClientLayout() {
         {!isCollapsed ? (
           <div className="mt-auto border-t border-white/15 p-3 space-y-3 dark:border-slate-800/60">
             <div className="flex items-center gap-2.5 rounded-lg p-1">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] shadow-sm dark:bg-brand-600 dark:text-white">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] dark:bg-brand-600 dark:text-white">
                 {userInitial}
               </div>
               <div className="min-w-0 flex-1">
@@ -400,14 +399,14 @@ export function ClientLayout() {
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 onClick={() => navigate(ROUTES.SETTINGS)}
-                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-xs font-medium text-white shadow-sm hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-xs font-medium text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                <HelpCircle className="h-3.5 w-3.5 text-sky-200 dark:text-slate-500" />
-                <span>Ajuda</span>
+                <Settings className="h-3.5 w-3.5 text-sky-200 dark:text-slate-500" />
+                <span>Ajustes</span>
               </button>
               <button
                 onClick={handleSignOut}
-                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-xs font-medium text-white shadow-sm hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+                className="flex h-8 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-xs font-medium text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <LogOut className="h-3.5 w-3.5 text-sky-200 dark:text-slate-500" />
                 <span>Sair</span>
@@ -417,20 +416,20 @@ export function ClientLayout() {
         ) : (
           <div className="mt-auto border-t border-white/15 p-2 flex flex-col items-center gap-2 dark:border-slate-800/60">
             <div className="group relative flex justify-center">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] shadow-sm dark:bg-brand-600 dark:text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] dark:bg-brand-600 dark:text-white">
                 {userInitial}
               </div>
-              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
+              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                 {profile?.full_name ?? 'Usuário'}
               </span>
             </div>
             <button
               onClick={() => navigate(ROUTES.SETTINGS)}
-              className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+              className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 cursor-pointer"
             >
-              <HelpCircle className="h-4 w-4" />
-              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
-                Ajuda
+              <Settings className="h-4 w-4" />
+              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
+                Ajustes
               </span>
             </button>
             <button
@@ -438,7 +437,7 @@ export function ClientLayout() {
               className="group relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
             >
               <LogOut className="h-4 w-4" />
-              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xl whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
+              <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
                 Sair
               </span>
             </button>
@@ -449,33 +448,33 @@ export function ClientLayout() {
       {/* Conteúdo Principal */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Topbar / Header */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 bg-white px-4 lg:px-6 dark:border-slate-800 dark:bg-slate-950">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden lg:flex items-center justify-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-              title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
-            >
-              <PanelLeft className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="flex lg:hidden items-center justify-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-              title="Abrir menu"
+              onClick={() => setMobileOpen(true)}
+              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden dark:text-slate-400 dark:hover:bg-slate-800"
             >
               <Menu className="h-5 w-5" />
             </button>
 
-            {/* Breadcrumb Navigation */}
-            <nav className="hidden items-center gap-1.5 text-xs sm:flex font-medium">
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="hidden lg:flex rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+              title={isCollapsed ? 'Expandir Menu' : 'Recolher Menu'}
+            >
+              <PanelLeft className="h-5 w-5" />
+            </button>
+
+            {/* Breadcrumb */}
+            <nav className="flex items-center gap-1.5 text-xs font-medium">
               {breadcrumbs.map((crumb, idx) => (
-                <span key={crumb.path} className="flex items-center gap-1.5">
+                <span key={crumb.label} className="flex items-center gap-1.5">
                   <span
-                    className={cn(
-                      crumb.isLast
-                        ? 'font-semibold text-slate-900 dark:text-slate-100'
-                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors'
-                    )}
+                    className={
+                      idx === breadcrumbs.length - 1
+                        ? 'font-bold text-slate-900 dark:text-white'
+                        : 'text-slate-500 dark:text-slate-400'
+                    }
                   >
                     {crumb.label}
                   </span>
@@ -517,7 +516,7 @@ export function ClientLayout() {
             {/* Avatar do Usuário */}
             <button
               onClick={() => navigate(ROUTES.PROFILE)}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white shadow-sm hover:ring-2 hover:ring-brand-500/40 transition-all"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white hover:ring-2 hover:ring-brand-500/40 transition-all"
               title="Meu Perfil"
             >
               {userInitial}

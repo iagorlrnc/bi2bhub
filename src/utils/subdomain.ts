@@ -92,3 +92,30 @@ export function getClientSubdomainUrl(path: string = '/'): string {
 export function getAdminSubdomainUrl(path: string = '/'): string {
   return buildSubdomainUrl('administrador', path)
 }
+
+/**
+ * Retorna a URL completa para a landing page (domínio principal sem subdomínio app ou administrador)
+ */
+export function getMainDomainUrl(path: string = '/'): string {
+  const { protocol, hostname, port } = window.location
+  const portSuffix = port ? `:${port}` : ''
+  const cleanPath = path.startsWith('/') ? path : `/${path}`
+
+  // 1. Tratamento para localhost com subdomínio (ex: app.localhost / administrador.localhost)
+  if (hostname.endsWith('.localhost')) {
+    return `${protocol}//localhost${portSuffix}${cleanPath}`
+  }
+
+  // 2. Se estiver no Vercel com parâmetro de subdomínio
+  if (hostname.endsWith('.vercel.app')) {
+    return `${protocol}//${hostname}${portSuffix}${cleanPath}`
+  }
+
+  // 3. Domínio de produção personalizado (ex: app.bi2b.com.br -> bi2b.com.br)
+  const parts = hostname.split('.')
+  if (parts.length > 2 && (parts[0] === 'administrador' || parts[0] === 'app' || parts[0] === 'www')) {
+    parts.shift()
+  }
+  const baseDomain = parts.join('.')
+  return `${protocol}//${baseDomain}${portSuffix}${cleanPath}`
+}

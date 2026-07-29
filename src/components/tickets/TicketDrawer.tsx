@@ -617,7 +617,7 @@ export function TicketDrawer({
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {/* Descrição inicial do chamado */}
                 {ticket?.description && (
-                  <div className="p-3.5 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-xs space-y-1 shadow-2xs">
+                  <div className="p-3.5 rounded-xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-xs space-y-1">
                     <div className="flex items-center justify-between text-[10px] text-[hsl(var(--muted-foreground))] font-semibold">
                       <span>Descrição da Solicitação</span>
                       <span>{new Date(ticket.created_at).toLocaleString('pt-BR')}</span>
@@ -637,7 +637,7 @@ export function TicketDrawer({
                     <div
                       key={msg.id || idx}
                       className={cn(
-                        'flex flex-col max-w-[85%] rounded-2xl px-4 py-3 shadow-2xs text-xs border transition-all',
+                        'flex flex-col max-w-[85%] rounded-2xl px-4 py-3 text-xs border transition-all',
                         msg.is_internal
                           ? 'bg-amber-50/80 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/40 text-amber-900 dark:text-amber-100 ' + (isMe ? 'ml-auto rounded-tr-none' : 'mr-auto rounded-tl-none')
                           : isMe

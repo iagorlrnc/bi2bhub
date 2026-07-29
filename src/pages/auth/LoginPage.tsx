@@ -414,13 +414,13 @@ export function LoginPage() {
   ]
 
   return (
-    <div className="animate-fade-in-up my-6 px-4 flex flex-col items-center justify-center min-h-[calc(100vh-6rem)]">
-      <div className="w-full max-w-lg mx-auto">
+    <div className="animate-fade-in-up w-full py-2">
+      <div className={cn("mx-auto transition-all duration-300", activeTab === 'empresa' ? "max-w-lg" : "max-w-md")}>
         
         {/* Logotipo da Aplicação */}
         <div className="mb-6 text-center">
-          <img src={currentLogo} alt={APP_NAME} className="mx-auto h-12 w-auto object-contain mb-3 drop-shadow-sm" />
-          <h1 className="text-2xl font-bold tracking-tight text-[hsl(var(--foreground))]">Portal Bi2B</h1>
+          <img src={currentLogo} alt={APP_NAME} className="mx-auto h-11 w-auto object-contain mb-2 drop-shadow-sm" />
+          <h1 className="text-2xl font-extrabold tracking-tight text-[hsl(var(--foreground))]">Portal Bi2B</h1>
           <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
             Acesse seu painel ou cadastre a estrutura da sua empresa
           </p>
@@ -461,7 +461,9 @@ export function LoginPage() {
         {/* ABA 1: LOGIN DO COLABORADOR */}
         {/* ========================================================= */}
         {activeTab === 'colaborador' && (
-          <div className="rounded-3xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-xl space-y-5 animate-fade-in">
+          <div className="rounded-3xl border border-cyan-500/20 bg-[hsl(var(--card))] p-6 shadow-xl space-y-5 animate-fade-in relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-[#0d6084] to-blue-600" />
+
             <div>
               <h2 className="font-heading text-lg font-bold text-[hsl(var(--foreground))]">Autenticação</h2>
               <p className="text-xs text-[hsl(var(--muted-foreground))]">Informe suas credenciais para acessar o Painel.</p>
@@ -524,6 +526,39 @@ export function LoginPage() {
                   </>
                 )}
               </button>
+
+              {/* Atalho rápido para preenchimento de teste */}
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('cliente@bi2b.com.br')
+                    setPassword('123456')
+                  }}
+                  className="text-xs text-brand-500 dark:text-cyan-400 hover:text-cyan-300 font-medium hover:underline transition-all cursor-pointer"
+                >
+                  Preencher dados de teste (cliente@bi2b.com.br / 123456)
+                </button>
+              </div>
+
+              {/* Divisor Visual */}
+              <div className="relative my-4 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[hsl(var(--border))]" />
+                </div>
+                <div className="relative bg-[hsl(var(--card))] px-3 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                  Ou
+                </div>
+              </div>
+
+              {/* Botão de Cadastro (Criar Nova Conta) */}
+              <button
+                type="button"
+                onClick={() => navigate(ROUTES.REGISTER)}
+                className="w-full border border-[hsl(var(--border))] bg-transparent hover:bg-[hsl(var(--muted))]/50 py-3 text-xs font-bold text-[hsl(var(--foreground))] rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer select-none"
+              >
+                <span>Criar nova conta de colaborador</span>
+              </button>
             </form>
           </div>
         )}
@@ -532,7 +567,9 @@ export function LoginPage() {
         {/* ABA 2: CADASTRO DA EMPRESA EM ETAPAS */}
         {/* ========================================================= */}
         {activeTab === 'empresa' && (
-          <div className="rounded-3xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-xl space-y-6 animate-fade-in">
+          <div className="rounded-3xl border border-cyan-500/20 bg-[hsl(var(--card))] p-6 shadow-xl space-y-6 animate-fade-in relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-[#0d6084] to-blue-600" />
+            
             
             {/* TELA INICIAL DA EMPRESA (ALERTA DE PROSSEGUIR) */}
             {!companyStepStarted ? (
@@ -630,7 +667,7 @@ export function LoginPage() {
                       <div className="border-b border-[hsl(var(--border))] pb-2">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-brand-500 flex items-center gap-1.5">
                           <Building2 className="h-3.5 w-3.5" />
-                          1° Etapa — Dados Principais da Empresa
+                          Dados Principais da Empresa
                         </h3>
                       </div>
 
@@ -642,7 +679,7 @@ export function LoginPage() {
                           type="text"
                           value={companyName}
                           onChange={(e) => setCompanyName(e.target.value)}
-                          placeholder="Ex: Empresa Exemplo Soluções LTDA"
+                          placeholder="Ex: Bi2B Consultoria LTDA"
                           className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-4 py-2.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
                           required
                         />
@@ -656,7 +693,7 @@ export function LoginPage() {
                           type="text"
                           value={companyTradeName}
                           onChange={(e) => setCompanyTradeName(e.target.value)}
-                          placeholder="Ex: Bi2B Soluções"
+                          placeholder="Ex: Bi2B Consultoria"
                           className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-4 py-2.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
                         />
                       </div>
@@ -685,7 +722,7 @@ export function LoginPage() {
                             type="text"
                             value={companyStateRegistration}
                             onChange={(e) => setCompanyStateRegistration(e.target.value)}
-                            placeholder="Isento ou Número IE"
+                            placeholder="Número IE"
                             className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-4 py-2.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
                           />
                         </div>
@@ -728,7 +765,7 @@ export function LoginPage() {
                       <div className="border-b border-[hsl(var(--border))] pb-2">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-brand-500 flex items-center gap-1.5">
                           <Mail className="h-3.5 w-3.5" />
-                          2° Etapa — Contato & Endereço Corporativo
+                          Contato & Endereço Corporativo
                         </h3>
                       </div>
 
@@ -754,7 +791,7 @@ export function LoginPage() {
                           type="text"
                           value={companyPhone}
                           onChange={(e) => setCompanyPhone(formatPhone(e.target.value))}
-                          placeholder="(00) 90000-0000"
+                          placeholder="(99) 99999-9999"
                           maxLength={15}
                           className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-4 py-2.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
                           required
@@ -785,7 +822,7 @@ export function LoginPage() {
                               type="text"
                               value={addressStreet}
                               onChange={(e) => setAddressStreet(e.target.value)}
-                              placeholder="Av. Paulista"
+                              placeholder="Av. JK"
                               className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-xs text-[hsl(var(--foreground))]"
                             />
                           </div>
@@ -831,7 +868,7 @@ export function LoginPage() {
                               type="text"
                               value={addressCity}
                               onChange={(e) => setAddressCity(e.target.value)}
-                              placeholder="São Paulo"
+                              placeholder="Palmas"
                               className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-xs text-[hsl(var(--foreground))]"
                             />
                           </div>
@@ -841,7 +878,7 @@ export function LoginPage() {
                               type="text"
                               value={addressState}
                               onChange={(e) => setAddressState(e.target.value)}
-                              placeholder="SP"
+                              placeholder="TO"
                               maxLength={2}
                               className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-xs uppercase text-[hsl(var(--foreground))]"
                             />

@@ -424,7 +424,7 @@ export function AdminNotificationsPage() {
                     className="w-full text-xs bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-lg px-3 py-2 font-medium text-[hsl(var(--foreground))] focus:outline-none focus:border-brand-500 cursor-pointer"
                   >
                     <option value="">Selecione uma empresa...</option>
-                    <option value="ALL_COMPANIES">🌐 TODAS AS EMPRESAS (Envio Global)</option>
+                    <option value="ALL_COMPANIES">TODAS AS EMPRESAS (Envio Global)</option>
                     {companies.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
@@ -440,7 +440,7 @@ export function AdminNotificationsPage() {
                     className="w-full text-xs bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-lg px-3 py-2 font-medium text-[hsl(var(--foreground))] focus:outline-none focus:border-brand-500 cursor-pointer"
                   >
                     <option value="">Selecione um usuário...</option>
-                    <option value="ALL_USERS">👥 TODOS OS USUÁRIOS (Envio Global)</option>
+                    <option value="ALL_USERS">TODOS OS USUÁRIOS (Envio Global)</option>
                     {users.map(u => {
                       const compName = getCompanyNameFromUser(u) || 'Sem Empresa'
                       return (

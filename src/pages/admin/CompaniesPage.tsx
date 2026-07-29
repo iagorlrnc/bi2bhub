@@ -106,8 +106,8 @@ export function CompaniesPage() {
   }
 
   // Buscar Empresas Ativas (Real Supabase)
-  const fetchCompanies = async () => {
-    setIsLoading(true)
+  const fetchCompanies = async (silent = false) => {
+    if (!silent) setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('empresas')
@@ -118,9 +118,9 @@ export function CompaniesPage() {
       setCompanies(data || [])
     } catch (err) {
       if (import.meta.env.DEV) console.error(err)
-      toast.error('Erro ao buscar empresas ativas do Supabase.')
+      if (!silent) toast.error('Erro ao buscar empresas ativas do Supabase.')
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }
 
@@ -145,6 +145,13 @@ export function CompaniesPage() {
   useEffect(() => {
     fetchCompanies()
     fetchCompanyRequests()
+
+    const handleRefresh = () => {
+      fetchCompanies(true)
+      fetchCompanyRequests()
+    }
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
   }, [])
 
   // APROVAR SOLICITAÇÃO DA EMPRESA E DO GESTOR VINCULADO (Real Supabase)
@@ -560,7 +567,7 @@ export function CompaniesPage() {
           <Clock className="h-4 w-4" />
           <span>Painel de Solicitações</span>
           {companyRequests.length > 0 && (
-            <span className="rounded-full bg-amber-500 text-white px-2 py-0.5 text-xs font-extrabold animate-pulse shadow-xs">
+            <span className="rounded-full bg-blue-900 text-white px-2 py-0.5 text-xs font-extrabold animate-pulse shadow-xs">
               {companyRequests.length}
             </span>
           )}
@@ -713,10 +720,10 @@ export function CompaniesPage() {
         <div className="space-y-6 animate-fade-in">
           
           {/* BANNER INFORMATIVO DO PAINEL */}
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 space-y-2.5 shadow-xs">
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-5 space-y-2.5 shadow-xs">
             <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 font-bold text-sm">
               <AlertCircle className="h-5 w-5 shrink-0 text-amber-500" />
-              <span>Painel de Solicitações de Cadastro de Novas Empresas</span>
+              <span>Solicitações de Cadastro de Novas Empresas</span>
             </div>
             <p className="text-xs text-[hsl(var(--foreground))] leading-relaxed">
               Exibindo as solicitações de empresas cadastradas via aba pública do portal.<br/>Ao aprovar uma solicitação, a empresa será ativada e estará pronta para receber vínculos de colaboradores.
@@ -729,7 +736,7 @@ export function CompaniesPage() {
               {filteredRequests.map((req) => (
                 <div 
                   key={req.id} 
-                  className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-lg space-y-4 hover:border-brand-500/40 transition-all flex flex-col justify-between"
+                  className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-lg space-y-4 hover:border-brand-500/40 transition-all flex flex-col justify-between"
                 >
                   <div>
                     {/* Badge e Token Topo */}
@@ -821,7 +828,7 @@ export function CompaniesPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-12 text-center text-xs text-[hsl(var(--muted-foreground))]">
+            <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-12 text-center text-xs text-[hsl(var(--muted-foreground))]">
               <CheckCircle2 className="h-10 w-10 mx-auto text-emerald-500 mb-3 opacity-60" />
               <p className="font-semibold text-sm text-[hsl(var(--foreground))]">Nenhuma solicitação pendente no momento</p>
               <p className="mt-1">Todas as empresas enviadas via portal foram analisadas e processadas.</p>
@@ -836,7 +843,7 @@ export function CompaniesPage() {
       {/* ========================================================= */}
       {selectedRequestModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl w-full max-w-lg shadow-2xl p-6 relative space-y-5 animate-fade-in">
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl w-full max-w-lg shadow-2xl p-6 relative space-y-5 animate-fade-in">
             <div className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-3">
               <div className="flex items-center gap-2 text-brand-600 dark:text-brand-400 font-bold text-sm">
                 <FileText className="h-5 w-5" />
@@ -900,7 +907,7 @@ export function CompaniesPage() {
       {/* Modal de Cadastro/Edição Direta de Empresa (CRUD) */}
       {isOpenModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl w-full max-w-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl w-full max-w-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
             <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))] mb-4 border-b border-[hsl(var(--border))] pb-2">
               {editingId ? 'Editar Empresa' : 'Cadastrar Nova Empresa'}
             </h3>

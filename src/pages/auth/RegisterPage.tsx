@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants/routes'
 import { APP_NAME, STRONG_PASSWORD_REGEX, PASSWORD_REQUIREMENTS_MESSAGE } from '@/constants'
 import { supabase } from '@/lib/supabase'
@@ -250,7 +251,7 @@ export function RegisterPage() {
   ]
 
   return (
-    <div className="animate-fade-in-up my-8 px-4 flex flex-col items-center justify-center min-h-[calc(100vh-6rem)]">
+    <div className="animate-fade-in-up w-full py-2">
       <div className="w-full max-w-lg mx-auto">
         {/* Cabeçalho / Logo */}
         <div className="mb-8 text-center">
@@ -308,7 +309,8 @@ export function RegisterPage() {
         </div>
 
         {/* Formulário Principal Card */}
-        <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 sm:p-8 shadow-2xl shadow-black/5 backdrop-blur-md">
+        <div className="rounded-2xl border border-cyan-500/20 bg-[hsl(var(--card))] p-6 sm:p-8 shadow-2xl backdrop-blur-md relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-[#0d6084] to-blue-600" />
           <form onSubmit={handleSubmit}>
             {/* ETAPA 1: DADOS PESSOAIS DO USUÁRIO */}
             {currentStep === 1 && (
@@ -633,43 +635,47 @@ export function RegisterPage() {
             )}
 
             {/* Botões de Ação */}
-            <div className="mt-8 flex items-center justify-between gap-3 border-t border-[hsl(var(--border))] pt-5">
-              {currentStep > 1 ? (
+            <div className="mt-8 flex items-center justify-center gap-3 border-t border-[hsl(var(--border))] pt-5">
+              {currentStep > 1 && (
                 <button
                   type="button"
                   onClick={handleBack}
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-4 py-2.5 text-xs font-bold text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-4 py-2.5 text-xs font-bold text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Voltar
+                  <span>Voltar</span>
                 </button>
-              ) : (
-                <div />
               )}
 
               {currentStep < 4 ? (
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="flex items-center gap-2 rounded-xl gradient-brand px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-brand-500/20 hover:brightness-110 transition-all ml-auto"
+                  className={cn(
+                    "flex items-center justify-center gap-2 rounded-xl gradient-brand py-3 text-xs font-bold text-white shadow-md shadow-brand-500/20 hover:brightness-110 transition-all cursor-pointer",
+                    currentStep === 1 ? "w-full" : "flex-1 max-w-[240px]"
+                  )}
                 >
-                  Avançar
+                  <span>Avançar</span>
                   <ArrowRight className="h-4 w-4" />
                 </button>
               ) : (
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 rounded-xl gradient-brand px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-500/25 hover:brightness-110 transition-all ml-auto disabled:opacity-50"
+                  className={cn(
+                    "flex items-center justify-center gap-2 rounded-xl gradient-brand py-3 text-xs font-bold text-white shadow-lg shadow-brand-500/25 hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer",
+                    currentStep === 1 ? "w-full" : "flex-1 max-w-[240px]"
+                  )}
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Enviando Solicitação...
+                      <span>Enviando Solicitação...</span>
                     </>
                   ) : (
-                    'Concluir Cadastro'
+                    <span>Concluir Cadastro</span>
                   )}
                 </button>
               )}

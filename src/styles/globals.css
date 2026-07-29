@@ -147,9 +147,25 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* ===== BASE STYLES ===== */
-* {
+/* ===== BASE STYLES & TRANSIÇÃO SIMULTÂNEA DE TEMA ===== */
+*,
+*::before,
+*::after {
   border-color: hsl(var(--border));
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              fill 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              stroke 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Desativar transição em elementos animados para não interferir com animações */
+.animate-spin,
+.animate-ping,
+.animate-pulse,
+.animate-bounce,
+.animate-spin * {
+  transition: none !important;
 }
 
 body {
@@ -609,40 +625,20 @@ main div[class*="h-12"][class*="w-12"] {
   drop-shadow: none !important;
 }
 
-/* ===== SOMBRAS ELEVADAS PARA BOTÕES DE ADICIONAR E AÇÕES PRINCIPAIS ===== */
-button.gradient-brand,
-button[class*="gradient-brand"],
-button[class*="bg-brand"],
-button[class*="bg-emerald"],
-button[class*="bg-blue"],
-button:has(svg.lucide-plus),
-button:has(svg.lucide-plus-circle),
-button:has(svg.lucide-folder-plus),
-button:has(svg.lucide-file-plus),
-button[type="submit"] {
-  box-shadow: 0 8px 22px -3px rgba(13, 96, 132, 0.45), 0 4px 10px -2px rgba(0, 0, 0, 0.22) !important;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-button.gradient-brand:hover,
-button[class*="gradient-brand"]:hover,
-button[class*="bg-brand"]:hover,
-button[class*="bg-emerald"]:hover,
-button[class*="bg-blue"]:hover,
-button:has(svg.lucide-plus):hover,
-button:has(svg.lucide-plus-circle):hover,
-button:has(svg.lucide-folder-plus):hover,
-button:has(svg.lucide-file-plus):hover,
-button[type="submit"]:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 12px 28px -3px rgba(13, 96, 132, 0.6), 0 6px 14px -2px rgba(0, 0, 0, 0.3) !important;
-}
-
-button.gradient-brand:active,
-button[class*="gradient-brand"]:active,
-button[type="submit"]:active {
-  transform: translateY(0) !important;
-  box-shadow: 0 4px 12px -2px rgba(13, 96, 132, 0.4) !important;
+/* ===== REGRA ESTRITA DE SOBREPOSIÇÃO PARA SHADOW-NONE ===== */
+.shadow-none,
+button.shadow-none,
+div.shadow-none,
+input.shadow-none,
+select.shadow-none,
+span.shadow-none,
+button.shadow-none:hover,
+button.shadow-none:focus,
+button.shadow-none:active {
+  box-shadow: none !important;
+  filter: none !important;
+  drop-shadow: none !important;
+  transform: none !important;
 }
 
 

@@ -247,48 +247,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [fetchProfile])
 
   const signIn = async (email: string, password: string) => {
-    // Suporte especial para credenciais de teste indicadas no requerimento
     const cleanEmail = email.trim().toLowerCase()
-    if (cleanEmail === 'admin@bi2b.com.br' && password === '123456') {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-        if (!error && data?.user) {
-          logAuditActivity({
-            userId: data.user.id,
-            action: 'LOGIN_SUCESSO',
-            entityType: 'auth',
-            metadata: { email: cleanEmail, method: 'password' }
-          })
-          return
-        }
-      } catch (e) {
-        // Fallback para mock local se Supabase não tiver a conta criada
-      }
-      setMockSession('admin@bi2b.com.br')
-      return
-    }
 
-    if (cleanEmail === 'cliente@bi2b.com.br' && password === '123456') {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-        if (!error && data?.user) {
-          logAuditActivity({
-            userId: data.user.id,
-            action: 'LOGIN_SUCESSO',
-            entityType: 'auth',
-            metadata: { email: cleanEmail, method: 'password' }
-          })
-          return
-        }
-      } catch (e) {
-        // Fallback para mock local se Supabase não tiver a conta criada
+    const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
+    
+    if (error) {
+      // Fallback para contas de teste reservadas caso o Supabase Auth ainda não possua o usuário criado
+      if (
+        (cleanEmail === 'admin@bi2b.com.br' || cleanEmail === 'cliente@bi2b.com.br' || cleanEmail === 'colaborador@bi2b.com.br') &&
+        password === '123456'
+      ) {
+        setMockSession(cleanEmail)
+        return
       }
-      setMockSession('cliente@bi2b.com.br')
-      return
+      throw error
     }
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
 
     if (data?.user) {
       logAuditActivity({
@@ -297,35 +270,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
         entityType: 'auth',
         metadata: { email: cleanEmail, method: 'password' }
       })
-    }
 
-    const { data: profileData, error: profileError } = await supabase
-      .from('usuarios')
-      .select('is_active')
-      .eq('id', data.user.id)
-      .single() as any
+      const { data: profileData, error: profileError } = await supabase
+        .from('usuarios')
+        .select('is_active')
+        .eq('id', data.user.id)
+        .single() as any
 
-    if (profileError) {
-      await supabase.auth.signOut()
-      throw profileError
-    }
-
-    if (profileData && !profileData.is_active) {
-      // Verificar se é uma solicitação de acesso pendente na empresa
-      const { data: pendingCompanyUser } = await supabase
-        .from('usuarios_empresa')
-        .select('id')
-        .eq('user_id', data.user.id)
-        .eq('is_active', false)
-        .maybeSingle() as any
-
-      await supabase.auth.signOut()
-
-      if (pendingCompanyUser) {
-        throw new Error('Sua solicitação de acesso está aguardando aprovação pelo responsável ou administrador da empresa.')
+      if (profileError) {
+        await supabase.auth.signOut()
+        throw profileError
       }
 
-      throw new Error('Sua conta está inativa ou bloqueada. Contate o administrador.')
+      if (profileData && !profileData.is_active) {
+        // Verificar se é uma solicitação de acesso pendente na empresa
+        const { data: pendingCompanyUser } = await supabase
+          .from('usuarios_empresa')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .eq('is_active', false)
+          .maybeSingle() as any
+
+        await supabase.auth.signOut()
+
+        if (pendingCompanyUser) {
+          throw new Error('Sua solicitação de acesso está aguardando aprovação pelo responsável ou administrador da empresa.')
+        }
+
+        throw new Error('Sua conta está inativa ou bloqueada. Contate o administrador.')
+      }
     }
   }
 

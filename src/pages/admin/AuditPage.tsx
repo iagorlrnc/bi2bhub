@@ -244,7 +244,7 @@ export function AuditPage() {
   return (
     <div className="space-y-6">
       {/* 1. Cabeçalho Superior */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-2xl shadow-2xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-2xs">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
             <ScrollText className="h-5 w-5" />
@@ -283,7 +283,7 @@ export function AuditPage() {
 
       {/* 2. Cards Resumo (KPIs) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs">
+        <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))]">Total de Registros</span>
             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -296,7 +296,7 @@ export function AuditPage() {
           <p className="text-[11px] text-[hsl(var(--muted-foreground))] mt-1">Eventos registrados no banco</p>
         </div>
 
-        <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs">
+        <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))]">Logins e Acessos</span>
             <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
@@ -309,7 +309,7 @@ export function AuditPage() {
           <p className="text-[11px] text-[hsl(var(--muted-foreground))] mt-1">Autenticações de usuários</p>
         </div>
 
-        <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs">
+        <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))]">Inserções & Edições</span>
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -322,7 +322,7 @@ export function AuditPage() {
           <p className="text-[11px] text-[hsl(var(--muted-foreground))] mt-1">Criações e atualizações de dados</p>
         </div>
 
-        <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs">
+        <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))]">Ações Críticas / Remoções</span>
             <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
@@ -337,7 +337,7 @@ export function AuditPage() {
       </div>
 
       {/* 3. Painel de Filtros Avançados */}
-      <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs space-y-3">
+      <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xs space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs font-bold text-[hsl(var(--foreground))]">
             <Filter className="h-3.5 w-3.5 text-brand-500" />
@@ -417,7 +417,7 @@ export function AuditPage() {
       </div>
 
       {/* 4. Tabela de Registros de Auditoria */}
-      <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] overflow-hidden shadow-2xs">
+      <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -533,7 +533,7 @@ export function AuditPage() {
                 <tr>
                   <td colSpan={7} className="p-12 text-center font-sans">
                     <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2">
-                      <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                      <div className="p-3 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
                         <AlertCircle className="h-6 w-6" />
                       </div>
                       <h3 className="font-bold text-sm text-[hsl(var(--foreground))]">
@@ -608,7 +608,7 @@ export function AuditPage() {
       {/* 5. Modal de Detalhes do Payload JSON */}
       {selectedLog && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative animate-in fade-in zoom-in duration-200">
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative animate-in fade-in zoom-in duration-200">
             {/* Cabeçalho do Modal */}
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-[hsl(var(--border))]">
               <div className="flex items-center gap-2.5">

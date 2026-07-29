@@ -628,7 +628,7 @@ export function AdminDrivePage() {
         <div className="grid gap-6 lg:grid-cols-4">
           {/* Categoria */}
           <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-sm">
+            <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-sm">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))] mb-4 px-1">Categorias</h3>
               <div className="space-y-1">
                 {[
@@ -643,10 +643,10 @@ export function AdminDrivePage() {
                     key={cat.id}
                     onClick={() => { setSelectedCategory(cat.id); setActiveFolderId(null); }}
                     className={cn(
-                      'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                      'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 relative',
                       selectedCategory === cat.id && activeFolderId === null
-                        ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400 font-semibold shadow-sm'
-                        : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]/60 hover:text-[hsl(var(--foreground))]'
+                        ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400 font-semibold shadow-2xs z-10'
+                        : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]/60 hover:text-[hsl(var(--foreground))] z-0'
                     )}
                   >
                     <cat.icon className="h-4 w-4 shrink-0" />
@@ -679,7 +679,7 @@ export function AdminDrivePage() {
 
           {/* Explorer de arquivos */}
           <div className="lg:col-span-3 space-y-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-[hsl(var(--card))]/30 p-3 rounded-2xl border border-[hsl(var(--border))]/50">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-[hsl(var(--card))]/30 p-3 rounded-xl border border-[hsl(var(--border))]/50 shadow-none">
               <nav className="flex items-center gap-1.5 text-sm px-2">
                 <button 
                   onClick={() => { setActiveFolderId(null); }} 
@@ -702,12 +702,12 @@ export function AdminDrivePage() {
                     placeholder="Buscar arquivos..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full sm:w-56 rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--card))] py-2 pl-9 pr-4 text-xs font-semibold focus:border-brand-500 focus:outline-none transition-all shadow-sm"
+                    className="w-full sm:w-56 rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--card))] py-2 pl-9 pr-4 text-xs font-semibold focus:border-brand-500 focus:outline-none transition-all shadow-none"
                   />
                 </div>
 
                 {/* Seletor de visualização (Grade vs Lista) */}
-                <div className="flex items-center gap-1 rounded-xl border border-[hsl(var(--border))] p-1 bg-[hsl(var(--card))] shadow-sm">
+                <div className="flex items-center gap-1 rounded-xl border border-[hsl(var(--border))] p-1 bg-[hsl(var(--card))] shadow-none">
                   <button
                     onClick={() => setViewMode('grid')}
                     className={cn(
@@ -750,7 +750,7 @@ export function AdminDrivePage() {
                           <div
                             key={folder.id}
                             onClick={() => setActiveFolderId(folder.id)}
-                            className="group relative flex items-center justify-between gap-4.5 rounded-2xl border bg-[hsl(var(--card))] p-4.5 shadow-sm hover:shadow-md cursor-pointer transition-all hover-lift min-w-0 overflow-hidden"
+                            className="group relative flex items-center justify-between gap-4.5 rounded-xl border bg-[hsl(var(--card))] p-4.5 shadow-sm hover:shadow-md cursor-pointer transition-all hover-lift min-w-0 overflow-hidden"
                             style={{ 
                               borderColor: dynamicBorderColor,
                               backgroundColor: dynamicBgColor
@@ -787,7 +787,7 @@ export function AdminDrivePage() {
                       })}
                     </div>
                   ) : (
-                    <div className="overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm">
+                    <div className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm">
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse table-fixed">
                           <thead>
@@ -853,7 +853,7 @@ export function AdminDrivePage() {
                     </div>
                   )
                 ) : (
-                  <div className="p-6 text-center border border-[hsl(var(--border))] rounded-2xl bg-[hsl(var(--card))]/50">
+                  <div className="p-6 text-center border border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--card))]/50">
                     <p className="text-sm text-[hsl(var(--muted-foreground))] italic">Nenhuma pasta criada. Use o botão "Nova Pasta" para organizar.</p>
                   </div>
                 )}
@@ -866,7 +866,7 @@ export function AdminDrivePage() {
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))] px-1">Arquivos</h3>
                 
                 {isLoading ? (
-                  <div className="flex flex-col items-center justify-center py-20 bg-[hsl(var(--card))] rounded-2xl border border-[hsl(var(--border))]">
+                  <div className="flex flex-col items-center justify-center py-20 bg-[hsl(var(--card))] rounded-xl border border-[hsl(var(--border))]">
                     <Loader2 className="h-8 w-8 animate-spin text-brand-500 mb-2" />
                     <span className="text-sm text-[hsl(var(--muted-foreground))] font-semibold">Carregando arquivos...</span>
                   </div>
@@ -874,7 +874,7 @@ export function AdminDrivePage() {
                   <div>
                     {/* Visualização em Lista */}
                     {viewMode === 'list' && (
-                      <div className="overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm">
+                      <div className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm">
                         <div className="overflow-x-auto">
                           <table className="w-full text-left border-collapse table-fixed">
                             <thead>
@@ -956,7 +956,7 @@ export function AdminDrivePage() {
                           return (
                             <div 
                               key={file.id} 
-                              className="group relative flex flex-col justify-between rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-sm hover:shadow-md transition-all hover-lift min-w-0 overflow-hidden"
+                              className="group relative flex flex-col justify-between rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-sm hover:shadow-md transition-all hover-lift min-w-0 overflow-hidden"
                             >
                               <div className="flex items-start justify-between gap-4 min-w-0">
                                 <div 
@@ -1015,7 +1015,7 @@ export function AdminDrivePage() {
                     )}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center text-center p-12 border border-dashed border-[hsl(var(--border))] rounded-2xl bg-[hsl(var(--card))]/50">
+                  <div className="flex flex-col items-center justify-center text-center p-12 border border-dashed border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--card))]/50">
                     <Upload className="h-10 w-10 text-[hsl(var(--muted-foreground))] mb-3" />
                     <h3 className="font-semibold text-sm text-[hsl(var(--foreground))]">Nenhum arquivo encontrado</h3>
                     <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 max-w-xs">Arraste seus arquivos para esta tela ou utilize o botão de upload no topo.</p>
@@ -1025,7 +1025,7 @@ export function AdminDrivePage() {
                 {/* Zona Invisível que captura o Drag & Drop e mostra o Overlay quando dragActive */}
                 {dragActive && (
                   <div 
-                    className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[hsl(var(--background))]/85 backdrop-blur-sm border-2 border-dashed border-brand-500 rounded-2xl animate-in fade-in duration-200"
+                    className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[hsl(var(--background))]/85 backdrop-blur-sm border-2 border-dashed border-brand-500 rounded-xl animate-in fade-in duration-200"
                     onDragOver={handleDrag}
                     onDragLeave={handleDrag}
                     onDrop={handleDrop}
@@ -1042,8 +1042,8 @@ export function AdminDrivePage() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center text-center p-16 border border-dashed border-[hsl(var(--border))] rounded-2xl bg-[hsl(var(--card))]/40 shadow-inner">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-500 mb-4 shadow-sm">
+        <div className="flex flex-col items-center justify-center text-center p-16 border border-dashed border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--card))]/40 shadow-inner">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-brand-500/10 text-brand-500 mb-4 shadow-sm">
             <Building2 className="h-7 w-7" />
           </div>
           <h3 className="font-heading font-bold text-[hsl(var(--foreground))] text-base">Nenhuma empresa selecionada</h3>
@@ -1054,7 +1054,7 @@ export function AdminDrivePage() {
       {/* Modal de Nova Pasta / Editar Pasta */}
       {isOpenFolderModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-4 mb-4">
               <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))]">
                 {editingFolderId ? 'Editar Pasta' : 'Criar Nova Pasta'}
@@ -1123,7 +1123,7 @@ export function AdminDrivePage() {
       {/* Modal de Editar Arquivo */}
       {isOpenFileModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-4 mb-4">
               <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))]">Editar Documento</h3>
               <button

@@ -193,10 +193,10 @@ export function SettingsPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-left',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-left relative',
                 activeTab === tab.id
-                  ? 'bg-brand-500 text-white'
-                  : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))]'
+                  ? 'bg-brand-500 text-white shadow-2xs font-semibold z-10'
+                  : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] z-0'
               )}
             >
               <tab.icon className="h-4 w-4 shrink-0" />

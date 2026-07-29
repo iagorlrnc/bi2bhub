@@ -121,9 +121,9 @@ export function AdminTaxesPage() {
     fetchCompanies()
   }, [])
 
-  const fetchTaxes = async () => {
+  const fetchTaxes = async (silent = false) => {
     if (!selectedCompanyId) return
-    setIsLoadingTaxes(true)
+    if (!silent) setIsLoadingTaxes(true)
     try {
       const { data, error } = await supabase
         .from('documentos')
@@ -138,9 +138,9 @@ export function AdminTaxesPage() {
       setTaxes(parsed)
     } catch (err) {
       if (import.meta.env.DEV) console.error(err)
-      toast.error('Erro ao buscar guias de impostos da empresa.')
+      if (!silent) toast.error('Erro ao buscar guias de impostos da empresa.')
     } finally {
-      setIsLoadingTaxes(false)
+      if (!silent) setIsLoadingTaxes(false)
     }
   }
 
@@ -150,6 +150,10 @@ export function AdminTaxesPage() {
     } else {
       setTaxes([])
     }
+
+    const handleRefresh = () => fetchTaxes(true)
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
   }, [selectedCompanyId])
 
   const handleDownloadFile = async (filePath: string) => {
@@ -414,7 +418,7 @@ export function AdminTaxesPage() {
                         <td className="py-3 px-4">
                           <button
                             onClick={() => handleDownloadFile(tax.file_path)}
-                            className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-xs font-bold text-brand-600 dark:text-brand-400 transition-colors"
+                            className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-xs font-bold text-brand-600 dark:text-brand-400 transition-colors cursor-pointer shadow-none"
                             title="Baixar Guia (PDF)"
                           >
                             <Download className="h-3.5 w-3.5" />
@@ -425,7 +429,7 @@ export function AdminTaxesPage() {
                           {tax.receiptPath ? (
                             <button
                               onClick={() => handleDownloadFile(tax.receiptPath!)}
-                              className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors"
+                              className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer shadow-none"
                               title="Baixar Comprovante de Pagamento"
                             >
                               <Download className="h-3.5 w-3.5" />
@@ -457,7 +461,7 @@ export function AdminTaxesPage() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center text-center p-12 border border-dashed border-[hsl(var(--border))] rounded-2xl bg-[hsl(var(--card))]/50">
+        <div className="flex flex-col items-center justify-center text-center p-12 border border-dashed border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--card))]/50">
           <Building2 className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3 animate-bounce" />
           <h3 className="font-heading font-semibold text-[hsl(var(--foreground))]">Nenhuma empresa selecionada</h3>
           <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1 max-w-md">
@@ -469,7 +473,7 @@ export function AdminTaxesPage() {
       {/* Modal de Publicação de Nova Guia */}
       {isOpenModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-lg rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-4 mb-4">
               <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))]">Publicar Guia Tributária</h3>
               <button

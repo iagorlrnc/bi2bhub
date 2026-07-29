@@ -84,9 +84,9 @@ export function TaxesPage() {
     }
   }
 
-  const fetchTaxes = async () => {
+  const fetchTaxes = async (silent = false) => {
     if (!company?.id) return
-    setIsLoading(true)
+    if (!silent) setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('documentos')
@@ -103,9 +103,9 @@ export function TaxesPage() {
       if (import.meta.env.DEV) {
         console.error('Erro ao buscar guias de impostos:', err)
       }
-      toast.error('Erro ao carregar guias de impostos.')
+      if (!silent) toast.error('Erro ao carregar guias de impostos.')
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }
 
@@ -113,6 +113,9 @@ export function TaxesPage() {
     if (company?.id) {
       fetchTaxes()
     }
+    const handleRefresh = () => fetchTaxes(true)
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
   }, [company?.id])
 
   const handleDownloadFile = async (filePath: string) => {
@@ -330,7 +333,7 @@ export function TaxesPage() {
                     <td className="py-3.5 px-4 text-center">
                       <button
                         onClick={() => handleDownloadFile(tax.file_path)}
-                        className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-xs font-bold text-brand-600 dark:text-brand-400 transition-colors"
+                        className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-xs font-bold text-brand-600 dark:text-brand-400 transition-colors cursor-pointer"
                         title="Baixar PDF da Guia"
                       >
                         <Download className="h-3.5 w-3.5" />
@@ -347,7 +350,7 @@ export function TaxesPage() {
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => handleDownloadFile(tax.receiptPath!)}
-                            className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors"
+                            className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer"
                             title="Ver ou baixar recibo anexado"
                           >
                             <CheckCircle2 className="h-3.5 w-3.5" />
@@ -372,7 +375,7 @@ export function TaxesPage() {
                           </label>
                         </div>
                       ) : (
-                        <label className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg border border-dashed border-slate-300 hover:border-brand-500 hover:text-brand-500 text-xs font-bold text-[hsl(var(--muted-foreground))] cursor-pointer transition-colors">
+                        <label className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg border border-dashed border-slate-300 hover:border-brand-500 hover:text-brand-500 bg-[hsl(var(--card))] text-xs font-bold text-[hsl(var(--muted-foreground))] cursor-pointer transition-all shadow-xs hover:shadow-sm hover:bg-brand-50/50 dark:hover:bg-brand-950/10">
                           <Upload className="h-3.5 w-3.5" />
                           Anexar Comprovante
                           <input
@@ -395,7 +398,7 @@ export function TaxesPage() {
             </table>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-[hsl(var(--border))] rounded-2xl bg-[hsl(var(--card))]/50">
+          <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--card))]/50">
             <Building2 className="h-10 w-10 text-[hsl(var(--muted-foreground))] mb-2" />
             <h4 className="font-heading font-semibold text-[hsl(var(--foreground))]">Nenhum imposto encontrado</h4>
             <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 max-w-sm">

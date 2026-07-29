@@ -124,8 +124,8 @@ export function UsersPage() {
     }
   }
 
-  const fetchUsers = async () => {
-    setIsLoading(true)
+  const fetchUsers = async (silent = false) => {
+    if (!silent) setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('usuarios')
@@ -134,10 +134,10 @@ export function UsersPage() {
       if (error) throw error
       setUsers(data || [])
     } catch (err) {
-      console.error(err)
-      toast.error('Erro ao buscar usuários globais.')
+      if (import.meta.env.DEV) console.error('Erro ao buscar usuários:', err)
+      if (!silent) toast.error('Erro ao buscar usuários do banco.')
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }
 
@@ -145,7 +145,8 @@ export function UsersPage() {
     try {
       const { data, error } = await supabase
         .from('empresas')
-        .select('id, name, codigo_exclusivo, is_active')
+        .select('id, name, codigo_exclusivo')
+        .eq('is_active', true)
         .order('name', { ascending: true })
       if (error) throw error
       setCompanies(data || [])
@@ -157,6 +158,10 @@ export function UsersPage() {
   useEffect(() => {
     fetchUsers()
     fetchCompanies()
+
+    const handleRefresh = () => fetchUsers(true)
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
   }, [])
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
@@ -394,9 +399,9 @@ export function UsersPage() {
           className={cn(
             'flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-md relative shrink-0',
             filterType === 'pending'
-              ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-amber-500/25 ring-2 ring-amber-500/30'
+              ? 'bg-blue-900 hover:bg-blue-950 text-white shadow-blue-900/30 ring-2 ring-blue-500/40'
               : pendingCount > 0
-              ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/25 hover:scale-105'
+              ? 'bg-blue-900 hover:bg-blue-950 text-white shadow-blue-900/25 hover:scale-105'
               : 'border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]'
           )}
         >
@@ -405,41 +410,14 @@ export function UsersPage() {
           {pendingCount > 0 && (
             <span className="relative flex items-center justify-center ml-1">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-              <span className="relative rounded-full bg-white text-amber-600 text-[11px] font-extrabold px-2 py-0.5 shadow-xs">
+              <span className="relative rounded-full bg-white text-blue-900 text-[11px] font-extrabold px-2 py-0.5 shadow-xs">
                 {pendingCount}
               </span>
             </span>
           )}
         </button>
       </div>
-      {/* Alerta de Solicitações Pendentes para o Administrador */}
-      {pendingCount > 0 && filterType !== 'pending' && (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent p-4.5 animate-fade-in shadow-md shadow-amber-500/5 ring-1 ring-amber-500/20">
-          <div className="flex items-center gap-3.5">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-md shadow-amber-500/30 shrink-0">
-              <UserPlus className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-400"></span>
-              </span>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-[hsl(var(--foreground))]">
-                {pendingCount} {pendingCount === 1 ? 'solicitação de acesso aguardando' : 'solicitações de acesso aguardando'} aprovação
-              </p>
-              <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                Usuários se cadastraram informando o ID da empresa e aguardam autorização do administrador.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setFilterType('pending')}
-            className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 px-4 py-2 text-xs font-bold text-white transition-all shrink-0 shadow-md shadow-amber-500/25 hover:scale-105"
-          >
-            Ver Solicitações ({pendingCount})
-          </button>
-        </div>
-      )}
+
 
       {/* Filtros */}
       <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 flex flex-col gap-3 md:flex-row md:items-center">
@@ -649,7 +627,7 @@ export function UsersPage() {
       {/* Modal de Edição de Usuário / Vinculação */}
       {isOpenEditModal && editingUser && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl w-full max-w-md shadow-none p-6 relative">
             <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))] mb-4 border-b border-[hsl(var(--border))] pb-2">
               Editar Usuário / Vincular Empresa
             </h3>
@@ -734,7 +712,7 @@ export function UsersPage() {
       {/* Modal de Redefinição de Senha */}
       {isOpenResetModal && resetUser && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl w-full max-w-md shadow-2xl p-6 relative">
             <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))] mb-4 border-b border-[hsl(var(--border))] pb-2 flex items-center gap-2">
               <Key className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               Resetar Senha de {resetUser.full_name}

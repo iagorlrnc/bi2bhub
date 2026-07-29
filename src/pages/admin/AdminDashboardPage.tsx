@@ -23,8 +23,8 @@ export function AdminDashboardPage() {
   const [recentTickets, setRecentTickets] = useState<any[]>([])
   const [growthData, setGrowthData] = useState<any[]>([])
 
-  const fetchAdminData = async () => {
-    setIsLoading(true)
+  const fetchAdminData = async (silent = false) => {
+    if (!silent) setIsLoading(true)
     try {
       // 1. Total de Clientes (Companies)
       const { count: cCount } = await supabase
@@ -115,16 +115,19 @@ export function AdminDashboardPage() {
     } catch (err) {
       console.error('Erro ao buscar dados administrativos:', err)
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }
 
   useEffect(() => {
     fetchAdminData()
+    const handleRefresh = () => fetchAdminData(true)
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
   }, [])
 
   const adminStats = [
-    { label: 'Total de Clientes', value: String(stats.companiesCount), icon: Building2, color: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30' },
+    { label: 'Total de Empresas', value: String(stats.companiesCount), icon: Building2, color: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30' },
     { label: 'Usuários Cadastrados', value: String(stats.usersCount), icon: Users, color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' },
     { label: 'Chamados Pendentes', value: String(stats.pendingTicketsCount), icon: MessageSquare, color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30' },
     { label: 'Documentos Armazenados', value: String(stats.documentsCount), icon: ScrollText, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30' },

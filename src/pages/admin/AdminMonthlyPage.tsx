@@ -114,9 +114,9 @@ export function AdminMonthlyPage() {
     fetchCompanies()
   }, [])
 
-  const fetchMonthlyDocuments = async () => {
+  const fetchMonthlyDocuments = async (silent = false) => {
     if (!selectedCompanyId) return
-    setLoadingMonthly(true)
+    if (!silent) setLoadingMonthly(true)
     try {
       const { data, error } = await supabase
         .from('documentos')
@@ -136,18 +136,18 @@ export function AdminMonthlyPage() {
       setMonthlyDocs(docsBySlug)
     } catch (err) {
       console.error('Erro ao buscar documentos mensais:', err)
-      toast.error('Erro ao carregar status dos documentos mensais.')
+      if (!silent) toast.error('Erro ao carregar status dos documentos mensais.')
     } finally {
-      setLoadingMonthly(false)
+      if (!silent) setLoadingMonthly(false)
     }
   }
 
   useEffect(() => {
-    if (selectedCompanyId) {
-      fetchMonthlyDocuments()
-    } else {
-      setMonthlyDocs({})
-    }
+    fetchMonthlyDocuments()
+
+    const handleRefresh = () => fetchMonthlyDocuments(true)
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
   }, [selectedCompanyId, selectedMonth])
 
   const handleUploadMonthlyDoc = async (slug: string, label: string, category: string, file: File) => {
@@ -458,7 +458,7 @@ export function AdminMonthlyPage() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center text-center p-12 border border-dashed border-[hsl(var(--border))] rounded-2xl bg-[hsl(var(--card))]/50">
+        <div className="flex flex-col items-center justify-center text-center p-12 border border-dashed border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--card))]/50">
           <Building2 className="h-12 w-12 text-[hsl(var(--muted-foreground))] mb-3 animate-bounce" />
           <h3 className="font-heading font-semibold text-[hsl(var(--foreground))]">
             Nenhuma empresa selecionada

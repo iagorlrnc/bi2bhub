@@ -21,8 +21,8 @@ export function StaffPage() {
   const [role, setRole] = useState('')
   const [department, setDepartment] = useState('Fiscal')
 
-  const fetchStaff = async () => {
-    setIsLoading(true)
+  const fetchStaff = async (silent = false) => {
+    if (!silent) setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('usuarios')
@@ -35,14 +35,18 @@ export function StaffPage() {
       if (import.meta.env.DEV) {
         console.error('Erro ao carregar contadores:', err)
       }
-      toast.error('Erro ao carregar lista de contadores.')
+      if (!silent) toast.error('Erro ao carregar lista de contadores.')
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }
 
   useEffect(() => {
     fetchStaff()
+
+    const handleRefresh = () => fetchStaff(true)
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
   }, [])
 
   // Obter cargo/departamento das colunas nativas de profiles, com fallback para o JSON antigo
@@ -293,7 +297,7 @@ export function StaffPage() {
       {/* Modal para Operações CRUD */}
       {isOpenModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl w-full max-w-lg shadow-2xl p-6 relative">
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl w-full max-w-lg shadow-2xl p-6 relative">
             <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))] mb-4 border-b border-[hsl(var(--border))] pb-2">
               {editingId ? 'Editar Contador' : 'Adicionar Novo Contador'}
             </h3>

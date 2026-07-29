@@ -28,9 +28,9 @@ export function TeamPage() {
   const currentTotal = activeMembers.length + invites.length
   const canManageAccess = isClientMaster || isAdmin
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (silent = false) => {
     if (!company?.id) return
-    setIsLoading(true)
+    if (!silent) setIsLoading(true)
     try {
       // 1. Tentar buscar via RPC SECURITY DEFINER para garantir acesso total aos perfis pelo Master
       const { data: rpcData, error: rpcError } = await (supabase as any).rpc('master_obter_membros_equipe', {
@@ -82,7 +82,7 @@ export function TeamPage() {
           expires: new Date(inv.expires_at).toLocaleDateString('pt-BR')
         })))
 
-        setIsLoading(false)
+        if (!silent) setIsLoading(false)
         return
       }
 
@@ -195,9 +195,9 @@ export function TeamPage() {
       if (import.meta.env.DEV) {
         console.error('Erro ao buscar dados da equipe:', err)
       }
-      toast.error('Erro ao carregar dados da equipe.')
+      if (!silent) toast.error('Erro ao carregar dados da equipe.')
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }, [company?.id])
 
@@ -208,6 +208,10 @@ export function TeamPage() {
       return
     }
     fetchData()
+
+    const handleRefresh = () => fetchData(true)
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
   }, [company?.id, authLoading, fetchData])
 
   const handleCopyCompanyId = () => {
@@ -553,34 +557,7 @@ export function TeamPage() {
         </p>
       </div>
 
-      {/* Alerta de Solicitações Pendentes */}
-      {pendingRequests.length > 0 && activeTab !== 'requests' && (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent p-4.5 animate-fade-in shadow-md shadow-amber-500/5 ring-1 ring-amber-500/20">
-          <div className="flex items-center gap-3.5">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-md shadow-amber-500/30 shrink-0">
-              <UserPlus className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-400"></span>
-              </span>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-[hsl(var(--foreground))]">
-                {pendingRequests.length} {pendingRequests.length === 1 ? 'solicitação de acesso aguardando' : 'solicitações de acesso aguardando'} aprovação
-              </p>
-              <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                Usuários se cadastraram informando o ID da sua empresa e aguardam autorização.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setActiveTab('requests')}
-            className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 px-4 py-2 text-xs font-bold text-white transition-all shrink-0 shadow-md shadow-amber-500/25 hover:scale-105"
-          >
-            Ver Solicitações ({pendingRequests.length})
-          </button>
-        </div>
-      )}
+
 
       {/* Seção Principal de Abas: Membros vs Solicitações */}
       <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 space-y-4">
@@ -835,7 +812,7 @@ export function TeamPage() {
       {/* Invite Modal */}
       {isOpenModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl w-full max-w-lg shadow-2xl p-6 relative">
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl w-full max-w-lg p-6 relative shadow-none">
             <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))] mb-4 border-b border-[hsl(var(--border))] pb-2">
               Convidar Novo Usuário
             </h3>
@@ -848,7 +825,7 @@ export function TeamPage() {
                   placeholder="usuario@empresa.com.br"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
+                  className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none focus:border-brand-500 shadow-none"
                 />
               </div>
 
@@ -857,7 +834,7 @@ export function TeamPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as any)}
-                  className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none"
+                  className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none shadow-none"
                 >
                   <option value="usuario_comum">Colaborador (Apenas módulos liberados)</option>
                   <option value="usuario_master" disabled>Gestor (Limite de 1 por empresa atingido)</option>
@@ -880,7 +857,7 @@ export function TeamPage() {
                         key={perm.id}
                         onClick={() => togglePermission(perm.id)}
                         className={cn(
-                          'flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium text-left transition-all',
+                          'flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium text-left transition-all shadow-none',
                           selectedPermissions.includes(perm.id)
                             ? 'border-brand-500 bg-brand-50/50 text-[hsl(var(--foreground))] dark:bg-brand-950/20'
                             : 'border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]'
@@ -898,13 +875,13 @@ export function TeamPage() {
                 <button
                   type="button"
                   onClick={() => setIsOpenModal(false)}
-                  className="rounded-lg border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))]"
+                  className="rounded-lg border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] shadow-none"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/20"
+                  className="rounded-lg gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-none"
                 >
                   Enviar Convite
                 </button>
@@ -917,7 +894,7 @@ export function TeamPage() {
       {/* Modal de Edição de Permissões */}
       {isOpenEditModal && editingMember && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl w-full max-w-lg shadow-2xl p-6 relative">
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl w-full max-w-lg p-6 relative shadow-none">
             <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))] mb-4 border-b border-[hsl(var(--border))] pb-2">
               Editar Permissões de Acesso
             </h3>
@@ -928,7 +905,7 @@ export function TeamPage() {
                   type="text"
                   disabled
                   value={editingMember.name || ''}
-                  className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--muted))] px-3 py-2 text-sm text-[hsl(var(--muted-foreground))] cursor-not-allowed"
+                  className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--muted))] px-3 py-2 text-sm text-[hsl(var(--muted-foreground))] cursor-not-allowed shadow-none"
                 />
               </div>
 
@@ -938,7 +915,7 @@ export function TeamPage() {
                   type="email"
                   disabled
                   value={editingMember.email || ''}
-                  className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--muted))] px-3 py-2 text-sm text-[hsl(var(--muted-foreground))] cursor-not-allowed"
+                  className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--muted))] px-3 py-2 text-sm text-[hsl(var(--muted-foreground))] cursor-not-allowed shadow-none"
                 />
               </div>
 
@@ -957,7 +934,7 @@ export function TeamPage() {
                       key={perm.id}
                       onClick={() => toggleEditPermission(perm.id)}
                       className={cn(
-                        'flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium text-left transition-all',
+                        'flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium text-left transition-all shadow-none',
                         editPermissions.includes(perm.id)
                           ? 'border-brand-500 bg-brand-50/50 text-[hsl(var(--foreground))] dark:bg-brand-950/20'
                           : 'border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]'
@@ -974,14 +951,14 @@ export function TeamPage() {
                 <button
                   type="button"
                   onClick={() => setIsOpenEditModal(false)}
-                  className="rounded-lg border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))]"
+                  className="rounded-lg border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] shadow-none"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="rounded-lg gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/20 disabled:opacity-50 flex items-center gap-1.5"
+                  className="rounded-lg gradient-brand px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 flex items-center gap-1.5 shadow-none"
                 >
                   {isSaving ? 'Salvando...' : 'Salvar Alterações'}
                 </button>

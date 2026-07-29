@@ -35,8 +35,8 @@ export function AdminTicketsPage() {
   const [pageSize, setPageSize] = useState(20)
 
   // 1. Carregar Dados Iniciais (Chamados, Staff Real, Empresas)
-  const fetchTickets = async () => {
-    setIsLoading(true)
+  const fetchTickets = async (silent = false) => {
+    if (!silent) setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('chamados')
@@ -47,9 +47,9 @@ export function AdminTicketsPage() {
       setTickets(data || [])
     } catch (err) {
       console.error('Erro ao buscar chamados:', err)
-      toast.error('Erro ao carregar lista de chamados.', { id: 'fetch-tickets-error' })
+      if (!silent) toast.error('Erro ao carregar lista de chamados.', { id: 'fetch-tickets-error' })
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }
 
@@ -97,15 +97,20 @@ export function AdminTicketsPage() {
     fetchTickets()
     fetchAuxiliaryData()
 
+    // Evento de Refresh Global
+    const handleRefresh = () => fetchTickets(true)
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+
     // Supabase Realtime
     const channel = supabase
       .channel('admin_tickets_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chamados' }, () => {
-        fetchTickets()
+        fetchTickets(true)
       })
       .subscribe()
 
     return () => {
+      window.removeEventListener('bi2b:refresh-data', handleRefresh)
       supabase.removeChannel(channel)
     }
   }, [])
@@ -241,7 +246,7 @@ export function AdminTicketsPage() {
   return (
     <div className="space-y-5">
       {/* 1. Cabeçalho Superior da Página */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-2xl shadow-2xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-2xs">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-heading font-extrabold text-2xl text-[hsl(var(--foreground))] tracking-tight">
@@ -305,7 +310,7 @@ export function AdminTicketsPage() {
       />
 
       {/* 4. Lista de Chamados (Tabela Moderna no Desktop e Cartões no Mobile) */}
-      <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl shadow-2xs overflow-hidden">
+      <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl shadow-2xs overflow-hidden">
         {isLoading ? (
           /* Skeleton Loading State */
           <div className="p-8 space-y-4">

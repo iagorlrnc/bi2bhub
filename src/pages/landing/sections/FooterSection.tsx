@@ -36,7 +36,7 @@ export function FooterSection({ isDark }: FooterSectionProps) {
               <img src={currentLogo} alt={APP_NAME} className="h-9 w-auto object-contain" />
             </div>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              Bi2B Consultoria — Plataforma SaaS de gestão fiscal e contábil conectando empresas e contabilidade em tempo real com máxima segurança e automação.
+              Bi2B Consultoria — Soluções completas em consultoria, dados e gestão contábil para transformar informação em decisão e dar mais clareza ao crescimento do seu negócio.
             </p>
             
             {/* Social Media Links */}
