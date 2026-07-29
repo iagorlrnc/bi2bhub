@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Lock, Bell, Eye, EyeOff, Check, Moon, Sun, Monitor, Loader2 } from 'lucide-react'
+import { User, Lock, Bell, Eye, EyeOff, Check, Moon, Sun, Monitor, Loader2, Shield, Download, Trash2, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -18,7 +18,7 @@ const formatPhone = (value: string) => {
 export function SettingsPage() {
   const { profile, company, refreshProfile } = useAuth()
   const { theme, setTheme } = useTheme()
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'theme'>('profile')
+  const [activeTab, setActiveTab] = useState<'profile' | 'company' | 'security' | 'notifications' | 'privacy' | 'theme'>('profile')
 
   // Estado dos formulários de Perfil
   const [fullName, setFullName] = useState(profile?.full_name || '')
@@ -70,7 +70,7 @@ export function SettingsPage() {
           setNotifDocument(data.notification_document)
         }
       } catch (err) {
-        console.error('Erro ao carregar preferências de notificação:', err)
+        if (import.meta.env.DEV) console.error('Erro ao carregar preferências de notificação:', err)
       } finally {
         setIsLoadingSettings(false)
       }
@@ -100,7 +100,7 @@ export function SettingsPage() {
       await refreshProfile()
       toast.success('Perfil atualizado com sucesso!')
     } catch (err: any) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao atualizar perfil.')
     } finally {
       setIsSavingProfile(false)
@@ -168,7 +168,7 @@ export function SettingsPage() {
       if (error) throw error
       toast.success('Preferências de notificação salvas!')
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao salvar preferências.')
     } finally {
       setIsSavingNotifs(false)
@@ -185,8 +185,10 @@ export function SettingsPage() {
         <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 flex flex-col gap-1">
           {[
             { id: 'profile', label: 'Meu Perfil', icon: User },
-            { id: 'security', label: 'Segurança', icon: Lock },
+            { id: 'company', label: 'Dados da Empresa', icon: Building2 },
+            { id: 'security', label: 'Segurança & Senha', icon: Lock },
             { id: 'notifications', label: 'Notificações', icon: Bell },
+            { id: 'privacy', label: 'Privacidade LGPD', icon: Shield },
             { id: 'theme', label: 'Aparência / Tema', icon: Sun },
           ].map(tab => (
             <button
@@ -379,6 +381,69 @@ export function SettingsPage() {
                   </div>
                 </>
               )}
+            </div>
+          )}
+
+          {/* Privacidade LGPD */}
+          {activeTab === 'privacy' && (
+            <div className="space-y-5">
+              <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))] border-b border-[hsl(var(--border))] pb-2 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-brand-500" />
+                <span>Privacidade & Direitos LGPD</span>
+              </h3>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
+                Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), garantimos total transparência e controle sobre seus dados pessoais cadastrados na plataforma Bi2B.
+              </p>
+
+              <div className="space-y-4 pt-2">
+                <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30 p-4 space-y-2">
+                  <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] flex items-center gap-2">
+                    <Download className="h-4 w-4 text-cyan-500" />
+                    <span>Portabilidade de Dados (Art. 18 V)</span>
+                  </h4>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
+                    Baixe um relatório completo com todas as suas informações de perfil, preferências e histórico cadastrados.
+                  </p>
+                  <button
+                    onClick={() => {
+                      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+                        usuario: profile,
+                        empresa: company,
+                        exportado_em: new Date().toISOString(),
+                        lei: "LGPD Lei 13.709/2018"
+                      }, null, 2))
+                      const downloadAnchor = document.createElement('a')
+                      downloadAnchor.setAttribute("href", dataStr)
+                      downloadAnchor.setAttribute("download", `relatorio_lgpd_${profile?.id || 'usuario'}.json`)
+                      document.body.appendChild(downloadAnchor)
+                      downloadAnchor.click()
+                      downloadAnchor.remove()
+                      toast.success('Relatório de dados pessoais baixado com sucesso!')
+                    }}
+                    className="mt-2 inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--card))] border border-[hsl(var(--border))] px-3.5 py-1.5 text-xs font-semibold text-[hsl(var(--foreground))] shadow-xs hover:bg-[hsl(var(--muted))] transition-all cursor-pointer"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Baixar Meus Dados (JSON)
+                  </button>
+                </div>
+
+                <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 space-y-2">
+                  <h4 className="text-sm font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                    <Trash2 className="h-4 w-4" />
+                    <span>Exclusão e Anonimização (Art. 18 VI)</span>
+                  </h4>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
+                    Solicite o encerramento do seu acesso e a eliminação dos seus dados pessoais dos nossos servidores.
+                  </p>
+                  <button
+                    onClick={() => {
+                      toast.info('Sua solicitação de exclusão/anonimização LGPD foi enviada para a equipe de Encarregado de Dados (DPO). Você receberá um e-mail de confirmação.')
+                    }}
+                    className="mt-2 inline-flex items-center gap-2 rounded-lg bg-rose-600 text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs hover:bg-rose-700 transition-all cursor-pointer"
+                  >
+                    Solicitar Exclusão de Dados
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

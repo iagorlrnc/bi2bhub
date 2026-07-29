@@ -15,7 +15,6 @@ interface AuthContextValue {
   isAuthenticated: boolean
   userType: UserType | null
   isAdmin: boolean
-  isStaff: boolean
   isClientMaster: boolean
   isClientUser: boolean
   signIn: (email: string, password: string) => Promise<void>
@@ -105,96 +104,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [user?.id, fetchProfile])
 
-  // Perfis MOCK para contas de teste
-  const setMockSession = (email: string, isRestoration = false) => {
-    const isMockAdmin = email.toLowerCase() === 'admin@bi2b.com.br'
-    const mockUser = {
-      id: isMockAdmin ? '90000000-0000-0000-0000-000000000001' : '90000000-0000-0000-0000-000000000101',
-      email,
-      aud: 'authenticated',
-      role: 'authenticated',
-      app_metadata: {},
-      user_metadata: {},
-      created_at: new Date().toISOString()
-    } as User
 
-    const mockProfile = isMockAdmin ? {
-      id: '90000000-0000-0000-0000-000000000001',
-      email: 'admin@bi2b.com.br',
-      full_name: 'Administrador Bi2B',
-      user_type: 'admin',
-      is_active: true
-    } : {
-      id: '90000000-0000-0000-0000-000000000101',
-      email: 'cliente@bi2b.com.br',
-      full_name: 'Cliente Bi2B (Demonstração)',
-      user_type: 'client_master',
-      is_active: true
-    }
-
-    const mockCompanyUser = !isMockAdmin ? {
-      id: '90000000-0000-0000-0000-000000000101',
-      company_id: '91111111-1111-1111-1111-111111111111',
-      user_id: '90000000-0000-0000-0000-000000000101',
-      role: 'client_master',
-      permissions: ['strategic', 'monitoring', 'drive', 'tickets', 'team', 'settings'],
-      is_active: true
-    } : null
-
-    const mockCompany = !isMockAdmin ? {
-      id: '91111111-1111-1111-1111-111111111111',
-      name: 'Empresa Teste Bi2B S.A.',
-      trade_name: 'Cliente Bi2B',
-      cnpj: '12.345.678/0001-90',
-      email: 'cliente@bi2b.com.br',
-      plan: 'enterprise' as const,
-      max_users: 50,
-      is_active: true,
-      codigo_exclusivo: 'BI2B-TESTE'
-    } : null
-
-    const mockSessionObj = {
-      access_token: 'mock-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      refresh_token: 'mock-refresh',
-      user: mockUser
-    } as Session
-
-    localStorage.setItem('bi2b_mock_session', JSON.stringify({ email, mockProfile, mockCompanyUser, mockCompany }))
-    setSession(mockSessionObj)
-    setUser(mockUser)
-    setProfile(mockProfile)
-    setCompanyUser(mockCompanyUser)
-    setCompany(mockCompany as any)
-    setIsLoading(false)
-
-    if (!isRestoration) {
-      logAuditActivity({
-        userId: mockUser.id,
-        action: 'LOGIN_SUCESSO',
-        entityType: 'auth',
-        metadata: { email, user_type: isMockAdmin ? 'admin' : 'client_master' }
-      })
-    }
-  }
 
   useEffect(() => {
     let isMounted = true
 
-    // Checar mock session no carregamento inicial
-    const storedMock = localStorage.getItem('bi2b_mock_session')
-    if (storedMock) {
-      try {
-        const parsed = JSON.parse(storedMock)
-        setMockSession(parsed.email, true)
-        return
-      } catch (e) {
-        localStorage.removeItem('bi2b_mock_session')
-      }
-    }
-
-    // Obter sessão inicial
+    // Obter sessão inicial do Supabase Auth
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       if (!isMounted) return
       setSession(currentSession)
@@ -212,7 +127,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (!isMounted) return
 
         if (event === 'SIGNED_OUT') {
-          localStorage.removeItem('bi2b_mock_session')
           setSession(null)
           setUser(null)
           setProfile(null)
@@ -228,7 +142,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(currentSession.user)
           const isNewUser = lastFetchedUserId.current !== currentSession.user.id
           await fetchProfile(currentSession.user.id, isNewUser)
-        } else if (!localStorage.getItem('bi2b_mock_session')) {
+        } else {
           setSession(null)
           setUser(null)
           setProfile(null)
@@ -252,14 +166,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
     
     if (error) {
-      // Fallback para contas de teste reservadas caso o Supabase Auth ainda não possua o usuário criado
-      if (
-        (cleanEmail === 'admin@bi2b.com.br' || cleanEmail === 'cliente@bi2b.com.br' || cleanEmail === 'colaborador@bi2b.com.br') &&
-        password === '123456'
-      ) {
-        setMockSession(cleanEmail)
-        return
-      }
       throw error
     }
 
@@ -312,11 +218,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
     }
 
-    localStorage.removeItem('bi2b_mock_session')
     try {
       await supabase.auth.signOut({ scope: 'global' })
     } catch (e) {
-      // Ignore if session was mock
+      if (import.meta.env.DEV) console.error('Erro no signOut:', e)
     }
     setSession(null)
     setUser(null)
@@ -337,7 +242,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated: !!session,
     userType,
     isAdmin: userType === 'admin',
-    isStaff: userType === 'staff',
     isClientMaster: userType === 'client_master',
     isClientUser: userType === 'client_user',
     signIn,
@@ -362,7 +266,6 @@ const defaultAuthContext: AuthContextValue = {
   isAuthenticated: false,
   userType: null,
   isAdmin: false,
-  isStaff: false,
   isClientMaster: false,
   isClientUser: false,
   signIn: async () => {},

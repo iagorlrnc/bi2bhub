@@ -151,7 +151,7 @@ export function AdminNotificationsPage() {
       // 3. Fetch notifications history
       await fetchHistory()
     } catch (err: any) {
-      console.error('Erro ao carregar dados:', err)
+      if (import.meta.env.DEV) console.error('Erro ao carregar dados:', err)
       toast.error(err?.message ? `Erro ao carregar dados: ${err.message}` : 'Erro ao carregar dados do formulário.')
     } finally {
       setIsLoading(false)
@@ -303,7 +303,7 @@ export function AdminNotificationsPage() {
       // Refresh history
       fetchHistory()
     } catch (err: any) {
-      console.error('Erro ao enviar notificação:', err)
+      if (import.meta.env.DEV) console.error('Erro ao enviar notificação:', err)
       toast.error(err?.message ? `Erro ao enviar: ${err.message}` : 'Erro ao enviar notificação.')
     } finally {
       setIsSubmitting(false)
@@ -321,7 +321,7 @@ export function AdminNotificationsPage() {
       toast.success('Notificação excluída do histórico.')
       setHistory(prev => prev.filter(item => item.id !== id))
     } catch (err: any) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error(err?.message ? `Erro ao excluir: ${err.message}` : 'Erro ao excluir notificação.')
     } finally {
       setIsDeletingId(null)

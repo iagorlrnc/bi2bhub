@@ -50,7 +50,7 @@ export function AuditPage() {
 
       if (showToast) toast.success('Logs de auditoria atualizados!')
     } catch (err: any) {
-      console.error('Erro ao buscar logs de auditoria:', err)
+      if (import.meta.env.DEV) console.error('Erro ao buscar logs de auditoria:', err)
       if (showToast) toast.error('Erro ao carregar logs de auditoria do banco.')
     } finally {
       setIsLoading(false)
@@ -497,7 +497,7 @@ export function AuditPage() {
                             {log.entity_type || 'geral'}
                           </span>
                           <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 truncate max-w-[140px]">
-                            {log.metadata?.origin || (log.profile?.user_type === 'admin' || log.profile?.user_type === 'staff' ? 'Painel Admin' : 'Painel do Cliente')}
+                            {log.metadata?.origin || (log.profile?.user_type === 'admin' ? 'Painel Admin' : 'Painel do Cliente')}
                           </span>
                         </div>
                       </td>
@@ -659,7 +659,7 @@ export function AuditPage() {
                   {selectedLog.action} <span className="text-[hsl(var(--muted-foreground))] font-normal">({selectedLog.entity_type})</span>
                 </p>
                 <p className="text-[11px] font-bold text-brand-600 dark:text-brand-400 mt-0.5">
-                  Origem: {selectedLog.metadata?.origin || (selectedLog.profile?.user_type === 'admin' || selectedLog.profile?.user_type === 'staff' ? 'Painel Admin' : 'Painel do Cliente')}
+                  Origem: {selectedLog.metadata?.origin || (selectedLog.profile?.user_type === 'admin' ? 'Painel Admin' : 'Painel do Cliente')}
                 </p>
               </div>
 

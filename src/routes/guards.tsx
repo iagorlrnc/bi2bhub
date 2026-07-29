@@ -24,7 +24,7 @@ function InactiveAccountScreen() {
     try {
       await signOut()
     } catch (e) {
-      console.error(e)
+      if (import.meta.env.DEV) console.error(e)
     }
     window.location.href = ROUTES.LOGIN
   }
@@ -109,12 +109,12 @@ interface PermissionGuardProps {
 }
 
 export function PermissionGuard({ children, module, fallback }: PermissionGuardProps) {
-  const { isAdmin, isStaff, isClientMaster, companyUser, isLoading } = useAuth()
+  const { isAdmin, isClientMaster, companyUser, isLoading } = useAuth()
 
   if (isLoading) return <LoadingScreen />
 
-  // Administradores e equipe têm todas as permissões
-  if (isAdmin || isStaff) return <>{children}</>
+  // Apenas administradores têm todas as permissões
+  if (isAdmin) return <>{children}</>
 
   // O módulo de Equipe é exclusivo para o Gestor (isClientMaster)
   if (module === 'team') {
@@ -153,12 +153,12 @@ interface GuestGuardProps {
 }
 
 export function GuestGuard({ children }: GuestGuardProps) {
-  const { isAuthenticated, isLoading, isAdmin, isStaff, profile } = useAuth()
+  const { isAuthenticated, isLoading, isAdmin, profile } = useAuth()
 
   if (isLoading) return <LoadingScreen />
 
   if (isAuthenticated && profile && profile.is_active) {
-    if (isAdmin || isStaff) {
+    if (isAdmin) {
       return <Navigate to={ROUTES.ADMIN_DASHBOARD} replace />
     }
     return <Navigate to={ROUTES.TAXES} replace />

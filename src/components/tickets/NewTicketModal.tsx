@@ -123,7 +123,7 @@ export function NewTicketModal({
       setCategory('fiscal')
       setPriority('media')
     } catch (err) {
-      console.error('Erro ao criar chamado:', err)
+      if (import.meta.env.DEV) console.error('Erro ao criar chamado:', err)
       toast.error('Erro ao abrir chamado. Tente novamente.')
     } finally {
       setIsSubmitting(false)

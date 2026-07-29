@@ -46,7 +46,7 @@ export function AdminTicketsPage() {
       if (error) throw error
       setTickets(data || [])
     } catch (err) {
-      console.error('Erro ao buscar chamados:', err)
+      if (import.meta.env.DEV) console.error('Erro ao buscar chamados:', err)
       if (!silent) toast.error('Erro ao carregar lista de chamados.', { id: 'fetch-tickets-error' })
     } finally {
       if (!silent) setIsLoading(false)
@@ -70,12 +70,12 @@ export function AdminTicketsPage() {
         realStaff = staffRes.data.filter(u => {
           if (!u.full_name || u.full_name.trim() === '') return false
           const type = (u.user_type || '').toLowerCase()
-          return type === 'admin' || type === 'staff' || type === 'accountant' || (type !== 'client_user' && type !== 'client_master')
+          return type === 'admin'
         })
       }
 
-      // Se o perfil logado for admin ou staff e não estiver na lista, garante sua presença
-      if (profile && (profile.user_type === 'admin' || profile.user_type === 'staff')) {
+      // Se o perfil logado for admin e não estiver na lista, garante sua presença
+      if (profile && profile.user_type === 'admin') {
         if (!realStaff.some(u => u.id === profile.id || u.email === profile.email)) {
           realStaff.unshift({
             id: profile.id,
@@ -89,7 +89,7 @@ export function AdminTicketsPage() {
       setStaffList(realStaff)
       if (companiesRes.data) setCompaniesList(companiesRes.data)
     } catch (err) {
-      console.error('Erro ao carregar contadores e administradores do banco:', err)
+      if (import.meta.env.DEV) console.error('Erro ao carregar contadores e administradores do banco:', err)
     }
   }
 
@@ -232,7 +232,7 @@ export function AdminTicketsPage() {
       toast.success('Status atualizado!', { id: `status-${ticketId}` })
       fetchTickets()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao atualizar status.', { id: `status-err-${ticketId}` })
     }
   }

@@ -161,7 +161,7 @@ export function TasksPage() {
       toast.success(`Documento "${file.name}" enviado com sucesso!`)
       fetchMonthlyDocuments()
     } catch (err: any) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error(err.message || 'Erro ao fazer upload do documento.')
     } finally {
       setUploadingSlug(null)
@@ -178,7 +178,7 @@ export function TasksPage() {
         window.open(data.signedUrl, '_blank')
       }
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao gerar link de download.')
     }
   }
@@ -201,7 +201,7 @@ export function TasksPage() {
       toast.success('Documento excluído com sucesso!')
       fetchMonthlyDocuments()
     } catch (err: any) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao deletar documento.')
     }
   }

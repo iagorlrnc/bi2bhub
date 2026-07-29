@@ -12,14 +12,14 @@ export function UsersPage() {
   const [users, setUsers] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterType, setFilterType] = useState<'all' | 'admin' | 'staff' | 'client_master' | 'client_user' | 'pending'>('all')
+  const [filterType, setFilterType] = useState<'all' | 'admin' | 'client_master' | 'client_user' | 'pending'>('all')
 
   // Estados para edição/vinculação
   const [companies, setCompanies] = useState<any[]>([])
   const [isOpenEditModal, setIsOpenEditModal] = useState(false)
   const [editingUser, setEditingUser] = useState<any | null>(null)
   const [editFullName, setEditFullName] = useState('')
-  const [editUserType, setEditUserType] = useState<'admin' | 'staff' | 'client_master' | 'client_user'>('client_user')
+  const [editUserType, setEditUserType] = useState<'admin' | 'client_master' | 'client_user'>('client_user')
   const [editCompanyId, setEditCompanyId] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
 
@@ -85,7 +85,7 @@ export function UsersPage() {
         toast.info(`Solicitação de ${userToReject.full_name} recusada.`)
         fetchUsers()
       } catch (err) {
-        console.error(err)
+        if (import.meta.env.DEV) console.error(err)
         toast.error('Erro ao recusar solicitação.')
       }
     }
@@ -151,7 +151,7 @@ export function UsersPage() {
       if (error) throw error
       setCompanies(data || [])
     } catch (err) {
-      console.error('Erro ao buscar empresas:', err)
+      if (import.meta.env.DEV) console.error('Erro ao buscar empresas:', err)
     }
   }
 
@@ -193,7 +193,7 @@ export function UsersPage() {
       toast.success(nextStatus ? 'Status do usuário ativado com sucesso!' : 'Status do usuário desativado com sucesso.')
       fetchUsers()
     } catch (err: any) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error(err.message || 'Erro ao atualizar status do usuário.')
     }
   }
@@ -234,7 +234,7 @@ export function UsersPage() {
       setNewPassword('')
       setConfirmPassword('')
     } catch (err: any) {
-      console.error('Erro ao redefinir senha:', err)
+      if (import.meta.env.DEV) console.error('Erro ao redefinir senha:', err)
       toast.error(err.message || 'Erro ao redefinir a senha do usuário.')
     } finally {
       setIsResetting(false)
@@ -246,7 +246,7 @@ export function UsersPage() {
     setEditFullName(user.full_name || '')
     setEditUserType(user.user_type || 'client_user')
     const companyUserObj = Array.isArray(user.company_users) ? user.company_users[0] : user.company_users
-    const isRemoved = user.status_reason === 'Removido pelo Gestor' || user.status_reason === 'Removido pelo Usuário Master' || (!companyUserObj && user.user_type !== 'admin' && user.user_type !== 'staff')
+    const isRemoved = user.status_reason === 'Removido pelo Gestor' || user.status_reason === 'Removido pelo Usuário Master' || (!companyUserObj && user.user_type !== 'admin')
     const linkedCompanyId = isRemoved
       ? ''
       : (user.company_id || companyUserObj?.company_id || companyUserObj?.company?.id || '')
@@ -341,7 +341,7 @@ export function UsersPage() {
       setIsOpenEditModal(false)
       fetchUsers()
     } catch (err) {
-      console.error('Erro ao atualizar usuário:', err)
+      if (import.meta.env.DEV) console.error('Erro ao atualizar usuário:', err)
       toast.error('Erro ao atualizar dados e vinculação.')
     } finally {
       setIsSaving(false)
@@ -349,7 +349,7 @@ export function UsersPage() {
   }
 
   const isUserPending = (u: any) => {
-    if (u.user_type === 'admin' || u.user_type === 'staff') {
+    if (u.user_type === 'admin') {
       return !u.is_active
     }
     if (u.status_reason) {
@@ -432,7 +432,7 @@ export function UsersPage() {
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          {(['all', 'admin', 'staff', 'client_master', 'client_user'] as const).map(type => (
+          {(['all', 'admin', 'client_master', 'client_user'] as const).map(type => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
@@ -449,8 +449,6 @@ export function UsersPage() {
                 ? 'Gestor'
                 : type === 'client_user'
                 ? 'Colaborador'
-                : type === 'staff'
-                ? 'Contador'
                 : type === 'admin'
                 ? 'Administrador'
                 : type}
@@ -485,7 +483,7 @@ export function UsersPage() {
               ) : filteredUsers.length > 0 ? (
                 filteredUsers.map(user => {
                   const companyUserObj = Array.isArray(user.company_users) ? user.company_users[0] : user.company_users
-                  const isRemoved = user.status_reason === 'Removido pelo Gestor' || user.status_reason === 'Removido pelo Usuário Master' || (!companyUserObj && user.user_type !== 'admin' && user.user_type !== 'staff')
+                  const isRemoved = user.status_reason === 'Removido pelo Gestor' || user.status_reason === 'Removido pelo Usuário Master' || (!companyUserObj && user.user_type !== 'admin')
                   
                   const matchedCompany = isRemoved ? null : companies.find(c => 
                     c.id === user.company_id || 
@@ -495,7 +493,7 @@ export function UsersPage() {
                   )
                   const rawName = isRemoved ? null : (companyUserObj?.company?.name || user.empresa?.name || matchedCompany?.name)
                   const rawCode = isRemoved ? null : (user.codigo_empresa || companyUserObj?.company?.codigo_exclusivo || matchedCompany?.codigo_exclusivo || null)
-                  const companyName = user.user_type === 'admin' || user.user_type === 'staff'
+                  const companyName = user.user_type === 'admin'
                     ? 'Bi2B Consultoria'
                     : rawName
                     ? `${rawName}${rawCode ? ` (ID: ${rawCode})` : ''}`
@@ -513,11 +511,10 @@ export function UsersPage() {
                         <span className={cn(
                           'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase',
                           user.user_type === 'admin' && 'bg-purple-100 text-purple-700 dark:bg-purple-950/30',
-                          user.user_type === 'staff' && 'bg-blue-100 text-blue-700 dark:bg-blue-950/30',
                           user.user_type === 'client_master' && 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20',
                           user.user_type === 'client_user' && 'bg-gray-100 text-gray-700 dark:bg-gray-800'
                         )}>
-                          {user.user_type === 'client_master' ? 'Gestor' : user.user_type === 'client_user' ? 'Colaborador' : user.user_type === 'staff' ? 'Contador' : user.user_type}
+                          {user.user_type === 'client_master' ? 'Gestor' : user.user_type === 'client_user' ? 'Colaborador' : user.user_type === 'admin' ? 'Administrador' : user.user_type}
                         </span>
                       </td>
                       <td className="p-4 text-[hsl(var(--muted-foreground))]">

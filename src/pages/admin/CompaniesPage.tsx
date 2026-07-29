@@ -449,7 +449,7 @@ export function CompaniesPage() {
       setIsOpenModal(false)
       fetchCompanies()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao salvar empresa.')
     }
   }
@@ -472,7 +472,7 @@ export function CompaniesPage() {
       toast.success(`Status da empresa atualizado com sucesso.`)
       fetchCompanies()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao atualizar status.')
     }
   }
@@ -496,7 +496,7 @@ export function CompaniesPage() {
         toast.success(`Empresa ${name} deletada com sucesso.`)
         fetchCompanies()
       } catch (err) {
-        console.error(err)
+        if (import.meta.env.DEV) console.error(err)
         toast.error('Erro ao deletar empresa.')
       }
     }

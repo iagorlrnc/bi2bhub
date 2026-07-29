@@ -115,7 +115,7 @@ export function AdminDrivePage() {
         }
       }
     } catch (err) {
-      console.error('Erro ao processar pasta:', err)
+      if (import.meta.env.DEV) console.error('Erro ao processar pasta:', err)
       toast.error('Erro ao processar pasta.')
     } finally {
       setIsCreatingFolder(false)
@@ -158,7 +158,7 @@ export function AdminDrivePage() {
         toast.success('Pasta excluída com sucesso.')
         fetchData()
       } catch (err) {
-        console.error(err)
+        if (import.meta.env.DEV) console.error(err)
         toast.error('Erro ao excluir pasta.')
       }
     }
@@ -200,7 +200,7 @@ export function AdminDrivePage() {
       setEditingFileId(null)
       fetchData()
     } catch (err) {
-      console.error('Erro ao atualizar documento:', err)
+      if (import.meta.env.DEV) console.error('Erro ao atualizar documento:', err)
       toast.error('Erro ao atualizar documento.')
     } finally {
       setIsSavingFile(false)
@@ -224,7 +224,7 @@ export function AdminDrivePage() {
           setSelectedCompanyId(data[0].id)
         }
       } catch (err) {
-        console.error('Erro ao buscar empresas:', err)
+        if (import.meta.env.DEV) console.error('Erro ao buscar empresas:', err)
         toast.error('Erro ao carregar lista de empresas.')
       } finally {
         setIsLoadingCompanies(false)
@@ -333,7 +333,7 @@ export function AdminDrivePage() {
       toast.success(currentStatus ? 'Removido dos favoritos.' : 'Adicionado aos favoritos.')
       fetchData()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao atualizar favorito.')
     }
   }
@@ -363,7 +363,7 @@ export function AdminDrivePage() {
         toast.success('Documento excluído.')
         fetchData()
       } catch (err) {
-        console.error(err)
+        if (import.meta.env.DEV) console.error(err)
         toast.error('Erro ao excluir documento.')
       }
     }
@@ -382,7 +382,7 @@ export function AdminDrivePage() {
         throw new Error('Url assinada não gerada')
       }
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao baixar arquivo.')
     }
   }
@@ -474,7 +474,7 @@ export function AdminDrivePage() {
           metadata: { file_name: file.name, file_size: file.size, file_path: filePath, category }
         })
       } catch (err: any) {
-        console.error('Erro no upload do arquivo:', err)
+        if (import.meta.env.DEV) console.error('Erro no upload do arquivo:', err)
         toast.error(`Erro ao enviar "${file.name}": ${err.message || JSON.stringify(err)}`)
       }
     }

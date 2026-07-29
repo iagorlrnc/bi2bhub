@@ -157,7 +157,7 @@ html.light *::before,
 html.dark *::after,
 html.light *::after {
   border-color: hsl(var(--border));
-  transition-property: background-color, border-color, color, fill, stroke !important;
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity, transform !important;
   transition-duration: 200ms !important;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
@@ -308,11 +308,12 @@ body {
 }
 
 .transition-default {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  /* Transição de hover não usa shorthand para não conflitar com a transição global do tema */
 }
 
 .hover-lift:hover {
@@ -382,7 +383,7 @@ body {
 
 /* ===== HOVER EFFECT ELEVATE ===== */
 .hover-elevate {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Transição de hover gerenciada pela regra global do tema */
 }
 
 .hover-elevate:hover {
@@ -395,10 +396,7 @@ body {
 }
 
 /* ===== THEME TRANSITION SYNC ===== */
-.theme-transition-sync {
-  transition: background-color 300ms cubic-bezier(0.16, 1, 0.3, 1), 
-              color 300ms cubic-bezier(0.16, 1, 0.3, 1);
-}
+/* Transição do tema agora é gerenciada globalmente em html.dark/html.light */
 
 /* ===== MOBILE & PERFORMANCE OPTIMIZATIONS ===== */
 @media (max-width: 768px) {
@@ -442,7 +440,7 @@ body {
   background: currentColor;
   transform: scaleX(0);
   transform-origin: right;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  /* transform transition gerenciada pela regra global */
 }
 
 .nav-link-hover:hover::after {
@@ -461,7 +459,7 @@ body {
 
 /* ===== INPUT GLOW EFFECTS ===== */
 .input-glow-focus {
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  /* Transição gerenciada pela regra global do tema */
 }
 
 .input-glow-focus:focus {
@@ -476,9 +474,7 @@ body {
 
 /* ===== CARD INNER GLOW AND SHADOWS ===== */
 .card-premium {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Transição gerenciada pela regra global do tema */
 }
 
 .card-premium:hover {
@@ -574,7 +570,6 @@ body {
 :root:not(.dark) div[class*="rounded-2xl"][class*="border"][class*="p-6"],
 :root:not(.dark) div[class*="rounded-2xl"][class*="border"][class*="p-8"] {
   box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.22), 0 4px 12px -2px rgba(0, 0, 0, 0.14) !important;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark main .bg-card,
@@ -598,19 +593,6 @@ body {
   box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.7), 0 12px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
-/* Efeito Hover de Elevação para Cards Interativos */
-:root:not(.dark) main div[class*="hover-lift"]:hover,
-:root:not(.dark) div[class*="hover-lift"]:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.3), 0 8px 18px -3px rgba(0, 0, 0, 0.18) !important;
-}
-
-.dark main div[class*="hover-lift"]:hover,
-.dark div[class*="hover-lift"]:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 42px -5px rgba(0, 0, 0, 0.7), 0 10px 22px -3px rgba(0, 0, 0, 0.5) !important;
-}
-
 /* ===== REMOVER SOMBRAS DOS ÍCONES E EMBLEMAS PEQUENOS ===== */
 main svg,
 div[class*="shrink-0"][class*="rounded-"] svg,
@@ -625,7 +607,6 @@ main div[class*="h-11"][class*="w-11"],
 main div[class*="h-12"][class*="w-12"] {
   box-shadow: none !important;
   filter: none !important;
-  drop-shadow: none !important;
 }
 
 /* ===== REGRA ESTRITA DE SOBREPOSIÇÃO PARA SHADOW-NONE ===== */
@@ -640,9 +621,6 @@ button.shadow-none:focus,
 button.shadow-none:active {
   box-shadow: none !important;
   filter: none !important;
-  drop-shadow: none !important;
   transform: none !important;
 }
-
-
 

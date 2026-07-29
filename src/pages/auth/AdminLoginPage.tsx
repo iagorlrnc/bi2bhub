@@ -40,21 +40,8 @@ export function AdminLoginPage() {
     try {
       await signIn(email, password)
 
-      // Verificar o tipo de usuário que acabou de logar
-      // (Buscamos via localStorage se for mock ou via estado atualizado)
-      const mockStorage = localStorage.getItem('bi2b_mock_session')
-      let currentUserType = userType
-
-      if (mockStorage) {
-        try {
-          const parsed = JSON.parse(mockStorage)
-          currentUserType = parsed.mockProfile?.user_type
-        } catch (e) {
-          // ignore
-        }
-      }
-
-      if (currentUserType && currentUserType !== 'admin' && currentUserType !== 'staff') {
+      // Verificar se o usuário possui permissão de administrador
+      if (userType && userType !== 'admin') {
         toast.error('Acesso Negado: Esta área é exclusiva para a Administração.')
         return
       }
@@ -180,20 +167,6 @@ export function AdminLoginPage() {
               </>
             )}
           </button>
-
-          {/* Atalho rápido para preenchimento de teste */}
-          <div className="pt-3 border-t border-[hsl(var(--border))] text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setEmail('admin@bi2b.com.br')
-                setPassword('123456')
-              }}
-              className="text-xs text-cyan-500 hover:text-cyan-400 font-medium hover:underline transition-all"
-            >
-              Preencher dados de teste (admin@bi2b.com.br / 123456)
-            </button>
-          </div>
         </form>
       </div>
 

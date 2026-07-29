@@ -43,7 +43,7 @@ const SettingsPage = lazy(() => import('@/pages/client/SettingsPage').then(m => 
 const ProfilePage = lazy(() => import('@/pages/client/ProfilePage').then(m => ({ default: m.ProfilePage })))
 const NotificationsPage = lazy(() => import('@/pages/client/NotificationsPage').then(m => ({ default: m.NotificationsPage })))
 
-// Páginas — Área de Administração (Staff) - Lazy Loading
+// Páginas — Área de Administração - Lazy Loading
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })))
 const CompaniesPage = lazy(() => import('@/pages/admin/CompaniesPage').then(m => ({ default: m.CompaniesPage })))
 const UsersPage = lazy(() => import('@/pages/admin/UsersPage').then(m => ({ default: m.UsersPage })))
@@ -58,11 +58,11 @@ const AdminNotificationsPage = lazy(() => import('@/pages/admin/AdminNotificatio
 // Componente para direcionar a raiz '/' conforme o subdomínio ativo
 function RootDomainHandler() {
   const subdomain = getSubdomain()
-  const { isAuthenticated, isAdmin, isStaff } = useAuth()
+  const { isAuthenticated, isAdmin } = useAuth()
 
   if (subdomain === 'administrador') {
     if (isAuthenticated) {
-      if (isAdmin || isStaff) {
+      if (isAdmin) {
         return <Navigate to={ROUTES.ADMIN_DASHBOARD} replace />
       }
     }
@@ -111,11 +111,11 @@ function SubdomainRoutes() {
           <Route path="/cadastrar" element={<Navigate to="/" replace />} />
         </Route>
 
-        {/* Painel do Administrador (exclusivo para admin/staff) */}
+        {/* Painel do Administrador (exclusivo para admin) */}
         <Route
           element={
             <AuthGuard>
-              <RoleGuard allowedRoles={['admin', 'staff']}>
+              <RoleGuard allowedRoles={['admin']}>
                 <AdminLayout />
               </RoleGuard>
             </AuthGuard>

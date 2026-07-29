@@ -21,7 +21,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo)
+    if (import.meta.env.DEV) {
+      console.error('Uncaught error:', error, errorInfo)
+    }
   }
 
   private handleReload = () => {
@@ -40,7 +42,9 @@ export class ErrorBoundary extends Component<Props, State> {
               Algo deu errado na exibição
             </h2>
             <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
-              {this.state.error?.message || 'Ocorreu um erro inesperado ao carregar esta página.'}
+              {import.meta.env.DEV
+                ? (this.state.error?.message || 'Ocorreu um erro inesperado ao carregar esta página.')
+                : 'Ocorreu um erro inesperado ao carregar esta página. Tente recarregar.'}
             </p>
             <button
               onClick={this.handleReload}

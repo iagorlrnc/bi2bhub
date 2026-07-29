@@ -592,7 +592,7 @@ export interface Database {
 }
 
 // ===== Enum Types =====
-export type UserType = 'admin' | 'staff' | 'client_master' | 'client_user'
+export type UserType = 'admin' | 'client_master' | 'client_user'
 export type CompanyPlan = 'básico' | 'pró' | 'plus'
 export type ClientRole = 'usuario_master' | 'usuario_comum'
 export type TicketStatus = 'aberto' | 'em_andamento' | 'aguardando_cliente' | 'resolvido' | 'fechado'

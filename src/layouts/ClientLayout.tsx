@@ -100,7 +100,7 @@ export function ClientLayout() {
         setUnreadCount(count || 0)
       }
     } catch (err) {
-      console.error('Erro ao buscar notificações não lidas:', err)
+      if (import.meta.env.DEV) console.error('Erro ao buscar notificações não lidas:', err)
     }
   }
 
@@ -115,7 +115,7 @@ export function ClientLayout() {
           .eq('user_id', user.id)
           .eq('is_read', false)
       } catch (err) {
-        console.error('Erro ao marcar notificações como lidas:', err)
+        if (import.meta.env.DEV) console.error('Erro ao marcar notificações como lidas:', err)
       }
     }
   }

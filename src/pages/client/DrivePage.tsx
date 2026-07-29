@@ -111,7 +111,7 @@ export function DrivePage() {
         }
       }
     } catch (err) {
-      console.error('Erro ao processar pasta:', err)
+      if (import.meta.env.DEV) console.error('Erro ao processar pasta:', err)
       toast.error('Erro ao processar pasta.')
     } finally {
       setIsCreatingFolder(false)
@@ -154,7 +154,7 @@ export function DrivePage() {
         toast.success('Pasta excluída com sucesso.')
         fetchData()
       } catch (err) {
-        console.error(err)
+        if (import.meta.env.DEV) console.error(err)
         toast.error('Erro ao excluir pasta.')
       }
     }
@@ -196,7 +196,7 @@ export function DrivePage() {
       setEditingFileId(null)
       fetchData()
     } catch (err) {
-      console.error('Erro ao atualizar documento:', err)
+      if (import.meta.env.DEV) console.error('Erro ao atualizar documento:', err)
       toast.error('Erro ao atualizar documento.')
     } finally {
       setIsSavingFile(false)
@@ -298,7 +298,7 @@ export function DrivePage() {
       toast.success(currentStatus ? 'Removido dos favoritos.' : 'Adicionado aos favoritos.')
       fetchData()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao atualizar favorito.')
     }
   }
@@ -328,7 +328,7 @@ export function DrivePage() {
         toast.success('Documento excluído.')
         fetchData()
       } catch (err) {
-        console.error(err)
+        if (import.meta.env.DEV) console.error(err)
         toast.error('Erro ao excluir documento.')
       }
     }
@@ -347,7 +347,7 @@ export function DrivePage() {
         throw new Error('Url assinada não gerada')
       }
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao baixar arquivo.')
     }
   }
@@ -409,6 +409,30 @@ export function DrivePage() {
         continue
       }
 
+      // Validação de Magic Bytes (cabeçalho do arquivo) para evitar uploads disfarçados
+      try {
+        const headerBytes = new Uint8Array(await file.slice(0, 8).arrayBuffer())
+        const hex = Array.from(headerBytes.slice(0, 4), b => b.toString(16).padStart(2, '0')).join('')
+        const validSignatures = [
+          '25504446', // PDF (%PDF)
+          '504b0304', // ZIP/DOCX/XLSX (PK..)
+          'ffd8ffe0', 'ffd8ffe1', 'ffd8ffdb', 'ffd8ffee', // JPEG
+          '89504e47', // PNG
+          '52494646', // WebP (RIFF)
+        ]
+        // XML files start with text (<, <?xml) — check first char
+        const isXml = headerBytes[0] === 0x3C // '<'
+        const isValidSignature = validSignatures.some(sig => hex.startsWith(sig)) || isXml
+
+        if (!isValidSignature) {
+          toast.error(`O arquivo "${file.name}" possui conteúdo incompatível com o tipo declarado.`)
+          continue
+        }
+      } catch {
+        toast.error(`Não foi possível validar o arquivo "${file.name}".`)
+        continue
+      }
+
       // Preparar upload
       const category = getCategoryFromFolder(activeFolderId)
       const filePath = `${company.id}/${activeFolderId || 'root'}/${Date.now()}_${file.name}`
@@ -445,7 +469,7 @@ export function DrivePage() {
           metadata: { file_name: file.name, file_size: file.size, file_path: filePath, category }
         })
       } catch (err: any) {
-        console.error('Erro no upload do arquivo:', err)
+        if (import.meta.env.DEV) console.error('Erro no upload do arquivo:', err)
         toast.error(`Erro ao enviar "${file.name}": ${err.message || JSON.stringify(err)}`)
       }
     }

@@ -55,7 +55,7 @@ export function NotificationsPage() {
       toast.success('Notificação removida.')
       setNotifications(prev => prev.filter(n => n.id !== id))
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao remover notificação.')
     }
   }
@@ -72,7 +72,7 @@ export function NotificationsPage() {
         prev.map(n => (n.id === notif.id ? { ...n, is_read: newStatus } : n))
       )
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao atualizar status da notificação.')
     }
   }
@@ -96,7 +96,7 @@ export function NotificationsPage() {
       toast.success('Todas as notificações foram marcadas como lidas.')
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao marcar notificações como lidas.')
     } finally {
       setIsMarkingAll(false)

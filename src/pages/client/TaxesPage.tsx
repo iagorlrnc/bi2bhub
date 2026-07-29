@@ -128,7 +128,7 @@ export function TaxesPage() {
         window.open(data.signedUrl, '_blank')
       }
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao baixar documento da guia. (Verifique se o arquivo físico existe no storage)')
     }
   }
@@ -197,7 +197,7 @@ export function TaxesPage() {
 
       toast.success('Comprovante de pagamento anexado com sucesso!')
     } catch (err: any) {
-      console.error('Erro ao anexar comprovante:', err)
+      if (import.meta.env.DEV) console.error('Erro ao anexar comprovante:', err)
       toast.error('Erro ao anexar comprovante: ' + (err.message || 'Erro de permissão'))
       // Em caso de falha, re-busca os dados originais
       fetchTaxes()

@@ -105,7 +105,7 @@ export function AdminMonthlyPage() {
           setSelectedCompanyId(data[0].id)
         }
       } catch (err) {
-        console.error('Erro ao buscar empresas:', err)
+        if (import.meta.env.DEV) console.error('Erro ao buscar empresas:', err)
         toast.error('Erro ao carregar lista de empresas.')
       } finally {
         setIsLoadingCompanies(false)
@@ -135,7 +135,7 @@ export function AdminMonthlyPage() {
       })
       setMonthlyDocs(docsBySlug)
     } catch (err) {
-      console.error('Erro ao buscar documentos mensais:', err)
+      if (import.meta.env.DEV) console.error('Erro ao buscar documentos mensais:', err)
       if (!silent) toast.error('Erro ao carregar status dos documentos mensais.')
     } finally {
       if (!silent) setLoadingMonthly(false)
@@ -182,7 +182,7 @@ export function AdminMonthlyPage() {
       toast.success(`Documento "${file.name}" enviado com sucesso!`)
       fetchMonthlyDocuments()
     } catch (err: any) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error(err.message || 'Erro ao fazer upload do documento.')
     } finally {
       setUploadingSlug(null)
@@ -199,7 +199,7 @@ export function AdminMonthlyPage() {
         window.open(data.signedUrl, '_blank')
       }
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao gerar link de download.')
     }
   }
@@ -222,7 +222,7 @@ export function AdminMonthlyPage() {
       toast.success('Documento excluído com sucesso!')
       fetchMonthlyDocuments()
     } catch (err: any) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao deletar documento.')
     }
   }

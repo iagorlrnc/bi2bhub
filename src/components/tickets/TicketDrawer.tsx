@@ -57,7 +57,7 @@ export function TicketDrawer({
       if (error) throw error
       setTicket(data)
     } catch (err) {
-      console.error('Erro ao buscar detalhes do chamado:', err)
+      if (import.meta.env.DEV) console.error('Erro ao buscar detalhes do chamado:', err)
     }
   }
 
@@ -90,7 +90,7 @@ export function TicketDrawer({
         if (error) throw error
         setMessages(data || [])
       } catch (err) {
-        console.error('Erro ao carregar mensagens:', err)
+        if (import.meta.env.DEV) console.error('Erro ao carregar mensagens:', err)
       }
     }
 
@@ -214,7 +214,7 @@ export function TicketDrawer({
       setIsInternal(false)
       toast.success('Mensagem enviada!', { id: `send-msg-${Date.now()}` })
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao enviar mensagem.', { id: 'send-msg-error' })
     } finally {
       setIsUploading(false)
@@ -231,7 +231,7 @@ export function TicketDrawer({
         window.open(data.signedUrl, '_blank')
       }
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao baixar anexo.', { id: 'download-attachment-error' })
     }
   }
@@ -268,7 +268,7 @@ export function TicketDrawer({
       fetchTicketDetails()
       onRefresh()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao assumir chamado.', { id: `assign-err-${ticketId}` })
     }
   }
@@ -320,7 +320,7 @@ export function TicketDrawer({
       fetchTicketDetails()
       onRefresh()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao atualizar status.', { id: `status-err-${ticketId}` })
     }
   }
@@ -355,7 +355,7 @@ export function TicketDrawer({
       fetchTicketDetails()
       onRefresh()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao atualizar prioridade.', { id: `priority-err-${ticketId}` })
     }
   }
@@ -392,7 +392,7 @@ export function TicketDrawer({
       toast.success(selectedStaff ? `Responsável alterado para ${selectedStaff.full_name}!` : 'Responsável removido.', { id: `staff-${ticketId}` })
       onRefresh()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao alterar responsável.', { id: `staff-err-${ticketId}` })
     }
   }
@@ -415,7 +415,7 @@ export function TicketDrawer({
       toast.success('Chamado duplicado com sucesso!', { id: `dup-${ticket.id}` })
       onRefresh()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao duplicar chamado.', { id: `dup-err-${ticket.id}` })
     }
   }
@@ -432,7 +432,7 @@ export function TicketDrawer({
       onRefresh()
       onClose()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao excluir chamado.', { id: `del-err-${ticketId}` })
     }
   }

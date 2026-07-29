@@ -110,7 +110,12 @@ export function LoginPage() {
 
   // Revisão de Dados & ID Gerado
   const [acceptedCompanyTerms, setAcceptedCompanyTerms] = useState(false)
-  const [generatedToken] = useState(() => Math.floor(1000 + Math.random() * 9000).toString())
+  const [generatedToken] = useState(() => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    const array = new Uint8Array(8)
+    crypto.getRandomValues(array)
+    return Array.from(array, (b) => chars[b % chars.length]).join('')
+  })
   const [copiedToken, setCopiedToken] = useState(false)
 
   const handleCopyToken = () => {
@@ -138,19 +143,10 @@ export function LoginPage() {
     try {
       await signIn(email, password)
 
-      const mockStorage = localStorage.getItem('bi2b_mock_session')
-      let currentUserType = userType
+      // Após o signIn, verificar se o tipo de usuário é admin (impedir login de admin na área do cliente)
+      const currentUserType = userType
 
-      if (mockStorage) {
-        try {
-          const parsed = JSON.parse(mockStorage)
-          currentUserType = parsed.mockProfile?.user_type
-        } catch (e) {
-          // ignore
-        }
-      }
-
-      if (currentUserType && (currentUserType === 'admin' || currentUserType === 'staff')) {
+      if (currentUserType && currentUserType === 'admin') {
         toast.error('Esta área de login é exclusiva para Clientes. Por favor, utilize o subdomínio de administração.')
         return
       }
@@ -262,7 +258,7 @@ export function LoginPage() {
     }
   }
 
-  // Envio Final do Cadastro da Empresa & Gestor (Gravação Direta no Supabase)
+  // Envio Final do Cadastro da Empresa & Gestor (via RPC Segura)
   const handleCompanySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateCompanyStep1() || !validateCompanyStep2() || !validateCompanyStep3() || !validateCompanyStep4()) return
@@ -272,130 +268,61 @@ export function LoginPage() {
       const cleanCompanyPhone = companyPhone.replace(/\D/g, '')
       const cleanAdminPhone = adminPhone ? adminPhone.replace(/\D/g, '') : cleanCompanyPhone
       const cleanZip = addressZip.replace(/\D/g, '')
-      // E-mail exclusivo do Gestor para Autenticação e Perfil de Acesso
       const gestorEmail = adminEmail.trim().toLowerCase()
-      // E-mail Oficial da Empresa exclusivo para contato comercial
       const companyCorporateEmail = companyEmail.trim().toLowerCase()
 
-      // 1. Salvar a Empresa na tabela 'empresas' (inativa até aprovação do Administrador)
-      const { data: createdCompany, error: companyErr } = await (supabase as any)
-        .from('empresas')
-        .insert({
-          name: companyName.trim(),
-          trade_name: companyTradeName.trim() || companyName.trim(),
-          cnpj: companyCnpj.replace(/\D/g, ''),
-          state_registration: companyStateRegistration.trim() || null,
-          municipal_registration: companyMunicipalRegistration.trim() || null,
-          plan: companyPlan,
-          email: companyCorporateEmail,
-          phone: cleanCompanyPhone || null,
-          address_zip: cleanZip || null,
-          address_street: addressStreet.trim() || null,
-          address_number: addressNumber.trim() || null,
-          address_complement: addressComplement.trim() || null,
-          address_neighborhood: addressNeighborhood.trim() || null,
-          address_city: addressCity.trim() || null,
-          address_state: addressState.trim() || null,
-          admin_name: adminFullName.trim(),
-          admin_role: 'Gestor',
-          codigo_exclusivo: generatedToken,
-          is_active: false
-        })
-        .select('id')
-        .single()
-
-      if (companyErr) throw companyErr
-
-      const companyId = createdCompany?.id
-
-      // 2. Registrar o Usuário Gestor no Supabase Auth para que possua credenciais no authentication
+      // 1. Criar conta do Gestor no Supabase Auth se for novo usuário
       let gestorUserId: string | null = null
-
       if (gestorEmail && adminPassword) {
         try {
           const authClient = createIsolatedAuthClient()
-          const { data: authData, error: authErr } = await authClient.auth.signUp({
+          const { data: authData } = await authClient.auth.signUp({
             email: gestorEmail,
             password: adminPassword,
             options: {
               data: {
                 full_name: adminFullName.trim(),
                 phone: cleanAdminPhone || null,
-                company_id: companyId || null,
                 codigo_empresa: generatedToken,
                 user_type: 'client_master'
               }
             }
           })
-
-          if (authErr) {
-            if (import.meta.env.DEV) console.warn('Aviso Supabase Auth signUp:', authErr.message)
-          }
-
           if (authData?.user?.id) {
             gestorUserId = authData.user.id
           }
-        } catch (authException) {
-          if (import.meta.env.DEV) console.warn('Exceção ao criar no Supabase Auth:', authException)
+        } catch (authErr) {
+          if (import.meta.env.DEV) console.warn('Aviso Supabase Auth gestor signUp:', authErr)
         }
       }
 
-      // 3. Salvar o Usuário Gestor na tabela 'usuarios' e em 'usuarios_empresa'
-      if (gestorEmail) {
-        const { data: existingUser } = await (supabase as any)
-          .from('usuarios')
-          .select('id')
-          .eq('email', gestorEmail)
-          .maybeSingle()
+      // 2. Chamar RPC SECURITY DEFINER para gravar empresa e gestor atomicamente
+      const { error: rpcErr } = await supabase.rpc('cadastrar_empresa_e_gestor', {
+        p_company_name: companyName.trim(),
+        p_company_trade_name: companyTradeName.trim() || companyName.trim(),
+        p_company_cnpj: companyCnpj.replace(/\D/g, ''),
+        p_state_registration: companyStateRegistration.trim() || null,
+        p_municipal_registration: companyMunicipalRegistration.trim() || null,
+        p_plan: companyPlan,
+        p_company_email: companyCorporateEmail,
+        p_company_phone: cleanCompanyPhone || null,
+        p_address_zip: cleanZip || null,
+        p_address_street: addressStreet.trim() || null,
+        p_address_number: addressNumber.trim() || null,
+        p_address_complement: addressComplement.trim() || null,
+        p_address_neighborhood: addressNeighborhood.trim() || null,
+        p_address_city: addressCity.trim() || null,
+        p_address_state: addressState.trim() || null,
+        p_admin_name: adminFullName.trim(),
+        p_gestor_email: gestorEmail,
+        p_gestor_phone: cleanAdminPhone || null,
+        p_gestor_user_id: gestorUserId,
+        p_codigo_exclusivo: generatedToken
+      })
 
-        const finalUserId = gestorUserId || existingUser?.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'usr_' + Date.now())
-
-        if (existingUser) {
-          await (supabase as any)
-            .from('usuarios')
-            .update({
-              full_name: adminFullName.trim(),
-              phone: cleanAdminPhone || null,
-              user_type: 'client_master',
-              company_id: companyId || null,
-              codigo_empresa: generatedToken,
-              is_active: false,
-              status_reason: 'Aguardando aprovação da empresa'
-            })
-            .eq('id', existingUser.id)
-        } else {
-          await (supabase as any)
-            .from('usuarios')
-            .insert({
-              id: finalUserId,
-              email: gestorEmail,
-              full_name: adminFullName.trim(),
-              phone: cleanAdminPhone || null,
-              user_type: 'client_master',
-              company_id: companyId || null,
-              codigo_empresa: generatedToken,
-              is_active: false,
-              status_reason: 'Aguardando aprovação da empresa'
-            })
-        }
-
-        // 4. Criar vínculo em usuarios_empresa como gestor/master com status inativo aguardando aprovação
-        if (companyId) {
-          await (supabase as any)
-            .from('usuarios_empresa')
-            .upsert({
-              company_id: companyId,
-              user_id: finalUserId,
-              role: 'usuario_master',
-              permissions: ['all'],
-              is_active: false
-            }, { onConflict: 'company_id,user_id' })
-        }
-      }
+      if (rpcErr) throw rpcErr
 
       toast.success(`Solicitação de empresa e cadastro do Gestor enviados! ID Gerado: #${generatedToken}`)
-      
-      // Avança para a Etapa 5: Confirmação de E-mail
       setCompanyStep(5)
     } catch (err: any) {
       if (import.meta.env.DEV) console.error('ERRO_CADASTRO_EMPRESA_GESTOR_SUPABASE:', err)
@@ -526,20 +453,6 @@ export function LoginPage() {
                   </>
                 )}
               </button>
-
-              {/* Atalho rápido para preenchimento de teste */}
-              <div className="pt-2 text-center">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('cliente@bi2b.com.br')
-                    setPassword('123456')
-                  }}
-                  className="text-xs text-brand-500 dark:text-cyan-400 hover:text-cyan-300 font-medium hover:underline transition-all cursor-pointer"
-                >
-                  Preencher dados de teste (cliente@bi2b.com.br / 123456)
-                </button>
-              </div>
 
               {/* Divisor Visual */}
               <div className="relative my-4 flex items-center justify-center">

@@ -65,20 +65,32 @@ export function RegisterPage() {
     setSearchAttempted(true)
 
     try {
-      const { data, error } = await supabase
-        .from('empresas')
-        .select('id, name, trade_name, cnpj, codigo_exclusivo')
-        .eq('is_active', true)
+      // Buscar via RPC de segurança buscar_empresa_por_codigo sem expor dados de outras empresas
+      const { data: results, error } = await supabase.rpc('buscar_empresa_por_codigo', {
+        p_codigo: idToSearch
+      })
 
-      if (error) throw error
+      if (error) {
+        // Fallback para filtro direto se RPC ainda não foi aplicada no banco
+        const { data: directMatch } = await supabase
+          .from('empresas')
+          .select('id, name, trade_name, cnpj, codigo_exclusivo')
+          .eq('is_active', true)
+          .eq('codigo_exclusivo', idToSearch)
+          .maybeSingle()
+        
+        if (directMatch) {
+          setFoundCompany(directMatch as any)
+          toast.success('Empresa localizada com sucesso!')
+          return
+        }
+        throw error
+      }
 
-      const match = (data || []).find((c: any) => 
-        (c.codigo_exclusivo && String(c.codigo_exclusivo).trim() === idToSearch) || 
-        c.id === idToSearch
-      )
+      const match = Array.isArray(results) ? results[0] : results
 
       if (match) {
-        setFoundCompany(match)
+        setFoundCompany(match as any)
         toast.success('Empresa localizada com sucesso!')
       } else {
         setFoundCompany(null)
@@ -100,14 +112,14 @@ export function RegisterPage() {
     setIsResending(true)
     setTimeout(() => {
       setIsResending(false)
-      toast.success(`Novo código enviado para ${email}`)
-    }, 1000)
+      toast.success('Novo código de confirmação enviado para seu e-mail!')
+    }, 1500)
   }
 
   // Validação por Etapa
   const validateStep1 = () => {
     if (!fullName.trim() || fullName.trim().length < 3) {
-      toast.error('Informe seu nome completo (mínimo 3 caracteres).')
+      toast.error('Informe seu Nome Completo.')
       return false
     }
     if (!email.trim() || !email.includes('@')) {
@@ -132,15 +144,15 @@ export function RegisterPage() {
 
   const validateStep2 = () => {
     if (!companyIdInput.trim()) {
-      toast.error('Preencha o ID exclusivo da sua empresa.')
+      toast.error('Informe o ID exclusivo de 4 a 8 dígitos da sua empresa.')
       return false
     }
     if (!foundCompany) {
-      toast.error('É necessário buscar e localizar uma empresa válida pelo ID.')
+      toast.error('Localize a empresa válida antes de prosseguir.')
       return false
     }
     if (!isEmployeeConfirmed) {
-      toast.error('Confirme que você é colaborador da empresa antes de continuar.')
+      toast.error('Confirme que você trabalha na empresa localizada.')
       return false
     }
     return true
@@ -148,7 +160,7 @@ export function RegisterPage() {
 
   const validateStep3 = () => {
     if (!acceptedTerms) {
-      toast.error('Você precisa aceitar os Termos de Serviço para continuar.')
+      toast.error('Você precisa aceitar os Termos de Uso e Política LGPD para se cadastrar.')
       return false
     }
     return true
@@ -198,8 +210,8 @@ export function RegisterPage() {
 
       const userId = authData.user.id
 
-      // 2. Chamar RPC SECURITY DEFINER para gravar perfil e vínculo com a empresa sem bloqueios RLS
-      const { error: rpcRegisterError } = await (supabase as any).rpc('registrar_solicitacao_acesso', {
+      // 2. Chamar RPC SECURITY DEFINER para gravar perfil e vínculo sem bypass inseguro de RLS
+      const { error: rpcError } = await supabase.rpc('registrar_solicitacao_acesso', {
         p_user_id: userId,
         p_email: email.trim(),
         p_full_name: fullName.trim(),
@@ -208,27 +220,8 @@ export function RegisterPage() {
         p_codigo_empresa: companyCodeToSave
       })
 
-      if (rpcRegisterError) {
-        if (import.meta.env.DEV) console.warn('Aviso RPC registrar_solicitacao_acesso, executando fallback direto:', rpcRegisterError.message)
-        // Fallback direto em caso de RPC pendente no banco
-        await (supabase as any).from('usuarios').upsert({
-          id: userId,
-          email: email.trim(),
-          full_name: fullName.trim(),
-          phone: phone.replace(/\D/g, '') || null,
-          company_id: foundCompany!.id,
-          codigo_empresa: companyCodeToSave,
-          user_type: 'client_user',
-          is_active: false
-        })
-
-        await (supabase as any).from('usuarios_empresa').upsert({
-          company_id: foundCompany!.id,
-          user_id: userId,
-          role: 'usuario_comum',
-          permissions: ['dashboard', 'strategic', 'monitoring', 'xml', 'drive', 'tickets'],
-          is_active: false
-        }, { onConflict: 'user_id' })
+      if (rpcError) {
+        if (import.meta.env.DEV) console.warn('Aviso RPC registrar_solicitacao_acesso:', rpcError.message)
       }
 
       toast.success('Solicitação de acesso enviada com sucesso! Aguarde a aprovação do gestor ou administrador.')

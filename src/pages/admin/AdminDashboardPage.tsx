@@ -113,7 +113,7 @@ export function AdminDashboardPage() {
       setGrowthData(chartList)
 
     } catch (err) {
-      console.error('Erro ao buscar dados administrativos:', err)
+      if (import.meta.env.DEV) console.error('Erro ao buscar dados administrativos:', err)
     } finally {
       if (!silent) setIsLoading(false)
     }

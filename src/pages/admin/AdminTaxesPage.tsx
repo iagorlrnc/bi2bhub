@@ -112,7 +112,7 @@ export function AdminTaxesPage() {
           setSelectedCompanyId(data[0].id)
         }
       } catch (err) {
-        console.error('Erro ao buscar empresas:', err)
+        if (import.meta.env.DEV) console.error('Erro ao buscar empresas:', err)
         toast.error('Erro ao carregar lista de empresas.')
       } finally {
         setIsLoadingCompanies(false)
@@ -166,7 +166,7 @@ export function AdminTaxesPage() {
         window.open(data.signedUrl, '_blank')
       }
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao baixar arquivo.')
     }
   }
@@ -193,7 +193,7 @@ export function AdminTaxesPage() {
       toast.success('Guia tributária excluída!')
       fetchTaxes()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao excluir guia tributária.')
     }
   }
@@ -266,7 +266,7 @@ export function AdminTaxesPage() {
       setSelectedFile(null)
       fetchTaxes()
     } catch (err: any) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error(err.message || 'Erro ao publicar guia de imposto.')
     } finally {
       setIsSubmitting(false)

@@ -27,7 +27,7 @@ export function StaffPage() {
       const { data, error } = await supabase
         .from('usuarios')
         .select('id, email, full_name, phone, user_type, is_active, avatar_url')
-        .in('user_type', ['admin', 'staff'])
+        .eq('user_type', 'admin')
         .order('full_name', { ascending: true })
       if (error) throw error
       setStaff(data || [])
@@ -124,7 +124,7 @@ export function StaffPage() {
             .from('usuarios')
             .update({
               full_name: name,
-              user_type: 'staff',
+              user_type: 'admin',
               phone: staffPayload,
               is_active: true
             })
@@ -139,7 +139,7 @@ export function StaffPage() {
       setIsOpenModal(false)
       fetchStaff()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao salvar contador.')
     }
   }
@@ -162,7 +162,7 @@ export function StaffPage() {
         toast.success(`Contador ${name} removido da equipe.`)
         fetchStaff()
       } catch (err) {
-        console.error(err)
+        if (import.meta.env.DEV) console.error(err)
         toast.error('Erro ao remover contador.')
       }
     }

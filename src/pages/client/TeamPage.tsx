@@ -442,7 +442,7 @@ export function TeamPage() {
       toast.success('Convite excluído.')
       fetchData()
     } catch (err) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       toast.error('Erro ao excluir convite.')
     }
   }
@@ -477,7 +477,7 @@ export function TeamPage() {
       setIsOpenEditModal(false)
       fetchData()
     } catch (err) {
-      console.error('Erro ao atualizar permissões:', err)
+      if (import.meta.env.DEV) console.error('Erro ao atualizar permissões:', err)
       toast.error('Erro ao salvar as permissões.')
     } finally {
       setIsSaving(false)

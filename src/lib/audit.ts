@@ -123,7 +123,7 @@ export async function logAuditActivity({
 
     return true
   } catch (err) {
-    console.error('Falha ao registrar log de auditoria:', err)
+    if (import.meta.env.DEV) console.error('Falha ao registrar log de auditoria:', err)
     return false
   }
 }

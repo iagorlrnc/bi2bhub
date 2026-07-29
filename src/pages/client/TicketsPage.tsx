@@ -44,7 +44,7 @@ export function TicketsPage() {
       if (error) throw error
       setTickets(data || [])
     } catch (err) {
-      console.error('Erro ao buscar chamados:', err)
+      if (import.meta.env.DEV) console.error('Erro ao buscar chamados:', err)
       if (!silent) toast.error('Erro ao carregar chamados.', { id: 'client-fetch-tickets-err' })
     } finally {
       if (!silent) setIsLoading(false)
