@@ -98,7 +98,7 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Contato Comercial</p>
-                  <p className={cn("text-base font-bold", isDark ? "text-white" : "text-slate-800")}>(11) 99999-9999</p>
+                  <p className={cn("text-base font-bold", isDark ? "text-white" : "text-slate-800")}>(99) 99999-9999</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -112,7 +112,7 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">E-mail Corporativo</p>
-                  <p className={cn("text-base font-bold", isDark ? "text-white" : "text-slate-800")}>comercial@bi2b.com.br</p>
+                  <p className={cn("text-base font-bold", isDark ? "text-white" : "text-slate-800")}>contato@bi2b.com.br</p>
                 </div>
               </div>
             </div>
@@ -148,7 +148,7 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                       id="lead-name"
                       type="text"
                       required
-                      placeholder="Ex: Alice Silva"
+                      placeholder="Ex: João"
                       value={leadName}
                       onChange={(e) => setLeadName(e.target.value)}
                       className={cn(
@@ -165,7 +165,7 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                       id="lead-email"
                       type="email"
                       required
-                      placeholder="alice@empresa.com"
+                      placeholder="joao@empresa.com"
                       value={leadEmail}
                       onChange={(e) => setLeadEmail(e.target.value)}
                       className={cn(
@@ -185,7 +185,7 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                       id="lead-phone"
                       type="tel"
                       required
-                      placeholder="(11) 99999-9999"
+                      placeholder="(99) 99999-9999"
                       value={leadPhone}
                       onChange={(e) => setLeadPhone(e.target.value)}
                       className={cn(

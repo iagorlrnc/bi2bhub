@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   FileCode2,
@@ -14,8 +14,12 @@ import {
   Send,
   Sparkles,
   ArrowUpRight,
-  Layers,
   X,
+  Users,
+  UserPlus,
+  Search,
+  Check,
+  CheckCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -48,69 +52,159 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
   const isDarkTheme = isDark ?? (resolvedTheme === 'dark')
   const [activeTab, setActiveTab] = useState<'xml' | 'monitor' | 'connect' | 'task' | 'drive'>('xml')
   const [modalTab, setModalTab] = useState<'xml' | 'monitor' | 'connect' | 'task' | 'drive' | null>(null)
+  const chatEndRef = useRef<HTMLDivElement>(null)
 
-  // Chat Interativo no Bi2B Chamados
+  // Trava a rolagem da página principal ao abrir a simulação no modal
+  useEffect(() => {
+    if (modalTab) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [modalTab])
+
+  // Demo State 1: Guias Bi2B (DAS, ISS, FGTS)
+  const [guiasData, setGuiasData] = useState([
+    { id: '102542', title: 'DAS Simples Nacional', due: '20/08/2026', val: 'R$ 4.490,00', status: 'A Vencer', type: 'DAS', downloaded: false },
+    { id: '102543', title: 'ISS Imposto Municipal', due: '15/08/2026', val: 'R$ 1.250,00', status: 'A Vencer', type: 'ISS', downloaded: false },
+    { id: '102544', title: 'FGTS Digital Mensal', due: '07/08/2026', val: 'R$ 2.180,00', status: 'Pago', type: 'FGTS', downloaded: true },
+  ])
+  const handleDownloadGuia = (id: string) => {
+    setGuiasData(prev => prev.map(g => g.id === id ? { ...g, downloaded: true } : g))
+  }
+
+  // Demo State 2: Equipe & Colaboradores
+  const [teamMembers, setTeamMembers] = useState([
+    { id: 1, name: 'João', role: 'Gestor', email: 'joao@empresa.com.br', status: 'Ativo' },
+    { id: 2, name: 'Maria', role: 'Colaborador', email: 'maria@empresa.com.br', status: 'Ativo' },
+    { id: 3, name: 'Pedro', role: 'Colaborador', email: 'pedro@empresa.com.br', status: 'Pendente' },
+  ])
+  const [newMemberEmail, setNewMemberEmail] = useState('')
+  const handleInviteMember = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newMemberEmail.trim()) return
+    const nameFromEmail = newMemberEmail.split('@')[0].replace('.', ' ')
+    const capitalizedName = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1)
+    setTeamMembers(prev => [
+      ...prev,
+      { id: Date.now(), name: capitalizedName, role: 'Colaborador', email: newMemberEmail, status: 'Pendente' }
+    ])
+    setNewMemberEmail('')
+  }
+
+  // Demo State 3: Chat Interativo no Bi2B Chamados (Máximo de 2 mensagens)
   const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'support' | 'client'; text: string; time: string }>>([
-    { sender: 'client', text: 'Olá! Preciso enviar a documentação para o fechamento mensal.', time: '14:20' },
-    { sender: 'support', text: 'Boa tarde! Pode anexar diretamente na aba Bi2B Drive ou enviar por aqui.', time: '14:22' },
+    { sender: 'client', text: 'Olá! Preciso tirar uma dúvida sobre o vencimento da guia de impostos.', time: '14:20' },
+    { sender: 'support', text: 'Boa tarde! As guias de DAS e ISS do mês atual já estão disponíveis com vencimentos calculados no painel.', time: '14:22' },
   ])
   const [newMsg, setNewMsg] = useState('')
+  const [chatSentCount, setChatSentCount] = useState(0)
+
+  // Auto-scroll do chat para a última mensagem enviada
+  useEffect(() => {
+    if (modalTab === 'connect') {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [chatMessages, modalTab])
 
   const handleSendChat = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMsg.trim()) return
+    if (!newMsg.trim() || chatSentCount >= 2) return
     const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     setChatMessages((prev) => [...prev, { sender: 'client', text: newMsg, time: timeNow }])
     const typedMsg = newMsg
     setNewMsg('')
+    setChatSentCount(prev => prev + 1)
 
     setTimeout(() => {
       setChatMessages((prev) => [
         ...prev,
         {
           sender: 'support',
-          text: `Perfeito! Recebi sua mensagem: "${typedMsg}". Nossa equipe fiscal já foi notificada.`,
+          text: `Perfeito! Recebi sua mensagem: "${typedMsg}". Nossa equipe fiscal já foi notificada e em breve enviará a resposta.`,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ])
     }, 1200)
   }
 
+  // Demo State 4: Tarefas Bi2B & Envios Mensais
+  const [tasksData, setTasksData] = useState([
+    { id: 1, title: 'Upload de Notas Fiscais (XML Entrada/Saída)', due: 'Vence em 15/08', status: 'Concluído', cat: 'Fiscal' },
+    { id: 2, title: 'Envio de Extratos Bancários (Conciliação)', due: 'Vence em 10/08', status: 'Em Aberto', cat: 'Contábil' },
+    { id: 3, title: 'Comprovantes e Despesas Operacionais', due: 'Vence em 20/08', status: 'Em Aberto', cat: 'Financeiro' },
+  ])
+  const handleCompleteTask = (id: number) => {
+    setTasksData(prev => prev.map(t => t.id === id ? { ...t, status: 'Concluído' } : t))
+  }
+
+  // Demo State 5: Bi2B Drive (Máximo de 3 uploads)
+  const [driveFiles, setDriveFiles] = useState([
+    { id: 1, name: 'Balanço Patrimonial 2025.pdf', size: '2.4 MB', cat: 'Contábil' },
+    { id: 2, name: 'Contrato Social Consolidado.pdf', size: '1.8 MB', cat: 'Societário' },
+    { id: 3, name: 'Folha Pagamento Julho.xlsx', size: '950 KB', cat: 'RH / Trabalhista' },
+    { id: 4, name: 'Comprovante Guia DAS 07-2025.pdf', size: '420 KB', cat: 'Fiscal' },
+  ])
+  const [driveSearch, setDriveSearch] = useState('')
+  const [driveCategory, setDriveCategory] = useState<string>('Todas')
+  const [uploadSimulatedCount, setUploadSimulatedCount] = useState(0)
+
+  const handleSimulateUpload = () => {
+    if (uploadSimulatedCount >= 3) return
+    const sampleFiles = [
+      { name: 'Relatorio_Faturamento_Mensal.pdf', size: '1.2 MB', cat: 'Fiscal' },
+      { name: 'Comprovante_Pagamento_FGTS.pdf', size: '380 KB', cat: 'RH / Trabalhista' },
+      { name: 'Alteracao_Contratual_2026.pdf', size: '2.1 MB', cat: 'Societário' },
+    ]
+    const randomFile = sampleFiles[uploadSimulatedCount % sampleFiles.length]
+    setDriveFiles(prev => [{ id: Date.now(), ...randomFile }, ...prev])
+    setUploadSimulatedCount(prev => prev + 1)
+  }
+
+  const filteredDriveFiles = driveFiles.filter(f => {
+    const matchesSearch = f.name.toLowerCase().includes(driveSearch.toLowerCase()) || f.cat.toLowerCase().includes(driveSearch.toLowerCase())
+    const matchesCategory = driveCategory === 'Todas' || f.cat.includes(driveCategory)
+    return matchesSearch && matchesCategory
+  })
+
   const modulesList = [
     {
       id: 'xml' as const,
       name: 'Guias Bi2B',
       icon: FileCode2,
-      tagline: 'Sincronização SEFAZ & Lote',
-      desc: 'Varredura imediata de NF-e, CT-e e NFS-e direto da base nacional com guarda garantida.',
+      tagline: 'Consulta e Envio',
+      desc: 'Painel visual de controle de impostos (DAS, ISS, FGTS) com aviso de datas limite.',
     },
     {
       id: 'monitor' as const,
-      name: 'Monitora Bi2B',
+      name: 'Equipe',
       icon: Shield,
-      tagline: 'CNDs & Alertas Preventivos',
-      desc: 'Varredura automática de certidões negativas e obrigações federais, estaduais e municipais.',
+      tagline: 'Gestão de Colaboradores',
+      desc: 'Gerencie os colaboradores que têm acesso aos dados da sua empresa.',
     },
     {
       id: 'connect' as const,
       name: 'Bi2B Chamados',
       icon: MessageSquare,
       tagline: 'Suporte Contábil Realtime',
-      desc: 'Comunicação direta com o suporte contábil com histórico completo e status de chamados.',
+      desc: 'Comunicação direta com o suporte da Bi2B com histórico completo e status de chamados.',
     },
     {
       id: 'task' as const,
       name: 'Tarefas Bi2B',
       icon: Activity,
       tagline: 'Gestão de Guias e Prazos',
-      desc: 'Painel visual de controle de impostos (DAS, ISS, FGTS) com aviso de datas limite.',
+      desc: 'Campo para envio mensal de notas fiscais e documentos para verificação contábil e fiscal.',
     },
     {
       id: 'drive' as const,
       name: 'Bi2B Drive',
       icon: FolderOpen,
-      tagline: 'Gestão de Arquivos Criptografados',
-      desc: 'Armazenamento organizado por pastas (Fiscal, RH, Societário) com busca por tag.',
+      tagline: 'Gestão de Arquivos',
+      desc: 'Armazenamento organizado por pastas e upload de arquivos 100% digitais.',
     },
   ]
 
@@ -138,8 +232,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
               ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300 dark:border-cyan-400/30 dark:bg-cyan-500/10 dark:text-cyan-300" 
               : "border-[#0d6084]/20 bg-[#0d6084]/5 text-[#0d6084] dark:border-cyan-400/30 dark:bg-cyan-500/10 dark:text-cyan-300"
           )}>
-            <Layers className="w-3.5 h-3.5 text-cyan-400" />
-            Ecossistema Integrado de Soluções
+            Ecossistema de Funcionalidades
           </span>
           <h2 className={cn(
             "font-sans text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-balance transition-colors duration-300",
@@ -155,10 +248,10 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
           </p>
         </motion.div>
 
-        {/* GRAFO DO ECOSSISTEMA INTERATIVO (100% PRESERVADO INTEGRALMENTE) + APRESENTAÇÃO */}
+        {/* GRAFO DO ECOSSISTEMA INTERATIVO + APRESENTAÇÃO */}
         <div className="grid lg:grid-cols-12 gap-12 items-center mb-16">
           
-          {/* Grafo do Ecossistema Interativo (Coluna Esquerda/Topo) */}
+          {/* Grafo do Ecossistema Interativo */}
           <motion.div
             variants={scaleIn}
             className="lg:col-span-6 relative flex justify-center items-center"
@@ -167,7 +260,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
             <div className={cn("absolute inset-0 -m-8 border rounded-full animate-[spin_40s_linear_infinite]", isDarkTheme ? "border-cyan-500/10 dark:border-cyan-500/10" : "border-slate-200/60 dark:border-cyan-500/10")} />
             <div className={cn("absolute inset-0 -m-16 border border-dashed rounded-full animate-[spin_60s_linear_infinite]", isDarkTheme ? "border-cyan-500/10 dark:border-cyan-500/10" : "border-slate-200/50 dark:border-cyan-500/10")} />
 
-            {/* Grafo do Ecossistema Interativo Preservado */}
+            {/* Grafo do Ecossistema Interativo */}
             <div 
               className={cn(
                 "relative w-full aspect-square max-w-[420px] rounded-3xl border p-6 backdrop-blur-2xl flex items-center justify-center hover-elevate shadow-2xl transition-all duration-300",
@@ -221,7 +314,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                 <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'xml' ? "text-cyan-400" : (isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-700 dark:text-slate-300"))}>Guias Bi2B</span>
               </div>
 
-              {/* Satellite Node 2: Monitora Bi2B */}
+              {/* Satellite Node 2: Equipe */}
               <div 
                 onClick={() => { setActiveTab('monitor'); setModalTab('monitor') }}
                 className="absolute right-6 top-[28%] flex flex-col items-center gap-1 cursor-pointer group"
@@ -236,7 +329,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                 >
                   <Shield className="h-5 w-5" />
                 </div>
-                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'monitor' ? "text-cyan-400" : (isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-700 dark:text-slate-300"))}>Monitora Bi2B</span>
+                <span className={cn("text-[10px] font-bold transition-colors group-hover:text-cyan-400", activeTab === 'monitor' ? "text-cyan-400" : (isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-700 dark:text-slate-300"))}>Equipe</span>
               </div>
 
               {/* Satellite Node 3: Bi2B Chamados */}
@@ -420,6 +513,8 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                 </div>
 
                 <AnimatePresence mode="wait">
+
+                  {/* 1. GUIAS BI2B (DAS, ISS, FGTS) */}
                   {modalTab === 'xml' && (
                     <motion.div
                       key="xml"
@@ -440,53 +535,73 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                         </div>
                         <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Guias Bi2B</h3>
                         <p className={cn("text-sm leading-relaxed transition-colors duration-300", isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-600 dark:text-slate-300")}>
-                          Sincronização imediata de Notas Fiscais Eletrônicas (NF-e, CT-e, NFS-e) emitidas e recebidas direto da base da SEFAZ, permitindo download em lote.
+                          Painel visual de controle de impostos (DAS, ISS, FGTS) com aviso de datas limite. Acompanhe vencimentos em tempo real, efetue download das guias em PDF e anexe comprovantes de pagamento de forma centralizada.
                         </p>
                         <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-300", isDarkTheme ? "text-slate-400 dark:text-slate-400" : "text-slate-600 dark:text-slate-400")}>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Guarda eletrônica garantida por 5 anos
+                            Visualização clara de datas de vencimento de tributos
                           </li>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Filtros de busca rápida por emitente
+                            Download instantâneo de guias em PDF
                           </li>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Painel visualizador de chaves de acesso
+                            Anexo e confirmação de comprovantes de pagamento
                           </li>
                         </ul>
                       </div>
                       
-                      {/* Prévia XML Fiscal */}
+                      {/* Prévia Guias Bi2B */}
                       <div className="md:col-span-6">
                         <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono transition-colors duration-300", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
                           <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
-                            <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>XMLs Recentes (SEFAZ)</span>
+                            <div>
+                              <span className={cn("font-bold block transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Minhas Guias Tributárias</span>
+                              <span className="text-[9px] text-slate-500 font-normal">Clique no botão para simular o download</span>
+                            </div>
                             <span className="text-[9px] bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 px-2 py-0.5 rounded font-bold uppercase">Sincronizado</span>
                           </div>
-                          <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
-                            {[
-                              { no: '102542', emit: 'Alfa Distribuidora', val: 'R$ 4.250,00' },
-                              { no: '102543', emit: 'Beta Indústria S/A', val: 'R$ 12.890,00' },
-                              { no: '102544', emit: 'Serviços Globais SP', val: 'R$ 890,00' }
-                            ].map((xml, idx) => (
+                          <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+                            {guiasData.map((xml) => (
                               <div 
-                                key={idx} 
+                                key={xml.id} 
                                 className={cn(
-                                  "flex justify-between items-center border rounded-lg p-2.5 hover:border-cyan-500/35 cursor-pointer hover:scale-[1.01] transition-all duration-200",
-                                  isDarkTheme ? "bg-[#08101d] border-cyan-500/5 dark:bg-[#08101d] dark:border-cyan-500/5" : "bg-white border-slate-200 dark:bg-[#08101d] dark:border-cyan-500/5"
+                                  "flex justify-between items-center border rounded-xl p-3 transition-all duration-200",
+                                  isDarkTheme ? "bg-[#08101d] border-cyan-500/10 dark:bg-[#08101d] dark:border-cyan-500/10" : "bg-white border-slate-200 dark:bg-[#08101d] dark:border-cyan-500/10"
                                 )}
                               >
                                 <div>
-                                  <div className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-slate-200 dark:text-slate-200" : "text-slate-700 dark:text-slate-200")}>NF-e #{xml.no}</div>
-                                  <div className="text-[9px] text-slate-500 truncate max-w-[120px]">{xml.emit}</div>
-                                </div>
-                                <div className="text-right">
-                                  <div className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>{xml.val}</div>
-                                  <div className="text-[9px] text-cyan-500 flex items-center gap-0.5 justify-end">
-                                    <Download className="w-2.5 h-2.5" /> Baixar
+                                  <div className={cn("font-bold flex items-center gap-1.5 transition-colors duration-300", isDarkTheme ? "text-slate-200 dark:text-slate-200" : "text-slate-800 dark:text-slate-200")}>
+                                    <span>{xml.title}</span>
+                                    <span className="text-[8px] px-1.5 py-0.2 rounded font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">#{xml.id}</span>
                                   </div>
+                                  <div className="text-[9px] text-slate-400 mt-0.5 flex items-center gap-2">
+                                    <span>Vencimento: <strong className="text-amber-400 font-semibold">{xml.due}</strong></span>
+                                  </div>
+                                </div>
+                                <div className="text-right flex flex-col items-end gap-1">
+                                  <div className={cn("font-bold text-xs transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>{xml.val}</div>
+                                  <button
+                                    onClick={() => handleDownloadGuia(xml.id)}
+                                    className={cn(
+                                      "text-[9px] px-2 py-1 rounded flex items-center gap-1 font-bold transition-all cursor-pointer border",
+                                      xml.downloaded
+                                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                                        : "bg-[#0d6084] hover:bg-[#0b5474] text-white border-cyan-400/30"
+                                    )}
+                                  >
+                                    {xml.downloaded ? (
+                                      <>
+                                        <Check className="w-2.5 h-2.5" /> Baixado PDF
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Download className="w-2.5 h-2.5" /> Baixar PDF
+                                      </>
+                                    )}
+                                  </button>
                                 </div>
                               </div>
                             ))}
@@ -496,6 +611,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                     </motion.div>
                   )}
 
+                  {/* 2. EQUIPE & GESTÃO DE COLABORADORES */}
                   {modalTab === 'monitor' && (
                     <motion.div
                       key="monitor"
@@ -505,7 +621,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                       transition={{ duration: 0.3 }}
                       className="grid md:grid-cols-12 gap-8 items-center w-full"
                     >
-                      <div className="md:col-span-6 space-y-6 text-left">
+                      <div className="md:col-span-5 space-y-6 text-left">
                         <div 
                           className={cn(
                             "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner transition-colors duration-300",
@@ -514,52 +630,90 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                         >
                           <Shield className="h-6 w-6" />
                         </div>
-                        <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Monitora Bi2B</h3>
+                        <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Equipe & Permissões</h3>
                         <p className={cn("text-sm leading-relaxed transition-colors duration-300", isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-600 dark:text-slate-300")}>
-                          Varredura diária automatizada de certidões negativas de débitos (CNDs) federais, estaduais e municipais, emitindo alertas antes que qualquer prazo expire.
+                          Gerencie os colaboradores que têm acesso aos dados da sua empresa. Mantenha controle total da segurança do portal.
                         </p>
                         <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-300", isDarkTheme ? "text-slate-400 dark:text-slate-400" : "text-slate-600 dark:text-slate-400")}>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Histórico permanente de certidões emitidas
+                            Controle de perfis de acesso
                           </li>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Alertas de prazos de DCTFWeb, CRF e FGTS
+                            Solicitação rápida de colaboradores via cadastro.
                           </li>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Avisos via painel do cliente e e-mail
+                            Histórico de acessos e membros da empresa
                           </li>
                         </ul>
                       </div>
 
-                      {/* Prévia Monitora Bi2B */}
-                      <div className="md:col-span-6">
-                        <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono transition-colors duration-300", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
-                          <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
-                            <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Varredura de CNDs</span>
-                            <span className="text-[9px] text-cyan-500">Varrendo...</span>
+                      {/* Prévia Gestão de Equipe Interativa */}
+                      <div className="md:col-span-7">
+                        <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-sans transition-colors duration-300 space-y-3", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
+                          <div className={cn("flex items-center justify-between border-b pb-2.5 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-cyan-400" />
+                              <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Colaboradores da Empresa</span>
+                            </div>
+                            <span className="text-[9px] text-slate-400 font-mono">{teamMembers.length} membros</span>
                           </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5 animate-pulse">
-                              <span className="text-emerald-500">CND Federal (RFB/PGFN)</span>
-                              <span className="bg-emerald-500/20 text-emerald-500 text-[9px] px-1.5 py-0.5 rounded font-bold border border-emerald-500/30">REGULAR</span>
-                            </div>
-                            <div className="flex justify-between items-center bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5">
-                              <span className="text-amber-400">Certidão do FGTS (CRF)</span>
-                              <span className="bg-amber-500/20 text-amber-400 text-[9px] px-1.5 py-0.5 rounded font-bold border border-amber-500/30">VENCE EM 8 DIAS</span>
-                            </div>
-                            <div className="flex justify-between items-center bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5">
-                              <span className="text-rose-400">CND Municipal (São Paulo)</span>
-                              <span className="bg-rose-500/20 text-rose-400 text-[9px] px-1.5 py-0.5 rounded font-bold border border-rose-500/30">EXPIRADA</span>
-                            </div>
+
+                          {/* Form de Convite Simulado sem select de cargo */}
+                          <form onSubmit={handleInviteMember} className="flex gap-2">
+                            <input
+                              type="email"
+                              placeholder="Convidar colaborador por e-mail..."
+                              value={newMemberEmail}
+                              onChange={(e) => setNewMemberEmail(e.target.value)}
+                              className={cn("flex-1 border rounded-lg px-2.5 py-1.5 text-[10px] focus:outline-none transition-colors duration-300 font-mono", isDarkTheme ? "bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50" : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-[#0d6084]/50")}
+                            />
+                            <button
+                              type="submit"
+                              className="bg-[#0d6084] hover:bg-[#0b5474] text-white text-[10px] font-bold px-3 py-1.5 rounded-lg border border-cyan-500/20 flex items-center gap-1 cursor-pointer shrink-0"
+                            >
+                              <UserPlus className="w-3 h-3" /> Convidar
+                            </button>
+                          </form>
+
+                          {/* Lista de Membros */}
+                          <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                            {teamMembers.map((member) => (
+                              <div
+                                key={member.id}
+                                className={cn(
+                                  "flex justify-between items-center border rounded-xl p-2.5 transition-all duration-200",
+                                  isDarkTheme ? "bg-[#08101d] border-cyan-500/5 dark:bg-[#08101d] dark:border-cyan-500/5" : "bg-white border-slate-200 dark:bg-[#08101d] dark:border-cyan-500/5"
+                                )}
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#0d6084] to-[#0a4a62] text-cyan-200 flex items-center justify-center font-bold text-xs border border-cyan-400/30">
+                                    {member.name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <div className={cn("font-bold text-[11px]", isDarkTheme ? "text-slate-200" : "text-slate-800")}>{member.name}</div>
+                                    <div className="text-[9px] text-slate-500 font-mono">{member.email} • <span className="text-cyan-400 font-semibold">{member.role}</span></div>
+                                  </div>
+                                </div>
+                                <span className={cn(
+                                  "text-[9px] px-2 py-0.5 rounded font-bold border font-mono",
+                                  member.status === 'Ativo'
+                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                                    : "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                                )}>
+                                  {member.status}
+                                </span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
                     </motion.div>
                   )}
 
+                  {/* 3. BI2B CHAMADOS (CHAT SUPORTE REALTIME) */}
                   {modalTab === 'connect' && (
                     <motion.div
                       key="connect"
@@ -578,13 +732,13 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                         >
                           <MessageSquare className="h-6 w-6" />
                         </div>
-                        <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Bi2B Chamados (Chat)</h3>
+                        <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Bi2B Chamados</h3>
                         <p className={cn("text-sm leading-relaxed transition-colors duration-300", isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-600 dark:text-slate-300")}>
-                          Envie mensagens em tempo real para seu suporte contábil. Uma interface fluida e de resposta imediata com histórico completo dos chamados.
+                          Comunicação direta com o suporte da Bi2B com histórico completo e status de chamados. Esclareça dúvidas fiscais, receba orientações e acompanhe o andamento dos seus tickets.
                         </p>
                         <div className={cn("border rounded-xl p-3 text-[10px] italic flex gap-2 items-center transition-colors duration-300", isDarkTheme ? "bg-cyan-950/20 border-cyan-500/10 text-cyan-300 dark:bg-cyan-950/20 dark:border-cyan-500/10 dark:text-cyan-300" : "bg-cyan-50 border-cyan-200/50 text-[#0d6084] dark:bg-cyan-950/20 dark:border-cyan-500/10 dark:text-cyan-300")}>
                           <Sparkles className="w-4 h-4 shrink-0 text-cyan-500 animate-pulse" />
-                          Experimente digitar no chat ao lado! A inteligência de simulação responderá.
+                          Experimente enviar uma mensagem no chat interativo ao lado!
                         </div>
                       </div>
 
@@ -595,9 +749,9 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                           <div className={cn("flex items-center justify-between border-b pb-2 text-xs transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
                             <div className="flex items-center gap-2">
                               <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                              <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Suporte Contábil (Online)</span>
+                              <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Suporte Contábil • Setor Fiscal</span>
                             </div>
-                            <span className="text-[9px] text-slate-500 uppercase">Chamado #1048</span>
+                            <span className="text-[9px] text-slate-500 font-mono">Chamado #1048</span>
                           </div>
 
                           {/* Lista de Mensagens */}
@@ -606,7 +760,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                               <div
                                 key={i}
                                 className={cn(
-                                  "max-w-[85%] rounded-2xl p-2.5 flex flex-col gap-0.5 transition-colors duration-300",
+                                  "max-w-[85%] rounded-2xl p-2.5 flex flex-col gap-0.5 transition-colors duration-300 font-sans",
                                   msg.sender === 'client'
                                     ? (isDarkTheme 
                                         ? "bg-cyan-950/60 border border-cyan-500/10 text-slate-100 self-end rounded-tr-none dark:bg-cyan-950/60 dark:border-cyan-500/10 dark:text-slate-100" 
@@ -617,23 +771,35 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                                 )}
                               >
                                 <p className="leading-relaxed">{msg.text}</p>
-                                <span className="text-[8px] text-slate-500 text-right self-end mt-0.5">{msg.time}</span>
+                                <span className="text-[8px] text-slate-500 text-right self-end mt-0.5 font-mono">{msg.time}</span>
                               </div>
                             ))}
+                            <div ref={chatEndRef} />
                           </div>
 
                           {/* Input do Chat */}
                           <form onSubmit={handleSendChat} className={cn("flex gap-2 border-t pt-2.5 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
                             <input
                               type="text"
-                              placeholder="Digite sua dúvida contábil..."
+                              placeholder="Digite sua mensagem para o suporte..."
                               value={newMsg}
+                              disabled={chatSentCount >= 2}
                               onChange={(e) => setNewMsg(e.target.value)}
-                              className={cn("flex-1 border rounded-lg px-3 py-2 text-[11px] focus:outline-none transition-colors duration-300", isDarkTheme ? "bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50 dark:bg-slate-950 dark:border-slate-800 dark:text-white" : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-[#0d6084]/50 dark:bg-slate-950 dark:border-slate-800 dark:text-white")}
+                              className={cn(
+                                "flex-1 border rounded-lg px-3 py-2 text-[11px] focus:outline-none transition-colors duration-300",
+                                chatSentCount >= 2 ? "opacity-60 cursor-not-allowed" : "",
+                                isDarkTheme ? "bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50 dark:bg-slate-950 dark:border-slate-800 dark:text-white" : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-[#0d6084]/50 dark:bg-slate-950 dark:border-slate-800 dark:text-white"
+                              )}
                             />
                             <button
                               type="submit"
-                              className="bg-[#0d6084] hover:bg-[#0b5474] text-white rounded-lg px-3 flex items-center justify-center border border-cyan-500/20 cursor-pointer"
+                              disabled={chatSentCount >= 2}
+                              className={cn(
+                                "rounded-lg px-3 flex items-center justify-center border transition-all",
+                                chatSentCount >= 2
+                                  ? "bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed"
+                                  : "bg-[#0d6084] hover:bg-[#0b5474] text-white border-cyan-500/20 cursor-pointer"
+                              )}
                             >
                               <Send className="w-3.5 h-3.5" />
                             </button>
@@ -643,6 +809,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                     </motion.div>
                   )}
 
+                  {/* 4. TAREFAS BI2B (GESTAO DE GUIAS, ENVIOS E PRAZOS) */}
                   {modalTab === 'task' && (
                     <motion.div
                       key="task"
@@ -663,51 +830,66 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                         </div>
                         <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Tarefas Bi2B</h3>
                         <p className={cn("text-sm leading-relaxed transition-colors duration-300", isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-600 dark:text-slate-300")}>
-                          Gerenciador visual das guias mensais, impostos e obrigações trabalhistas. Evite atrasos acompanhando o status de cada entrega diretamente no seu painel.
+                          Campo para envio mensal de notas fiscais e documentos para verificação contábil e fiscal. Acompanhe os prazos limite e faça o envio de movimentações sem complicação.
                         </p>
                         <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-300", isDarkTheme ? "text-slate-400 dark:text-slate-400" : "text-slate-600 dark:text-slate-400")}>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Data limite de entrega e prazos calculados
+                            Envio mensal de notas fiscais (XML) e extratos
                           </li>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Confirmação de recebimento assinada digitalmente
+                            Acompanhamento em tempo real de status e prazos
                           </li>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Filtros de status (Em aberto, Concluído, Em atraso)
+                            Confirmação de recebimento para o setor fiscal
                           </li>
                         </ul>
                       </div>
 
                       {/* Prévia Tarefas Bi2B */}
                       <div className="md:col-span-6">
-                        <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono transition-colors duration-300", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
-                          <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
-                            <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Obrigações e Impostos</span>
-                            <span className="text-[9px] text-slate-500 font-mono">Julho 2025</span>
+                        <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono transition-colors duration-300 space-y-3", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
+                          <div className={cn("flex items-center justify-between border-b pb-2.5 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
+                            <div>
+                              <span className={cn("font-bold block transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Envios e Solicitações Mensais</span>
+                              <span className="text-[9px] text-slate-500 font-normal">Clique para simular o envio do documento</span>
+                            </div>
+                            <span className="text-[9px] text-cyan-400 font-mono font-bold">Agosto 2026</span>
                           </div>
                           <div className="space-y-2">
-                            {[
-                              { task: 'Gerar DAS Simples Nacional', date: 'Vence em 20/07', status: 'Concluído', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-                              { task: 'Cálculo de Folha de Pagamento', date: 'Vence em 05/08', status: 'Em Aberto', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
-                              { task: 'Declaração Mensal ISS', date: 'Vence em 15/07', status: 'Atrasado', color: 'bg-rose-500/20 text-rose-400 border-rose-500/30' }
-                            ].map((t, idx) => (
+                            {tasksData.map((t) => (
                               <div 
-                                key={idx} 
+                                key={t.id} 
                                 className={cn(
-                                  "flex justify-between items-center border rounded-lg p-2.5 transition-all duration-200",
+                                  "flex justify-between items-center border rounded-xl p-3 transition-all duration-200",
                                   isDarkTheme ? "bg-[#08101d] border-cyan-500/5 dark:bg-[#08101d] dark:border-cyan-500/5" : "bg-white border-slate-200 dark:bg-[#08101d] dark:border-cyan-500/5"
                                 )}
                               >
                                 <div>
-                                  <div className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-slate-200 dark:text-slate-200" : "text-slate-700 dark:text-slate-200")}>{t.task}</div>
-                                  <div className="text-[9px] text-slate-500 flex items-center gap-1 mt-0.5">
-                                    <Clock className="w-2.5 h-2.5" /> {t.date}
+                                  <div className={cn("font-bold text-[11px] transition-colors duration-300", isDarkTheme ? "text-slate-200 dark:text-slate-200" : "text-slate-700 dark:text-slate-200")}>{t.title}</div>
+                                  <div className="text-[9px] text-slate-500 flex items-center gap-1.5 mt-1 font-mono">
+                                    <Clock className="w-2.5 h-2.5 text-cyan-400" />
+                                    <span>{t.due}</span>
+                                    <span>•</span>
+                                    <span className="text-slate-400">{t.cat}</span>
                                   </div>
                                 </div>
-                                <span className={cn("text-[9px] px-2 py-0.5 rounded font-bold border", t.color)}>{t.status}</span>
+                                <div>
+                                  {t.status === 'Concluído' ? (
+                                    <span className="text-[9px] px-2 py-1 rounded font-bold border bg-emerald-500/20 text-emerald-400 border-emerald-500/30 flex items-center gap-1">
+                                      <CheckCircle className="w-2.5 h-2.5" /> Enviado
+                                    </span>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleCompleteTask(t.id)}
+                                      className="text-[9px] px-2 py-1 rounded font-bold border bg-cyan-500/10 text-cyan-300 hover:bg-[#0d6084] hover:text-white border-cyan-500/30 transition-all cursor-pointer flex items-center gap-1"
+                                    >
+                                      <Plus className="w-2.5 h-2.5" /> Enviar Arquivo
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -716,6 +898,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                     </motion.div>
                   )}
 
+                  {/* 5. BI2B DRIVE (GESTAO DE ARQUIVOS DIGITAIS) */}
                   {modalTab === 'drive' && (
                     <motion.div
                       key="drive"
@@ -725,7 +908,7 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                       transition={{ duration: 0.3 }}
                       className="grid md:grid-cols-12 gap-8 items-center w-full"
                     >
-                      <div className="md:col-span-6 space-y-6 text-left">
+                      <div className="md:col-span-5 space-y-6 text-left">
                         <div 
                           className={cn(
                             "flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner transition-colors duration-300",
@@ -736,59 +919,105 @@ export function FeaturesSection({ isDark }: FeaturesSectionProps) {
                         </div>
                         <h3 className={cn("font-heading text-2xl font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white")}>Bi2B Drive</h3>
                         <p className={cn("text-sm leading-relaxed transition-colors duration-300", isDarkTheme ? "text-slate-300 dark:text-slate-300" : "text-slate-600 dark:text-slate-300")}>
-                          Gerenciamento inteligente de arquivos estruturados por categorias e pastas (Contrato Social, Balanços, RH, Fiscal). Faça uploads simples via drag-and-drop.
+                          Armazenamento organizado por pastas e upload de arquivos 100% digitais. Estruture documentos por categorias (Contábil, Fiscal, Societário, RH) e acesse em qualquer dispositivo.
                         </p>
                         <ul className={cn("space-y-2.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-300", isDarkTheme ? "text-slate-400 dark:text-slate-400" : "text-slate-600 dark:text-slate-400")}>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Busca instantânea por nome ou tag
+                            Busca por nome ou categoria
                           </li>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Categorização automática por tipo de documento
+                            Organização em pastas 100% digitais
                           </li>
                           <li className="flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                            Armazenamento criptografado
+                            Upload rápido e download seguro em nuvem
                           </li>
                         </ul>
                       </div>
 
-                      {/* Prévia Bi2B Drive */}
-                      <div className="md:col-span-6">
-                        <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono transition-colors duration-300", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
-                          <div className={cn("flex items-center justify-between border-b pb-2.5 mb-3 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
-                            <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Arquivos Compartilhados</span>
-                            <span className="text-[9px] text-cyan-400 flex items-center gap-0.5 cursor-pointer"><Plus className="w-2.5 h-2.5" /> Enviar</span>
+                      {/* Prévia Bi2B Drive Interativa */}
+                      <div className="md:col-span-7">
+                        <div className={cn("rounded-2xl border p-4 shadow-2xl text-[11px] text-left font-mono transition-colors duration-300 space-y-3", isDarkTheme ? "bg-[#050b14]/90 border-cyan-500/10 dark:bg-[#050b14]/90 dark:border-cyan-500/10" : "bg-slate-50 border-slate-200 dark:bg-[#050b14]/90 dark:border-cyan-500/10")}>
+                          <div className={cn("flex items-center justify-between border-b pb-2.5 transition-colors duration-300", isDarkTheme ? "border-cyan-950 dark:border-cyan-950" : "border-slate-200 dark:border-cyan-950")}>
+                            <span className={cn("font-bold transition-colors duration-300", isDarkTheme ? "text-white dark:text-white" : "text-slate-800 dark:text-white")}>Arquivos no Bi2B Drive</span>
+                            <button
+                              onClick={handleSimulateUpload}
+                              disabled={uploadSimulatedCount >= 3}
+                              className={cn(
+                                "text-[9px] px-2.5 py-1 rounded font-bold flex items-center gap-1 border transition-all font-mono",
+                                uploadSimulatedCount >= 3
+                                  ? "bg-slate-800/80 text-slate-500 border-slate-700 cursor-not-allowed opacity-60"
+                                  : "bg-[#0d6084] hover:bg-[#0b5474] text-white border-cyan-400/30 cursor-pointer"
+                              )}
+                            >
+                              <Plus className="w-2.5 h-2.5" /> Simular Upload
+                            </button>
                           </div>
-                          <div className="space-y-2">
-                            {[
-                              { file: 'Balanço Patrimonial 2025.pdf', size: '2.4 MB', cat: 'Contábil' },
-                              { file: 'Contrato Social Alterado.pdf', size: '1.8 MB', cat: 'Societário' },
-                              { file: 'Folha Pagamento Julho.xlsx', size: '950 KB', cat: 'RH / Trabalhista' }
-                            ].map((f, idx) => (
-                              <div 
-                                key={idx} 
-                                className={cn(
-                                  "flex items-center gap-3 border rounded-lg p-2.5 transition-all duration-200",
-                                  isDarkTheme ? "bg-[#08101d] border-cyan-500/5 dark:bg-[#08101d] dark:border-cyan-500/5" : "bg-white border-slate-200 dark:bg-[#08101d] dark:border-cyan-500/5"
-                                )}
-                              >
-                                <FileText className="h-5 w-5 text-cyan-400 shrink-0" />
-                                <div className="min-w-0 flex-1">
-                                  <div className={cn("font-bold truncate transition-colors duration-300", isDarkTheme ? "text-slate-200 dark:text-slate-200" : "text-slate-700 dark:text-slate-200")}>{f.file}</div>
-                                  <div className="text-[9px] text-slate-500 mt-0.5">{f.size} • {f.cat}</div>
-                                </div>
-                                <span className="text-[9px] text-cyan-400 cursor-pointer flex items-center gap-0.5">
-                                  <Download className="w-2.5 h-2.5" /> Baixar
-                                </span>
+
+                          {/* Campo de Busca e Categorias */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="relative flex-1 min-w-[140px]">
+                              <Search className="w-3 h-3 absolute left-2.5 top-2 text-slate-500" />
+                              <input
+                                type="text"
+                                placeholder="Buscar arquivo..."
+                                value={driveSearch}
+                                onChange={(e) => setDriveSearch(e.target.value)}
+                                className={cn("w-full border rounded-lg pl-7 pr-2 py-1 text-[10px] focus:outline-none transition-colors duration-300", isDarkTheme ? "bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50" : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-[#0d6084]/50")}
+                              />
+                            </div>
+                            <div className="flex items-center gap-1 overflow-x-auto text-[9px]">
+                              {['Todas', 'Contábil', 'Fiscal', 'RH'].map(cat => (
+                                <button
+                                  key={cat}
+                                  onClick={() => setDriveCategory(cat)}
+                                  className={cn(
+                                    "px-2 py-0.5 rounded border transition-colors cursor-pointer shrink-0 font-bold",
+                                    driveCategory === cat
+                                      ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/40"
+                                      : (isDarkTheme ? "bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white" : "bg-white border-slate-200 text-slate-600 hover:text-slate-900")
+                                  )}
+                                >
+                                  {cat}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Lista de Arquivos */}
+                          <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                            {filteredDriveFiles.length === 0 ? (
+                              <div className="text-center py-4 text-slate-500 text-[10px]">
+                                Nenhum arquivo encontrado nesta busca.
                               </div>
-                            ))}
+                            ) : (
+                              filteredDriveFiles.map((f) => (
+                                <div 
+                                  key={f.id} 
+                                  className={cn(
+                                    "flex items-center gap-3 border rounded-xl p-2.5 transition-all duration-200",
+                                    isDarkTheme ? "bg-[#08101d] border-cyan-500/5 dark:bg-[#08101d] dark:border-cyan-500/5" : "bg-white border-slate-200 dark:bg-[#08101d] dark:border-cyan-500/5"
+                                  )}
+                                >
+                                  <FileText className="h-4 w-4 text-cyan-400 shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <div className={cn("font-bold truncate text-[10px] transition-colors duration-300", isDarkTheme ? "text-slate-200 dark:text-slate-200" : "text-slate-700 dark:text-slate-200")}>{f.name}</div>
+                                    <div className="text-[8px] text-slate-500 mt-0.5">{f.size} • <span className="text-cyan-400">{f.cat}</span></div>
+                                  </div>
+                                  <span className="text-[9px] text-cyan-400 hover:text-cyan-300 cursor-pointer flex items-center gap-0.5 font-bold shrink-0">
+                                    <Download className="w-2.5 h-2.5" /> Baixar
+                                  </span>
+                                </div>
+                              ))
+                            )}
                           </div>
                         </div>
                       </div>
                     </motion.div>
                   )}
+
                 </AnimatePresence>
               </motion.div>
             </div>

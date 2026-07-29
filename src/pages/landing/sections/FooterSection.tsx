@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import logoPng from '@/assets/logo.png'
 import logoAzulPng from '@/assets/logoazul.png'
 import { getAdminSubdomainUrl } from '@/utils/subdomain'
-import { MessageCircle, MapPin, Mail, Phone, ShieldCheck } from 'lucide-react'
+import { MessageCircle, MapPin, Mail, Phone, } from 'lucide-react'
 
 interface FooterSectionProps {
   isDark: boolean
@@ -14,6 +14,11 @@ interface FooterSectionProps {
 export function FooterSection({ isDark }: FooterSectionProps) {
   const navigate = useNavigate()
   const currentLogo = isDark ? logoPng : logoAzulPng
+
+  const scrollTo = (id: string) => {
+    const el = document.querySelector(id)
+    el?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   return (
     <footer
@@ -34,7 +39,7 @@ export function FooterSection({ isDark }: FooterSectionProps) {
               Bi2B Consultoria — Plataforma SaaS de gestão fiscal e contábil conectando empresas e contabilidade em tempo real com máxima segurança e automação.
             </p>
             
-            {/* Social Media Links — HubStrom & Fingu style */}
+            {/* Social Media Links */}
             <div className="flex items-center gap-3 pt-2">
               <a
                 href="https://linkedin.com"
@@ -70,47 +75,47 @@ export function FooterSection({ isDark }: FooterSectionProps) {
             </div>
           </div>
 
-          {/* Links Column 1: Módulos */}
+          {/* Links Column 1: Soluções */}
           <div>
             <h4 className={cn("text-xs font-extrabold uppercase tracking-[0.2em] mb-4", isDark ? "text-slate-100" : "text-white")}>Soluções</h4>
             <ul className="space-y-3 text-xs font-medium">
               {[
                 { label: 'Guias Bi2B', href: '#solucoes' },
-                { label: 'Monitora Bi2B', href: '#solucoes' },
+                { label: 'Equipe & Permissões', href: '#solucoes' },
                 { label: 'Bi2B Chamados', href: '#solucoes' },
                 { label: 'Tarefas Bi2B', href: '#solucoes' },
                 { label: 'Bi2B Drive', href: '#solucoes' },
               ].map((item) => (
                 <li key={item.label}>
-                  <a
-                    href={item.href}
-                    className="text-slate-400 hover:text-cyan-300 transition-colors duration-300"
+                  <button
+                    onClick={() => scrollTo(item.href)}
+                    className="text-slate-400 hover:text-cyan-300 transition-colors duration-300 text-left cursor-pointer"
                   >
                     {item.label}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Links Column 2: Sobre & Planos */}
+          {/* Links Column 2: Navegação */}
           <div>
             <h4 className={cn("text-xs font-extrabold uppercase tracking-[0.2em] mb-4", isDark ? "text-slate-100" : "text-white")}>Navegação</h4>
             <ul className="space-y-3 text-xs font-medium">
               {[
                 { label: 'Como Funciona', href: '#como-funciona' },
-                { label: 'Resultados & Métricas', href: '#resultados' },
-                { label: 'Depoimentos', href: '#depoimentos' },
-                { label: 'Planos & Pacotes', href: '#planos' },
-                { label: 'FAQ', href: '#faq' },
+                { label: 'Soluções', href: '#solucoes' },
+                { label: 'Resultados', href: '#resultados' },
+                { label: 'Planos & Preços', href: '#planos' },
+                { label: 'Contato', href: '#contato' },
               ].map((item) => (
                 <li key={item.label}>
-                  <a
-                    href={item.href}
-                    className="text-slate-400 hover:text-cyan-300 transition-colors duration-300"
+                  <button
+                    onClick={() => scrollTo(item.href)}
+                    className="text-slate-400 hover:text-cyan-300 transition-colors duration-300 text-left cursor-pointer"
                   >
                     {item.label}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -118,23 +123,19 @@ export function FooterSection({ isDark }: FooterSectionProps) {
 
           {/* Links Column 3: Contato & Endereço */}
           <div>
-            <h4 className={cn("text-xs font-extrabold uppercase tracking-[0.2em] mb-4", isDark ? "text-slate-100" : "text-white")}>Atendimento & Sede</h4>
+            <h4 className={cn("text-xs font-extrabold uppercase tracking-[0.2em] mb-4", isDark ? "text-slate-100" : "text-white")}>Atendimento</h4>
             <div className="space-y-3 text-xs text-slate-400">
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                <span>São Paulo — SP, Brasil</span>
+                <span>Palmas-TO, Brasil</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span>comercial@bi2b.com.br</span>
+                <span>contato@bi2b.com.br</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span>(11) 99999-9999</span>
-              </div>
-              <div className="pt-2 flex items-center gap-1.5 text-emerald-400 text-[11px] font-semibold">
-                <ShieldCheck className="w-4 h-4 shrink-0" />
-                <span>100% LGPD Compliant</span>
+                <span>(99) 99999-9999</span>
               </div>
             </div>
           </div>

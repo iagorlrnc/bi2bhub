@@ -51,6 +51,7 @@ export function LandingPage() {
     { label: 'Soluções', href: '#solucoes' },
     { label: 'Resultados', href: '#resultados' },
     { label: 'Planos', href: '#planos' },
+    { label: 'Contato', href: '#contato' },
   ]
 
   const scrollTo = (id: string) => {

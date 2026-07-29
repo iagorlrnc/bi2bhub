@@ -82,9 +82,11 @@ export function HeroSection({ isDark }: HeroSectionProps) {
               isDarkTheme ? "text-white dark:text-white" : "text-slate-900 dark:text-white"
             )}
           >
-            Conecte sua empresa à <br className="hidden sm:inline" />
+            {/* Conecte sua empresa à <br className="hidden sm:inline" /> */}
             <span className="bg-gradient-to-r from-cyan-400 via-[#38bdf8] to-[#0d6084] bg-clip-text text-transparent">
-              contabilidade em tempo real
+              Inteligência 
+            </span> para sua <span className="bg-gradient-to-r from-cyan-400 via-[#38bdf8] to-[#0d6084] bg-clip-text text-transparent">
+              gestão 
             </span>
           </motion.h1>
 
@@ -92,11 +94,11 @@ export function HeroSection({ isDark }: HeroSectionProps) {
           <motion.p
             variants={fadeInUp}
             className={cn(
-              "text-base sm:text-lg md:text-xl leading-relaxed max-w-2xl font-normal text-balance transition-colors duration-300",
+              "text-base sm:text-lg md:text-xl leading-relaxed max-w-4xl font-normal text-balance transition-colors duration-300",
               isDarkTheme ? "text-slate-300/90 dark:text-slate-300/90" : "text-slate-600 dark:text-slate-300/90"
             )}
           >
-            Impostos automatizados, varredura de certidões, documentos centralizados e atendimento em um portal inteligente feito para acelerar sua tomada de decisão.
+            Soluções completas em consultoria, dados e gestão contábil para transformar informação em decisão e dar mais clareza ao crescimento do seu negócio.
           </motion.p>
         </motion.div>
 
