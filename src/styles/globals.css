@@ -147,24 +147,27 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* ===== BASE STYLES & TRANSIÇÃO SIMULTÂNEA DE TEMA ===== */
-*,
-*::before,
-*::after {
+/* ===== TRANSIÇÃO 100% SINCRONIZADA E IDÊNTICA PARA ALTERNÂNCIA DE TEMA (CLARO / ESCURO) ===== */
+html.dark,
+html.light,
+html.dark *,
+html.light *,
+html.dark *::before,
+html.light *::before,
+html.dark *::after,
+html.light *::after {
   border-color: hsl(var(--border));
-  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              fill 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              stroke 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-property: background-color, border-color, color, fill, stroke !important;
+  transition-duration: 200ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Desativar transição em elementos animados para não interferir com animações */
 .animate-spin,
+.animate-spin *,
 .animate-ping,
 .animate-pulse,
-.animate-bounce,
-.animate-spin * {
+.animate-bounce {
   transition: none !important;
 }
 

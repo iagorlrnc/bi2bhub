@@ -28,19 +28,26 @@ interface ThemeProviderProps {
   defaultTheme?: Theme
 }
 
+function applyThemeToDOM(resolved: 'light' | 'dark') {
+  if (typeof document === 'undefined') return
+  const root = document.documentElement
+  root.classList.remove('light', 'dark')
+  root.classList.add(resolved)
+}
+
 export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(defaultTheme ?? getStoredTheme())
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(
-    theme === 'system' ? getSystemTheme() : theme
-  )
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
+    const initial = defaultTheme ?? getStoredTheme()
+    const resolved = initial === 'system' ? getSystemTheme() : initial
+    applyThemeToDOM(resolved)
+    return resolved
+  })
 
   useEffect(() => {
     const resolved = theme === 'system' ? getSystemTheme() : theme
+    applyThemeToDOM(resolved)
     setResolvedTheme(resolved)
-
-    const root = document.documentElement
-    root.classList.remove('light', 'dark')
-    root.classList.add(resolved)
     localStorage.setItem(THEME_STORAGE_KEY, theme)
   }, [theme])
 
@@ -50,9 +57,9 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handler = (e: MediaQueryListEvent) => {
-      setResolvedTheme(e.matches ? 'dark' : 'light')
-      document.documentElement.classList.remove('light', 'dark')
-      document.documentElement.classList.add(e.matches ? 'dark' : 'light')
+      const resolved = e.matches ? 'dark' : 'light'
+      applyThemeToDOM(resolved)
+      setResolvedTheme(resolved)
     }
 
     mediaQuery.addEventListener('change', handler)
@@ -60,15 +67,19 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
   }, [theme])
 
   const setTheme = (newTheme: Theme) => {
+    const resolved = newTheme === 'system' ? getSystemTheme() : newTheme
+    applyThemeToDOM(resolved)
+    setResolvedTheme(resolved)
     setThemeState(newTheme)
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme)
   }
 
   const toggleTheme = () => {
-    setThemeState((prev) => {
-      if (prev === 'light') return 'dark'
-      if (prev === 'dark') return 'light'
-      return getSystemTheme() === 'dark' ? 'light' : 'dark'
-    })
+    const nextResolved = resolvedTheme === 'dark' ? 'light' : 'dark'
+    applyThemeToDOM(nextResolved)
+    setResolvedTheme(nextResolved)
+    setThemeState(nextResolved)
+    localStorage.setItem(THEME_STORAGE_KEY, nextResolved)
   }
 
   return (
