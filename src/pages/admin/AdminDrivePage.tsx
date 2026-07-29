@@ -19,7 +19,9 @@ import {
   FileSpreadsheet,
   Database,
   Info,
-  Pencil
+  Pencil,
+  Eye,
+  Download
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -27,6 +29,7 @@ import { MAX_FILE_SIZE, ALLOWED_FILE_TYPES } from '@/constants'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity } from '@/lib/audit'
+import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
 
 export function AdminDrivePage() {
   const { user } = useAuth()
@@ -41,7 +44,18 @@ export function AdminDrivePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
+  const [previewFile, setPreviewFile] = useState<PreviewFile | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleOpenFilePreview = (file: any) => {
+    setPreviewFile({
+      name: file.name,
+      filePath: file.file_path,
+      bucket: 'documents',
+      size: file.file_size,
+      type: file.file_type
+    })
+  }
 
   // Estado para criação e edição de pasta
   const [isOpenFolderModal, setIsOpenFolderModal] = useState(false)
@@ -893,9 +907,9 @@ export function AdminDrivePage() {
                                   <tr key={file.id} className="hover:bg-[hsl(var(--muted))]/30 transition-colors group">
                                     <td className="py-3 px-5 font-medium min-w-0 max-w-0">
                                       <div 
-                                        onClick={() => handleDownload(file)}
+                                        onClick={() => handleOpenFilePreview(file)}
                                         className="flex items-center gap-3 min-w-0 cursor-pointer group/name hover:text-brand-600 dark:hover:text-brand-400"
-                                        title={`Clique para baixar ${file.name}`}
+                                        title={`Clique para visualizar ${file.name}`}
                                       >
                                         <div className={cn("p-2 rounded-xl shrink-0 border border-[hsl(var(--border))]/40", fileMeta.colorClass)}>
                                           {fileMeta.icon}
@@ -960,9 +974,9 @@ export function AdminDrivePage() {
                             >
                               <div className="flex items-start justify-between gap-4 min-w-0">
                                 <div 
-                                  onClick={() => handleDownload(file)}
+                                  onClick={() => handleOpenFilePreview(file)}
                                   className={cn("p-3 rounded-xl border border-[hsl(var(--border))]/40 cursor-pointer hover:scale-105 transition-transform shrink-0", fileMeta.colorClass)}
-                                  title="Clique para baixar"
+                                  title="Clique para visualizar"
                                 >
                                   {fileMeta.icon}
                                 </div>
@@ -992,9 +1006,9 @@ export function AdminDrivePage() {
                               </div>
 
                               <div 
-                                onClick={() => handleDownload(file)}
+                                onClick={() => handleOpenFilePreview(file)}
                                 className="mt-4 min-w-0 cursor-pointer"
-                                title={`Clique para baixar ${file.name}`}
+                                title={`Clique para visualizar ${file.name}`}
                               >
                                 <h4 className="truncate block min-w-0 text-sm font-bold text-[hsl(var(--foreground))] group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors hover:underline" title={file.name}>
                                   {file.name}
@@ -1194,6 +1208,13 @@ export function AdminDrivePage() {
           </div>
         </div>
       )}
+
+      {/* Modal de Pré-visualização de Arquivo */}
+      <FilePreviewModal
+        isOpen={!!previewFile}
+        onClose={() => setPreviewFile(null)}
+        file={previewFile}
+      />
     </div>
   )
 }

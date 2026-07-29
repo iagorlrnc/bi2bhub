@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
   ScrollText, Search, Eye, Terminal, Loader2, Download,
-  Filter, X, ShieldAlert, LogIn, Edit3, Copy, Check, ChevronLeft, ChevronRight, AlertCircle, FileText
+  Filter, X, ShieldAlert, LogIn, Edit3, Copy, Check, ChevronLeft, ChevronRight, AlertCircle, FileText, Building2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
@@ -15,6 +15,7 @@ export function AuditPage() {
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('')
+  const [companyFilter, setCompanyFilter] = useState<string>('all')
   const [actionCategoryFilter, setActionCategoryFilter] = useState<string>('all')
   const [moduleFilter, setModuleFilter] = useState<string>('all')
   const [periodFilter, setPeriodFilter] = useState<string>('all')
@@ -86,6 +87,7 @@ export function AuditPage() {
     return logs.filter(log => {
       const user = log.profile?.full_name || 'Usuário Desconhecido'
       const email = log.profile?.email || ''
+      const companyName = log.company?.name || ''
       const action = log.action || ''
       const actionType = getActionType(log.action)
       const entity = log.entity_type || ''
@@ -98,21 +100,32 @@ export function AuditPage() {
         !searchTerm ||
         user.toLowerCase().includes(search) ||
         email.toLowerCase().includes(search) ||
+        companyName.toLowerCase().includes(search) ||
         action.toLowerCase().includes(search) ||
         actionType.toLowerCase().includes(search) ||
         entity.toLowerCase().includes(search) ||
         ip.toLowerCase().includes(search) ||
         metadataStr.toLowerCase().includes(search)
 
-      // 2. Filtro por Categoria de Ação
+      // 2. Filtro por Empresa
+      let matchesCompany = true
+      if (companyFilter !== 'all') {
+        if (companyFilter === 'system') {
+          matchesCompany = !log.company_id
+        } else {
+          matchesCompany = log.company_id === companyFilter
+        }
+      }
+
+      // 3. Filtro por Categoria de Ação
       const matchesCategory =
         actionCategoryFilter === 'all' || actionType === actionCategoryFilter
 
-      // 3. Filtro por Módulo / Entidade
+      // 4. Filtro por Módulo / Entidade
       const matchesModule =
         moduleFilter === 'all' || entity.toLowerCase() === moduleFilter.toLowerCase()
 
-      // 4. Filtro por Período
+      // 5. Filtro por Período
       let matchesPeriod = true
       if (periodFilter !== 'all') {
         const logDate = new Date(log.created_at)
@@ -127,9 +140,9 @@ export function AuditPage() {
         }
       }
 
-      return matchesSearch && matchesCategory && matchesModule && matchesPeriod
+      return matchesSearch && matchesCompany && matchesCategory && matchesModule && matchesPeriod
     })
-  }, [logs, searchTerm, actionCategoryFilter, moduleFilter, periodFilter])
+  }, [logs, searchTerm, companyFilter, actionCategoryFilter, moduleFilter, periodFilter])
 
   // KPIs Resumo baseados nos dados filtrados/totais
   const kpis = useMemo(() => {
@@ -157,11 +170,12 @@ export function AuditPage() {
   // Resetar página quando alterar filtros
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, actionCategoryFilter, moduleFilter, periodFilter, pageSize])
+  }, [searchTerm, companyFilter, actionCategoryFilter, moduleFilter, periodFilter, pageSize])
 
   // Limpar Filtros
   const handleClearFilters = () => {
     setSearchTerm('')
+    setCompanyFilter('all')
     setActionCategoryFilter('all')
     setModuleFilter('all')
     setPeriodFilter('all')
@@ -169,6 +183,7 @@ export function AuditPage() {
 
   const hasActiveFilters =
     searchTerm !== '' ||
+    companyFilter !== 'all' ||
     actionCategoryFilter !== 'all' ||
     moduleFilter !== 'all' ||
     periodFilter !== 'all'
@@ -180,12 +195,13 @@ export function AuditPage() {
       return
     }
 
-    const headers = ['ID', 'Data/Hora', 'Usuario', 'Email', 'Acao', 'Tipo Acao', 'Modulo', 'IP', 'Metadata']
+    const headers = ['ID', 'Data/Hora', 'Usuario', 'Email', 'Empresa', 'Acao', 'Tipo Acao', 'Modulo', 'IP', 'Metadata']
     const rows = filteredLogs.map(l => [
       l.id,
       new Date(l.created_at).toLocaleString('pt-BR'),
       `"${l.profile?.full_name || 'Desconhecido'}"`,
       `"${l.profile?.email || 'N/A'}"`,
+      `"${l.company?.name || 'Sistema/Geral'}"`,
       `"${l.action || ''}"`,
       getActionType(l.action),
       `"${l.entity_type || ''}"`,
@@ -231,6 +247,21 @@ export function AuditPage() {
     toast.success('Payload JSON copiado para a área de transferência!')
     setTimeout(() => setCopied(false), 2000)
   }
+
+  // Extrair empresas únicas existentes nos logs para o select
+  const uniqueCompanies = useMemo(() => {
+    const compMap = new Map<string, string>()
+    logs.forEach(l => {
+      if (l.company_id && l.company?.name) {
+        compMap.set(l.company_id, l.company.name)
+      } else if (l.company_id) {
+        compMap.set(l.company_id, `Empresa (${l.company_id.slice(0, 8)}...)`)
+      }
+    })
+    return Array.from(compMap.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+  }, [logs])
 
   // Extrair módulos únicos existentes nos logs para o select
   const uniqueModules = useMemo(() => {
@@ -341,7 +372,7 @@ export function AuditPage() {
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs font-bold text-[hsl(var(--foreground))]">
             <Filter className="h-3.5 w-3.5 text-brand-500" />
-            <span>Filtros de Pesquisa e Auditoria</span>
+            <span>Filtros de Pesquisa e Auditoria de Empresas</span>
           </div>
 
           {hasActiveFilters && (
@@ -355,17 +386,34 @@ export function AuditPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
           {/* Busca por Texto */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]" />
             <input
               type="text"
-              placeholder="Pesquisar por usuário, ação, IP..."
+              placeholder="Pesquisar por usuário, empresa, ação, IP..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] py-2 pl-9 pr-3 text-xs font-medium text-[hsl(var(--foreground))] focus:outline-none focus:border-brand-500 shadow-2xs transition-colors"
             />
+          </div>
+
+          {/* Filtro por Empresa */}
+          <div>
+            <select
+              value={companyFilter}
+              onChange={(e) => setCompanyFilter(e.target.value)}
+              className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] py-2 px-3 text-xs font-medium text-[hsl(var(--foreground))] focus:outline-none focus:border-brand-500 shadow-2xs transition-colors"
+            >
+              <option value="all">Todas as Empresas</option>
+              <option value="system">Sistema / Geral</option>
+              {uniqueCompanies.map((comp) => (
+                <option key={comp.id} value={comp.id}>
+                  {comp.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Categoria de Ação */}
@@ -424,6 +472,7 @@ export function AuditPage() {
               <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/50 text-[11px] font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
                 <th className="p-3.5 pl-4">Data / Hora</th>
                 <th className="p-3.5">Usuário / E-mail</th>
+                <th className="p-3.5">Empresa</th>
                 <th className="p-3.5">Tipo de Ação</th>
                 <th className="p-3.5">Ação Real Executada</th>
                 <th className="p-3.5">Tabela</th>
@@ -434,7 +483,7 @@ export function AuditPage() {
             <tbody className="divide-y divide-[hsl(var(--border))] text-xs font-mono">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-xs text-[hsl(var(--muted-foreground))] font-sans">
+                  <td colSpan={8} className="p-12 text-center text-xs text-[hsl(var(--muted-foreground))] font-sans">
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="h-5 w-5 animate-spin text-brand-500" />
                       <span>Carregando logs de auditoria...</span>
@@ -446,6 +495,7 @@ export function AuditPage() {
                   const type = getActionType(log.action)
                   const userName = log.profile?.full_name || 'Desconhecido'
                   const userEmail = log.profile?.email || ''
+                  const companyName = log.company?.name || 'Sistema / Geral'
 
                   return (
                     <tr key={log.id} className="hover:bg-[hsl(var(--muted))]/30 transition-colors">
@@ -465,6 +515,16 @@ export function AuditPage() {
                               {userEmail}
                             </span>
                           )}
+                        </div>
+                      </td>
+
+                      {/* Empresa */}
+                      <td className="p-3.5 font-sans">
+                        <div className="flex items-center gap-1.5" title={companyName}>
+                          <Building2 className="h-3.5 w-3.5 text-[hsl(var(--muted-foreground))] shrink-0" />
+                          <span className="font-semibold text-[hsl(var(--foreground))] truncate max-w-[140px]">
+                            {companyName}
+                          </span>
                         </div>
                       </td>
 
@@ -531,7 +591,7 @@ export function AuditPage() {
               ) : (
                 /* Estado Vazio Real - Conforme regras da LGPD/Plano (Sem Dados Fictícios) */
                 <tr>
-                  <td colSpan={7} className="p-12 text-center font-sans">
+                  <td colSpan={8} className="p-12 text-center font-sans">
                     <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2">
                       <div className="p-3 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
                         <AlertCircle className="h-6 w-6" />
@@ -643,6 +703,21 @@ export function AuditPage() {
                 </p>
                 {selectedLog.profile?.email && (
                   <p className="text-[11px] text-[hsl(var(--muted-foreground))]">{selectedLog.profile.email}</p>
+                )}
+              </div>
+
+              <div className="p-3 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--background))]">
+                <span className="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Empresa</span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <Building2 className="h-3.5 w-3.5 text-brand-500 shrink-0" />
+                  <p className="font-bold text-[hsl(var(--foreground))] truncate">
+                    {selectedLog.company?.name || 'Sistema / Geral'}
+                  </p>
+                </div>
+                {selectedLog.company_id && (
+                  <p className="text-[10px] font-mono text-[hsl(var(--muted-foreground))] mt-0.5">
+                    ID: {selectedLog.company_id}
+                  </p>
                 )}
               </div>
 

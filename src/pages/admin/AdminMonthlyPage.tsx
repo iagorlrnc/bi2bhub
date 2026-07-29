@@ -11,11 +11,13 @@ import {
   Archive,
   Building2,
   Calendar,
+  Eye,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
 
 interface MonthlyCategory {
   slug: string
@@ -88,7 +90,16 @@ export function AdminMonthlyPage() {
   const [monthlyDocs, setMonthlyDocs] = useState<Record<string, any>>({})
   const [loadingMonthly, setLoadingMonthly] = useState(false)
   const [uploadingSlug, setUploadingSlug] = useState<string | null>(null)
+  const [previewFile, setPreviewFile] = useState<PreviewFile | null>(null)
   const monthList = getMonthList()
+
+  const handleOpenDocPreview = (name: string, filePath: string) => {
+    setPreviewFile({
+      name,
+      filePath,
+      bucket: 'documents'
+    })
+  }
 
   // Buscar lista de empresas no mount
   useEffect(() => {
@@ -410,20 +421,21 @@ export function AdminMonthlyPage() {
                     ) : doc ? (
                       <div className="space-y-1">
                         <p
-                          className="text-[9px] text-[hsl(var(--muted-foreground))] truncate"
-                          title={doc.name}
+                          onClick={() => handleOpenDocPreview(doc.name, doc.file_path)}
+                          className="text-[10px] font-bold text-brand-600 dark:text-brand-400 truncate cursor-pointer hover:underline"
+                          title={`Clique para visualizar ${doc.name}`}
                         >
                           {doc.name}
                         </p>
 
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-1.5 pt-0.5">
                           <button
-                            onClick={() => handleDownloadMonthlyDoc(doc.file_path)}
-                            className="flex-1 py-1 px-2 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] font-bold text-[hsl(var(--foreground))] flex items-center justify-center gap-1 transition-colors"
-                            title="Baixar arquivo recebido"
+                            onClick={() => handleOpenDocPreview(doc.name, doc.file_path)}
+                            className="flex-1 py-1 px-2 rounded bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-[10px] font-bold text-brand-600 dark:text-brand-400 flex items-center justify-center gap-1 transition-colors"
+                            title="Visualizar documento no modal"
                           >
-                            <Download className="h-3 w-3" />
-                            Baixar
+                            <Eye className="h-3 w-3" />
+                            Ver Documento
                           </button>
                           <button
                             onClick={() => handleDeleteMonthlyDoc(doc.id, doc.file_path)}
@@ -469,6 +481,12 @@ export function AdminMonthlyPage() {
           </p>
         </div>
       )}
+
+      <FilePreviewModal
+        isOpen={!!previewFile}
+        onClose={() => setPreviewFile(null)}
+        file={previewFile}
+      />
     </div>
   )
 }

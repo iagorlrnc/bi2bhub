@@ -9,12 +9,14 @@ import {
   X,
   Plus,
   Trash2,
+  Eye,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity } from '@/lib/audit'
 import { cn } from '@/lib/utils'
+import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
 
 interface TaxGuide {
   id: string
@@ -41,6 +43,15 @@ export function AdminTaxesPage() {
 
   const [taxes, setTaxes] = useState<TaxGuide[]>([])
   const [isLoadingTaxes, setIsLoadingTaxes] = useState(false)
+  const [previewFile, setPreviewFile] = useState<PreviewFile | null>(null)
+
+  const handleOpenTaxPreview = (name: string, filePath: string) => {
+    setPreviewFile({
+      name,
+      filePath,
+      bucket: 'documents'
+    })
+  }
 
   // Estados para nova guia
   const [isOpenModal, setIsOpenModal] = useState(false)
@@ -190,11 +201,76 @@ export function AdminTaxesPage() {
 
       if (dbError) throw dbError
 
-      toast.success('Guia tributária excluída!')
-      fetchTaxes()
-    } catch (err) {
+      if (selectedCompanyId && user?.id) {
+        logAuditActivity({
+          userId: user.id,
+          companyId: selectedCompanyId,
+          action: 'EXCLUIR_GUIA_IMPOSTO',
+          entityType: 'guias_fiscais',
+          entityId: taxId,
+          metadata: {
+            origin: 'Painel Admin',
+            file_path: filePath
+          }
+        })
+      }
+
+      toast.success('Guia de imposto excluída com sucesso!')
+      fetchTaxes(true)
+    } catch (err: any) {
       if (import.meta.env.DEV) console.error(err)
-      toast.error('Erro ao excluir guia tributária.')
+      toast.error('Erro ao excluir guia: ' + (err.message || 'Erro desconhecido'))
+    }
+  }
+
+  const handleCancelReceipt = async (taxId: string, receiptPath: string, currentTags: string[]) => {
+    if (!confirm('Deseja realmente cancelar o envio deste comprovante de pagamento?')) return
+
+    try {
+      if (receiptPath) {
+        await supabase.storage.from('documents').remove([receiptPath])
+      }
+
+      const updatedTags = (currentTags || []).filter(t => !t.startsWith('status:') && !t.startsWith('comprovante:'))
+
+      setTaxes(prevTaxes => prevTaxes.map(t => {
+        if (t.id === taxId) {
+          return {
+            ...t,
+            status: 'pendente',
+            receiptPath: undefined,
+            tags: updatedTags
+          }
+        }
+        return t
+      }))
+
+      const { error: dbErr } = await supabase
+        .from('documentos')
+        .update({ tags: updatedTags })
+        .eq('id', taxId)
+
+      if (dbErr) throw dbErr
+
+      if (selectedCompanyId && user?.id) {
+        logAuditActivity({
+          userId: user.id,
+          companyId: selectedCompanyId,
+          action: 'CANCELAR_COMPROVANTE_PAGAMENTO',
+          entityType: 'guias_fiscais',
+          entityId: taxId,
+          metadata: {
+            origin: 'Painel Admin',
+            receipt_path: receiptPath
+          }
+        })
+      }
+
+      toast.success('Envio do comprovante cancelado com sucesso!')
+    } catch (err: any) {
+      if (import.meta.env.DEV) console.error('Erro ao cancelar comprovante:', err)
+      toast.error('Erro ao cancelar envio do comprovante.')
+      fetchTaxes()
     }
   }
 
@@ -381,7 +457,7 @@ export function AdminTaxesPage() {
                       <th className="py-3 px-4">Vencimento</th>
                       <th className="py-3 px-4">Valor</th>
                       <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4">Guia (PDF)</th>
+                      <th className="py-3 px-4">Guia</th>
                       <th className="py-3 px-4 text-center">Comprovante</th>
                       <th className="py-3 px-4 text-center">Ações</th>
                     </tr>
@@ -417,24 +493,33 @@ export function AdminTaxesPage() {
                         </td>
                         <td className="py-3 px-4">
                           <button
-                            onClick={() => handleDownloadFile(tax.file_path)}
+                            onClick={() => handleOpenTaxPreview(tax.name, tax.file_path)}
                             className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-xs font-bold text-brand-600 dark:text-brand-400 transition-colors cursor-pointer shadow-none"
-                            title="Baixar Guia (PDF)"
+                            title="Visualizar PDF da Guia no Modal"
                           >
-                            <Download className="h-3.5 w-3.5" />
-                            Ver Guia (PDF)
+                            <Eye className="h-3.5 w-3.5" />
+                            Ver Guia
                           </button>
                         </td>
                         <td className="py-3 px-4 text-center">
                           {tax.receiptPath ? (
-                            <button
-                              onClick={() => handleDownloadFile(tax.receiptPath!)}
-                              className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer shadow-none"
-                              title="Baixar Comprovante de Pagamento"
-                            >
-                              <Download className="h-3.5 w-3.5" />
-                              Baixar Comprovante
-                            </button>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => handleOpenTaxPreview(`Recibo - ${tax.name}`, tax.receiptPath!)}
+                                className="inline-flex items-center gap-1 py-1 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer shadow-none"
+                                title="Visualizar Comprovante"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                                Ver Recibo
+                              </button>
+                              <button
+                                onClick={() => handleCancelReceipt(tax.id, tax.receiptPath!, tax.tags)}
+                                className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-rose-600 hover:bg-rose-500/10 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                                title="Cancelar envio do comprovante"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           ) : (
                             <span className="text-xs text-[hsl(var(--muted-foreground))] italic">
                               Não enviado
@@ -604,6 +689,12 @@ export function AdminTaxesPage() {
           </div>
         </div>
       )}
+
+      <FilePreviewModal
+        isOpen={!!previewFile}
+        onClose={() => setPreviewFile(null)}
+        file={previewFile}
+      />
     </div>
   )
 }

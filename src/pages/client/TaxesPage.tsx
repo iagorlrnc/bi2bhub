@@ -9,11 +9,14 @@ import {
   DollarSign,
   FileCheck,
   Building2,
+  Eye,
+  X
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity } from '@/lib/audit'
+import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
 
 interface TaxGuide {
   id: string
@@ -37,6 +40,15 @@ export function TaxesPage() {
   const [taxes, setTaxes] = useState<TaxGuide[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [uploadingId, setUploadingId] = useState<string | null>(null)
+  const [previewFile, setPreviewFile] = useState<PreviewFile | null>(null)
+
+  const handleOpenTaxPreview = (name: string, filePath: string) => {
+    setPreviewFile({
+      name,
+      filePath,
+      bucket: 'documents'
+    })
+  }
 
   // Parse tax details from document tags
   const parseTaxFromDoc = (doc: any): TaxGuide => {
@@ -206,6 +218,60 @@ export function TaxesPage() {
     }
   }
 
+  const handleCancelReceipt = async (taxId: string, receiptPath: string, currentTags: string[]) => {
+    if (!confirm('Deseja realmente cancelar o envio deste comprovante de pagamento?')) return
+    setUploadingId(taxId)
+
+    try {
+      if (receiptPath) {
+        await supabase.storage.from('documents').remove([receiptPath])
+      }
+
+      const updatedTags = (currentTags || []).filter(t => !t.startsWith('status:') && !t.startsWith('comprovante:'))
+
+      setTaxes(prevTaxes => prevTaxes.map(t => {
+        if (t.id === taxId) {
+          return {
+            ...t,
+            status: 'pendente',
+            receiptPath: undefined,
+            tags: updatedTags
+          }
+        }
+        return t
+      }))
+
+      const { error: dbErr } = await supabase
+        .from('documentos')
+        .update({ tags: updatedTags })
+        .eq('id', taxId)
+
+      if (dbErr) throw dbErr
+
+      if (user?.id && company?.id) {
+        logAuditActivity({
+          userId: user.id,
+          companyId: company.id,
+          action: 'CANCELAR_COMPROVANTE_PAGAMENTO',
+          entityType: 'guias_fiscais',
+          entityId: taxId,
+          metadata: {
+            origin: 'Painel do Cliente',
+            receipt_path: receiptPath
+          }
+        })
+      }
+
+      toast.success('Envio do comprovante cancelado com sucesso!')
+    } catch (err: any) {
+      if (import.meta.env.DEV) console.error('Erro ao cancelar comprovante:', err)
+      toast.error('Erro ao cancelar envio do comprovante.')
+      fetchTaxes()
+    } finally {
+      setUploadingId(null)
+    }
+  }
+
   // Estatísticas de Resumo
   const pendingTaxes = taxes.filter(t => t.status === 'pendente')
   const paidTaxes = taxes.filter(t => t.status === 'pago')
@@ -295,7 +361,7 @@ export function TaxesPage() {
                   <th className="py-3 px-4">Vencimento</th>
                   <th className="py-3 px-4">Valor (R$)</th>
                   <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-center">Download Guia</th>
+                  <th className="py-3 px-4 text-center">Guia</th>
                   <th className="py-3 px-4 text-center">Comprovante de Pagamento</th>
                 </tr>
               </thead>
@@ -332,47 +398,37 @@ export function TaxesPage() {
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       <button
-                        onClick={() => handleDownloadFile(tax.file_path)}
+                        onClick={() => handleOpenTaxPreview(tax.name, tax.file_path)}
                         className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-xs font-bold text-brand-600 dark:text-brand-400 transition-colors cursor-pointer"
-                        title="Baixar PDF da Guia"
+                        title="Visualizar PDF da Guia no Modal"
                       >
-                        <Download className="h-3.5 w-3.5" />
-                        Baixar Guia
+                        <Eye className="h-3.5 w-3.5" />
+                        <span>Ver Guia</span>
                       </button>
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       {uploadingId === tax.id ? (
                         <div className="inline-flex items-center justify-center gap-1.5 text-xs text-brand-500 font-semibold py-1">
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          <span>Enviando...</span>
+                          <span>Processando...</span>
                         </div>
                       ) : tax.receiptPath ? (
                         <div className="flex items-center justify-center gap-1.5">
                           <button
-                            onClick={() => handleDownloadFile(tax.receiptPath!)}
-                            className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer"
-                            title="Ver ou baixar recibo anexado"
+                            onClick={() => handleOpenTaxPreview(`Recibo - ${tax.name}`, tax.receiptPath!)}
+                            className="inline-flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-xs font-bold text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer"
+                            title="Visualizar Recibo"
                           >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            <Eye className="h-3.5 w-3.5" />
                             Ver Recibo
                           </button>
-                          <label
-                            className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-950/20 cursor-pointer transition-colors"
-                            title="Reenviar / Substituir Comprovante"
+                          <button
+                            onClick={() => handleCancelReceipt(tax.id, tax.receiptPath!, tax.tags)}
+                            className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-rose-600 hover:bg-rose-500/10 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                            title="Cancelar envio do comprovante"
                           >
-                            <Upload className="h-3.5 w-3.5" />
-                            <input
-                              type="file"
-                              accept=".pdf,.png,.jpg,.jpeg"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0]
-                                if (file) {
-                                  handleUploadReceipt(tax.id, tax.taxType, tax.refPeriod, tax.tags, file)
-                                }
-                              }}
-                            />
-                          </label>
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       ) : (
                         <label className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg border border-dashed border-slate-300 hover:border-brand-500 hover:text-brand-500 bg-[hsl(var(--card))] text-xs font-bold text-[hsl(var(--muted-foreground))] cursor-pointer transition-all shadow-xs hover:shadow-sm hover:bg-brand-50/50 dark:hover:bg-brand-950/10">
@@ -407,6 +463,12 @@ export function TaxesPage() {
           </div>
         )}
       </div>
+
+      <FilePreviewModal
+        isOpen={!!previewFile}
+        onClose={() => setPreviewFile(null)}
+        file={previewFile}
+      />
     </div>
   )
 }

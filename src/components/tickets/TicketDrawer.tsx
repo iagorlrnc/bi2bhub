@@ -3,13 +3,14 @@ import {
   X, MessageSquare, Info, History, AlertCircle, Send,
   Paperclip, FileText, Download, Lock, Star, Copy, Trash2,
   Building2, UserCheck, Loader2, Sparkles, RefreshCw, CheckCircle2,
-  Clock,
+  Clock, Eye
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import { logAuditActivity } from '@/lib/audit'
+import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
 
 interface TicketDrawerProps {
   isOpen: boolean
@@ -41,6 +42,17 @@ export function TicketDrawer({
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [previewFile, setPreviewFile] = useState<PreviewFile | null>(null)
+
+  const handleOpenAttachmentPreview = (name: string, filePath: string, size?: number, type?: string) => {
+    setPreviewFile({
+      name,
+      filePath,
+      bucket: 'documents',
+      size,
+      type
+    })
+  }
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatBottomRef = useRef<HTMLDivElement>(null)
@@ -674,19 +686,38 @@ export function TicketDrawer({
                       {msg.attachments && Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
                         <div className="mt-2 space-y-1 border-t border-dashed border-black/10 dark:border-white/10 pt-1.5">
                           {msg.attachments.map((file: any, fIdx: number) => (
-                            <button
+                            <div
                               key={fIdx}
-                              type="button"
-                              onClick={() => handleDownloadAttachment(file.file_path, file.name)}
                               className={cn(
-                                'flex items-center gap-1.5 text-xs hover:underline cursor-pointer text-left w-full truncate',
-                                isMe ? 'text-brand-100 hover:text-white' : 'text-brand-600 dark:text-brand-400'
+                                'flex items-center gap-1.5 text-xs text-left w-full truncate py-0.5',
+                                isMe ? 'text-brand-100' : 'text-brand-600 dark:text-brand-400'
                               )}
                             >
                               <FileText className="h-3.5 w-3.5 shrink-0" />
-                              <span className="truncate flex-1">{file.name}</span>
-                              <Download className="h-3 w-3 shrink-0 opacity-70" />
-                            </button>
+                              <span
+                                onClick={() => handleOpenAttachmentPreview(file.name, file.file_path, file.size, file.mime_type)}
+                                className="truncate flex-1 font-semibold hover:underline cursor-pointer"
+                                title={`Visualizar ${file.name}`}
+                              >
+                                {file.name}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenAttachmentPreview(file.name, file.file_path, file.size, file.mime_type)}
+                                className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors"
+                                title="Visualizar arquivo no modal"
+                              >
+                                <Eye className="h-3 w-3 shrink-0" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadAttachment(file.file_path, file.name)}
+                                className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors"
+                                title="Baixar arquivo diretamente"
+                              >
+                                <Download className="h-3 w-3 shrink-0 opacity-80" />
+                              </button>
+                            </div>
                           ))}
                         </div>
                       )}
@@ -1098,6 +1129,12 @@ export function TicketDrawer({
           )}
         </div>
       </div>
+
+      <FilePreviewModal
+        isOpen={!!previewFile}
+        onClose={() => setPreviewFile(null)}
+        file={previewFile}
+      />
     </div>
   )
 }
