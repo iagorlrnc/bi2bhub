@@ -17,13 +17,11 @@ export function getSubdomain(): SubdomainType {
     return 'administrador'
   }
 
-  // 2. Verificação por parâmetro de URL (apenas em desenvolvimento local)
-  if (import.meta.env.DEV || hostname === 'localhost' || hostname === '127.0.0.1') {
-    const searchParams = new URLSearchParams(window.location.search)
-    const querySub = searchParams.get('subdomain')
-    if (querySub === 'app' || querySub === 'administrador') {
-      return querySub
-    }
+  // 2. Verificação por parâmetro de URL (suporte completo para Vercel, localhost e ambientes sem wildcard)
+  const searchParams = new URLSearchParams(window.location.search)
+  const querySub = searchParams.get('subdomain')
+  if (querySub === 'app' || querySub === 'administrador') {
+    return querySub
   }
 
   // 3. Verificação por prefixo de rota (ex: bi2bhub.vercel.app/app ou bi2bhub.vercel.app/administrador)
