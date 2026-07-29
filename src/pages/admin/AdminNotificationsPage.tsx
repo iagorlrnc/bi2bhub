@@ -531,13 +531,13 @@ export function AdminNotificationsPage() {
               <div className="space-y-1.5">
                 <label htmlFor="notif-action" className="text-xs font-semibold text-[hsl(var(--foreground))] flex items-center justify-between">
                   <span className="flex items-center gap-1">
-                    <Link2 className="h-3 w-3 text-[hsl(var(--muted-foreground))]" /> URL de Ação (Opcional)
+                     Link de Atalho
                   </span>
                 </label>
                 <input
                   id="notif-action"
                   type="text"
-                  placeholder="Ex: /app/taxes ou /app/tickets"
+                  placeholder="Ex: /chamados ou /tarefas"
                   value={actionUrl}
                   onChange={(e) => setActionUrl(e.target.value)}
                   className="w-full text-xs bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-lg px-3 py-2 font-medium text-[hsl(var(--foreground))] focus:outline-none focus:border-brand-500"
@@ -547,10 +547,11 @@ export function AdminNotificationsPage() {
                 <div className="flex items-center gap-1 flex-wrap pt-0.5">
                   <span className="text-[10px] text-[hsl(var(--muted-foreground))]">Atalhos rápidos:</span>
                   {[
-                    { label: 'Impostos', url: '/app/taxes' },
-                    { label: 'Chamados', url: '/app/tickets' },
-                    { label: 'Drive', url: '/app/drive' },
-                    { label: 'Tarefas', url: '/app/tasks' },
+                    { label: 'Impostos', url: '/impostos' },
+                    { label: 'Tarefas', url: '/tarefas' },
+                    { label: 'Chamados', url: '/chamados' },
+                    { label: 'Drive', url: '/drive' },
+                    { label: 'Equipe', url: '/equipe' },
                   ].map(preset => (
                     <button
                       key={preset.url}
