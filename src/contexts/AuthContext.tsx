@@ -33,12 +33,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<any | null>(null)
+  const profileRef = useRef<any | null>(null)
   const [companyUser, setCompanyUser] = useState<any | null>(null)
   const [company, setCompany] = useState<Tables<'empresas'> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   const lastFetchedUserId = useRef<string | null>(null)
   const isFetchingRef = useRef<boolean>(false)
+
+  useEffect(() => {
+    profileRef.current = profile
+  }, [profile])
 
   const fetchProfile = useCallback(async (userId: string, force = false) => {
     if (!force && lastFetchedUserId.current === userId && isFetchingRef.current) {
@@ -49,16 +54,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isFetchingRef.current = true
     
     // Apenas ativa o indicador global na primeira busca (quando não há perfil na memória)
-    if (!profile) {
+    if (!profileRef.current) {
       setIsLoading(true)
     }
 
     try {
       const { data: profileData } = await supabase
         .from('usuarios')
-        .select('id, email, full_name, avatar_url, phone, user_type, is_active')
+        .select('id, email, full_name, avatar_url, phone, user_type, is_active, codigo_empresa')
         .eq('id', userId)
         .single() as any
+
+      // Garantir que todos os membros da BI2B Consultoria possuam user_type = 'admin'
+      if (profileData) {
+        const { data: bi2bOffice } = await supabase
+          .from('empresas')
+          .select('id, codigo_exclusivo')
+          .ilike('name', '%BI2B%')
+          .maybeSingle()
+
+        if (bi2bOffice && (profileData.codigo_empresa === bi2bOffice.codigo_exclusivo || profileData.user_type !== 'admin')) {
+          // Se for membro da equipe do escritório, forçar como admin
+          const { data: empCheck } = await supabase
+            .from('usuarios_empresa')
+            .select('company_id')
+            .eq('user_id', userId)
+            .eq('company_id', bi2bOffice.id)
+            .maybeSingle()
+
+          if (empCheck || profileData.codigo_empresa === bi2bOffice.codigo_exclusivo || profileData.user_type === 'admin') {
+            profileData.user_type = 'admin'
+          }
+        }
+      }
 
       setProfile(profileData)
 
@@ -83,6 +111,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setCompany(companyData)
         } else {
           setCompany(null)
+        }
+      } else if (profileData && profileData.user_type === 'admin') {
+        // Buscar vínculo da empresa escritório contábil do administrador no banco de dados
+        const { data: adminCompUserData } = await supabase
+          .from('usuarios_empresa')
+          .select('id, company_id, user_id, role, permissions, is_active, company:empresas(id, name, trade_name, cnpj, email, plan, max_users, is_active, codigo_exclusivo)')
+          .eq('user_id', userId)
+          .maybeSingle() as any
+
+        if (adminCompUserData?.company) {
+          setCompanyUser(adminCompUserData)
+          setCompany(adminCompUserData.company)
+        } else {
+          // Carregar empresa matriz 'BI2B Consultoria' ou escritório cadastrado no banco de dados
+          const { data: bi2bOffice } = await supabase
+            .from('empresas')
+            .select('id, name, trade_name, cnpj, email, plan, max_users, is_active, codigo_exclusivo')
+            .ilike('name', '%BI2B%')
+            .maybeSingle() as any
+
+          if (bi2bOffice) {
+            setCompanyUser(null)
+            setCompany(bi2bOffice)
+          } else {
+            const { data: firstComp } = await supabase
+              .from('empresas')
+              .select('id, name, trade_name, cnpj, email, plan, max_users, is_active, codigo_exclusivo')
+              .eq('is_active', true)
+              .order('created_at', { ascending: true })
+              .limit(1)
+              .maybeSingle() as any
+
+            setCompanyUser(null)
+            setCompany(firstComp || null)
+          }
         }
       } else {
         setCompanyUser(null)

@@ -5,7 +5,7 @@ import { ROUTES } from '@/constants/routes'
 import { APP_NAME, STRONG_PASSWORD_REGEX, PASSWORD_REQUIREMENTS_MESSAGE } from '@/constants'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
-import { Eye, EyeOff, Loader2, User, Building2, FileText, Check, ArrowLeft, ArrowRight, Search, CheckCircle2, AlertCircle, MailCheck, RefreshCw } from 'lucide-react'
+import { Eye, EyeOff, Loader2, User, Building2, FileText, Check, ArrowLeft, ArrowRight, Search, CheckCircle2, AlertCircle } from 'lucide-react'
 import logoPng from '@/assets/logo.png'
 
 const formatCnpj = (value: string) => {
@@ -15,6 +15,12 @@ const formatCnpj = (value: string) => {
   if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`
   if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12, 14)}`
+}
+
+const formatCnpjMasked = (value: string) => {
+  const digits = value.replace(/\D/g, '')
+  if (digits.length < 14) return formatCnpj(value)
+  return `${digits.slice(0, 2)}.***.***/${digits.slice(8, 12)}-${digits.slice(12, 14)}`
 }
 
 const formatPhone = (value: string) => {
@@ -48,10 +54,6 @@ export function RegisterPage() {
 
   // Etapa 3: Aceite e Confirmação dos Termos
   const [acceptedTerms, setAcceptedTerms] = useState(false)
-
-  // Etapa 4: Código de Validação de E-mail (Estrutura UI funcional)
-  const [verificationCode, setVerificationCode] = useState('')
-  const [isResending, setIsResending] = useState(false)
 
   // Função para buscar empresa por ID exclusivo de 4 dígitos
   const handleSearchCompany = async (overrideId?: string) => {
@@ -105,15 +107,6 @@ export function RegisterPage() {
     } finally {
       setIsSearchingCompany(false)
     }
-  }
-
-  // Reenviar código de verificação
-  const handleResendCode = () => {
-    setIsResending(true)
-    setTimeout(() => {
-      setIsResending(false)
-      toast.success('Novo código de confirmação enviado para seu e-mail!')
-    }, 1500)
   }
 
   // Validação por Etapa
@@ -171,8 +164,6 @@ export function RegisterPage() {
       if (validateStep1()) setCurrentStep(2)
     } else if (currentStep === 2) {
       if (validateStep2()) setCurrentStep(3)
-    } else if (currentStep === 3) {
-      if (validateStep3()) setCurrentStep(4)
     }
   }
 
@@ -191,6 +182,9 @@ export function RegisterPage() {
     try {
       // 1. Criar conta de autenticação no Supabase Auth com metadata de empresa para o trigger do banco
       const companyCodeToSave = foundCompany!.codigo_exclusivo || foundCompany!.id
+      const isBi2bOffice = foundCompany?.name?.toLowerCase().includes('bi2b')
+      const targetUserType = isBi2bOffice ? 'admin' : 'client_user'
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -200,7 +194,7 @@ export function RegisterPage() {
             phone: phone.replace(/\D/g, ''),
             company_id: foundCompany!.id,
             codigo_empresa: companyCodeToSave,
-            user_type: 'client_user'
+            user_type: targetUserType
           }
         }
       })
@@ -239,8 +233,7 @@ export function RegisterPage() {
   const steps = [
     { number: 1, title: 'Conta', icon: User },
     { number: 2, title: 'Empresa', icon: Building2 },
-    { number: 3, title: 'Revisão', icon: FileText },
-    { number: 4, title: 'Validação', icon: MailCheck },
+    { number: 3, title: 'Revisão & Envio', icon: FileText },
   ]
 
   return (
@@ -411,16 +404,19 @@ export function RegisterPage() {
                   <div className="flex gap-2">
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="\d{4}"
                       value={companyIdInput}
                       onChange={(e) => {
-                        setCompanyIdInput(e.target.value)
+                        const numericOnly = e.target.value.replace(/\D/g, '').slice(0, 4)
+                        setCompanyIdInput(numericOnly)
                         if (foundCompany) {
                           setFoundCompany(null)
                           setIsEmployeeConfirmed(false)
                         }
                       }}
-                      placeholder="Ex: 4829"
-                      maxLength={10}
+                      placeholder="Ex: 8419"
+                      maxLength={4}
                       className="w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-4 py-2.5 text-sm font-mono tracking-widest text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
                       required
                     />
@@ -466,7 +462,7 @@ export function RegisterPage() {
                       <div>
                         <span className="text-[hsl(var(--muted-foreground))]">CNPJ: </span>
                         <span className="font-mono font-semibold text-[hsl(var(--foreground))]">
-                          {formatCnpj(foundCompany.cnpj)}
+                          {formatCnpjMasked(foundCompany.cnpj)}
                         </span>
                       </div>
                     </div>
@@ -527,7 +523,7 @@ export function RegisterPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-[hsl(var(--muted-foreground))]">CNPJ:</span>
-                      <span className="font-mono text-[hsl(var(--foreground))]">{foundCompany ? formatCnpj(foundCompany.cnpj) : ''}</span>
+                      <span className="font-mono text-[hsl(var(--foreground))]">{foundCompany ? formatCnpjMasked(foundCompany.cnpj) : ''}</span>
                     </div>
                   </div>
                 </div>
@@ -555,78 +551,6 @@ export function RegisterPage() {
               </div>
             )}
 
-            {/* ETAPA 4: VALIDAÇÃO DE E-MAIL (ESTRUTURA DE 6 DÍGITOS) */}
-            {currentStep === 4 && (
-              <div className="space-y-5 animate-fade-in text-center py-2">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-600 shadow-sm ring-4 ring-brand-500/10">
-                  <MailCheck className="h-7 w-7" />
-                </div>
-
-                <div>
-                  <h3 className="text-base font-bold text-[hsl(var(--foreground))]">Validação de E-mail</h3>
-                  <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
-                    Enviamos um código de confirmação de 6 dígitos para o e-mail:
-                  </p>
-                  <p className="font-semibold text-xs text-brand-600 dark:text-brand-400 mt-0.5">
-                    {email}
-                  </p>
-                </div>
-
-                {/* 6 SLOTS DE INPUT OTP */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-semibold text-[hsl(var(--foreground))]">
-                    Código de Verificação
-                  </label>
-                  <div className="flex items-center justify-center gap-2">
-                    {[0, 1, 2, 3, 4, 5].map((idx) => (
-                      <input
-                        key={idx}
-                        id={`otp-slot-${idx}`}
-                        type="text"
-                        maxLength={1}
-                        value={verificationCode[idx] || ''}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, '')
-                          const newCode = verificationCode.split('')
-                          newCode[idx] = val
-                          const updated = newCode.join('')
-                          setVerificationCode(updated)
-                          if (val && idx < 5) {
-                            const nextInput = document.getElementById(`otp-slot-${idx + 1}`)
-                            nextInput?.focus()
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Backspace' && !verificationCode[idx] && idx > 0) {
-                            const prevInput = document.getElementById(`otp-slot-${idx - 1}`)
-                            prevInput?.focus()
-                          }
-                        }}
-                        className="h-11 w-10 rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] text-center font-mono text-lg font-bold text-[hsl(var(--foreground))] shadow-xs focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* BOTAO REENVIAR CÓDIGO */}
-                <div className="pt-1">
-                  <button
-                    type="button"
-                    onClick={handleResendCode}
-                    disabled={isResending}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-500 hover:text-brand-600 transition-colors disabled:opacity-50"
-                  >
-                    <RefreshCw className={`h-3.5 w-3.5 ${isResending ? 'animate-spin' : ''}`} />
-                    {isResending ? 'Reenviando...' : 'Reenviar código de verificação'}
-                  </button>
-                </div>
-
-                <div className="rounded-xl border border-brand-500/20 bg-brand-500/5 p-3.5 text-[11px] text-[hsl(var(--muted-foreground))]">
-                  💡 Clique em <strong>Concluir Cadastro</strong> para enviar a solicitação diretamente.
-                </div>
-              </div>
-            )}
-
             {/* Botões de Ação */}
             <div className="mt-8 flex items-center justify-center gap-3 border-t border-[hsl(var(--border))] pt-5">
               {currentStep > 1 && (
@@ -641,7 +565,7 @@ export function RegisterPage() {
                 </button>
               )}
 
-              {currentStep < 4 ? (
+              {currentStep < 3 ? (
                 <button
                   type="button"
                   onClick={handleNext}
@@ -657,15 +581,12 @@ export function RegisterPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={cn(
-                    "flex items-center justify-center gap-2 rounded-xl gradient-brand py-3 text-xs font-bold text-white shadow-lg shadow-brand-500/25 hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer",
-                    currentStep === 1 ? "w-full" : "flex-1 max-w-[240px]"
-                  )}
+                  className="flex-1 max-w-[240px] flex items-center justify-center gap-2 rounded-xl gradient-brand py-3 text-xs font-bold text-white shadow-lg shadow-brand-500/25 hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Enviando Solicitação...</span>
+                      <span>Enviando...</span>
                     </>
                   ) : (
                     <span>Concluir Cadastro</span>

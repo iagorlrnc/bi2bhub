@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { logAuditActivity } from '@/lib/audit'
 
 export function TeamPage() {
   const { company, user, isClientMaster, isAdmin, isLoading: authLoading } = useAuth()
@@ -199,7 +200,7 @@ export function TeamPage() {
     } finally {
       if (!silent) setIsLoading(false)
     }
-  }, [company?.id])
+  }, [company?.id, (company as any)?.codigo_exclusivo])
 
   useEffect(() => {
     if (authLoading) return
@@ -245,6 +246,19 @@ export function TeamPage() {
         }
       }
 
+      logAuditActivity({
+        userId: user?.id,
+        companyId: company?.id,
+        action: 'APROVAR_SOLICITACAO_USUARIO',
+        entityType: 'usuarios',
+        entityId: userId,
+        metadata: {
+          approved_user_id: userId,
+          approved_user_name: name,
+          origin: 'Painel do Cliente (Gestor)'
+        }
+      })
+
       toast.success(`Acesso de ${name} aprovado com sucesso!`)
       fetchData()
     } catch (err: any) {
@@ -257,6 +271,18 @@ export function TeamPage() {
     if (!company?.id) return
     if (confirm(`Deseja recusar a solicitação de acesso de ${name}?`)) {
       try {
+        logAuditActivity({
+          userId: user?.id,
+          companyId: company.id,
+          action: 'RECUSAR_SOLICITACAO_USUARIO',
+          entityType: 'usuarios',
+          entityId: userId,
+          metadata: {
+            rejected_user_id: userId,
+            rejected_user_name: name,
+            origin: 'Painel do Cliente (Gestor)'
+          }
+        })
         // 1. Tentar chamar RPC SECURITY DEFINER para desvinculação atômica e atribuição de motivo
         const { error: rpcError } = await (supabase as any).rpc('master_recusar_solicitacao', {
           p_company_id: company.id,

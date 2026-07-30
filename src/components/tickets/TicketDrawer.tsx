@@ -80,6 +80,7 @@ export function TicketDrawer({
       setTicket(null)
       setMessages([])
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, ticketId])
 
   // 2. Carregar mensagens do chamado e escutar realtime

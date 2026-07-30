@@ -19,19 +19,17 @@ import {
   Database,
   Info,
   Pencil,
-  Eye,
-  Download
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { MAX_FILE_SIZE, ALLOWED_FILE_TYPES } from '@/constants'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { logAuditActivity } from '@/lib/audit'
+import { logAuditActivity, logOrUpdateDocumentView } from '@/lib/audit'
 import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
 
 export function DrivePage() {
-  const { company, user, isLoading: authLoading } = useAuth()
+  const { company, user, profile, isLoading: authLoading } = useAuth()
   const [folders, setFolders] = useState<any[]>([])
   const [files, setFiles] = useState<any[]>([])
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null)
@@ -51,6 +49,10 @@ export function DrivePage() {
       size: file.file_size,
       type: file.file_type
     })
+
+    if (user?.id && company?.id) {
+      logOrUpdateDocumentView(user.id, company.id, file.id, file.name, file.file_path)
+    }
   }
 
   // Estado para criação e edição de pasta
@@ -266,10 +268,16 @@ export function DrivePage() {
     const handleRefresh = () => fetchData(true)
     window.addEventListener('bi2b:refresh-data', handleRefresh)
     return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company?.id, authLoading])
 
   // Lógica de Filtro
   const filteredFiles = files.filter(file => {
+    // Desconsiderar arquivos marcados como deletados pelo usuário no painel do cliente
+    if (file.tags && Array.isArray(file.tags) && file.tags.includes('deletado_pelo_usuario')) {
+      return false
+    }
+
     const matchesFolder = activeFolderId === null || file.folder_id === activeFolderId
     const matchesSearch = (file.name || '').toLowerCase().includes(searchTerm.toLowerCase())
     
@@ -296,9 +304,25 @@ export function DrivePage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  // Medidor de Armazenamento Utilizado
+  // Medidor de Armazenamento Utilizado Dinâmico por Plano
+  const getStorageLimitByPlan = (plan?: string) => {
+    switch ((plan || '').toLowerCase()) {
+      case 'básico':
+      case 'basico':
+        return 5 * 1024 * 1024 * 1024 // 5 GB
+      case 'pró':
+      case 'pro':
+        return 20 * 1024 * 1024 * 1024 // 20 GB
+      case 'plus':
+      case 'empresarial':
+        return 100 * 1024 * 1024 * 1024 // 100 GB
+      default:
+        return 10 * 1024 * 1024 * 1024 // 10 GB padrão
+    }
+  }
+
   const totalStorageUsed = files.reduce((acc, f) => acc + (f.file_size || 0), 0)
-  const storageLimit = 10 * 1024 * 1024 * 1024 // 10 GB limit
+  const storageLimit = getStorageLimitByPlan(company?.plan)
   const storagePercentage = Math.min((totalStorageUsed / storageLimit) * 100, 100)
 
   // Alternar favorito
@@ -317,17 +341,21 @@ export function DrivePage() {
     }
   }
 
-  // Manipular Exclusão de Arquivo
+  // Manipular Exclusão de Arquivo (Soft Delete com Tag de Auditoria)
   const handleDelete = async (id: string) => {
     const file = files.find(f => f.id === id)
     if (!file) return
     if (confirm('Tem certeza que deseja mover este documento para a lixeira?')) {
       try {
-        await supabase.storage.from('documents').remove([file.file_path])
+        const currentTags: string[] = file.tags || []
+        const userName = profile?.full_name || user?.email || 'Cliente'
+        const updatedTags = Array.from(new Set([...currentTags, 'deletado_pelo_usuario', `deletado_por:${userName}`]))
+
         const { error } = await supabase
           .from('documentos')
-          .delete()
+          .update({ tags: updatedTags })
           .eq('id', id)
+
         if (error) throw error
 
         logAuditActivity({
@@ -336,33 +364,19 @@ export function DrivePage() {
           action: 'EXCLUIR_DOCUMENTO',
           entityType: 'documentos',
           entityId: id,
-          metadata: { file_name: file.name, file_path: file.file_path }
+          metadata: {
+            file_name: file.name,
+            file_path: file.file_path,
+            deleted_by: userName
+          }
         })
 
-        toast.success('Documento excluído.')
+        toast.success('Documento movido para a lixeira.')
         fetchData()
       } catch (err) {
         if (import.meta.env.DEV) console.error(err)
         toast.error('Erro ao excluir documento.')
       }
-    }
-  }
-
-  // Baixar arquivo
-  const handleDownload = async (file: any) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .createSignedUrl(file.file_path, 60)
-      if (error) throw error
-      if (data?.signedUrl) {
-        window.open(data.signedUrl, '_blank')
-      } else {
-        throw new Error('Url assinada não gerada')
-      }
-    } catch (err) {
-      if (import.meta.env.DEV) console.error(err)
-      toast.error('Erro ao baixar arquivo.')
     }
   }
 

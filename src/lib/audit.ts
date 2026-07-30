@@ -127,3 +127,44 @@ export async function logAuditActivity({
     return false
   }
 }
+
+/**
+ * Registra ou atualiza a ÚLTIMA visualização de um documento por um usuário.
+ * Remove automaticamente entradas antigas de visualização do mesmo usuário para este arquivo.
+ */
+export async function logOrUpdateDocumentView(
+  userId: string,
+  companyId: string,
+  fileId: string,
+  fileName: string,
+  filePath: string
+): Promise<boolean> {
+  try {
+    if (!userId || !fileId) return false
+
+    // 1. Apagar registros anteriores de visualização deste mesmo usuário neste documento
+    await supabase
+      .from('atividades')
+      .delete()
+      .eq('user_id', userId)
+      .eq('action', 'VISUALIZAR_DOCUMENTO_DRIVE')
+      .eq('entity_id', fileId)
+
+    // 2. Registrar novo log com horário mais recente
+    return await logAuditActivity({
+      userId,
+      companyId,
+      action: 'VISUALIZAR_DOCUMENTO_DRIVE',
+      entityType: 'documentos',
+      entityId: fileId,
+      metadata: {
+        file_name: fileName,
+        file_path: filePath,
+        viewed_at: new Date().toISOString()
+      }
+    })
+  } catch (err) {
+    if (import.meta.env.DEV) console.error('Erro ao atualizar visualização do documento:', err)
+    return false
+  }
+}

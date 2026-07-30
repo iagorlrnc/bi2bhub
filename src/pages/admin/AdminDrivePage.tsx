@@ -21,15 +21,15 @@ import {
   Info,
   Pencil,
   Eye,
-  Download
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { MAX_FILE_SIZE, ALLOWED_FILE_TYPES } from '@/constants'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { logAuditActivity } from '@/lib/audit'
+import { logAuditActivity, logOrUpdateDocumentView } from '@/lib/audit'
 import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
+import { DocumentHistoryModal, type DocumentHistoryFile } from '@/components/DocumentHistoryModal'
 
 export function AdminDrivePage() {
   const { user } = useAuth()
@@ -45,6 +45,7 @@ export function AdminDrivePage() {
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [previewFile, setPreviewFile] = useState<PreviewFile | null>(null)
+  const [selectedHistoryFile, setSelectedHistoryFile] = useState<DocumentHistoryFile | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleOpenFilePreview = (file: any) => {
@@ -55,6 +56,10 @@ export function AdminDrivePage() {
       size: file.file_size,
       type: file.file_type
     })
+
+    if (user?.id && (selectedCompanyId || file.company_id)) {
+      logOrUpdateDocumentView(user.id, selectedCompanyId || file.company_id, file.id, file.name, file.file_path)
+    }
   }
 
   // Estado para criação e edição de pasta
@@ -296,6 +301,7 @@ export function AdminDrivePage() {
     }
     window.addEventListener('bi2b:refresh-data', handleRefresh)
     return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCompanyId])
 
   // Lógica de Filtro
@@ -331,26 +337,27 @@ export function AdminDrivePage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  // Medidor de Armazenamento Utilizado
-  const totalStorageUsed = files.reduce((acc, f) => acc + (f.file_size || 0), 0)
-  const storageLimit = 10 * 1024 * 1024 * 1024 // 10 GB limit
-  const storagePercentage = Math.min((totalStorageUsed / storageLimit) * 100, 100)
-
-  // Alternar favorito
-  const handleToggleFavorite = async (id: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('documentos')
-        .update({ is_favorite: !currentStatus })
-        .eq('id', id)
-      if (error) throw error
-      toast.success(currentStatus ? 'Removido dos favoritos.' : 'Adicionado aos favoritos.')
-      fetchData()
-    } catch (err) {
-      if (import.meta.env.DEV) console.error(err)
-      toast.error('Erro ao atualizar favorito.')
+  // Medidor de Armazenamento Utilizado Dinâmico por Plano
+  const selectedCompanyObj = companies.find(c => c.id === selectedCompanyId)
+  const getStorageLimitByPlan = (plan?: string) => {
+    switch ((plan || '').toLowerCase()) {
+      case 'básico':
+      case 'basico':
+        return 5 * 1024 * 1024 * 1024 // 5 GB
+      case 'pró':
+      case 'pro':
+        return 20 * 1024 * 1024 * 1024 // 20 GB
+      case 'plus':
+      case 'empresarial':
+        return 100 * 1024 * 1024 * 1024 // 100 GB
+      default:
+        return 10 * 1024 * 1024 * 1024 // 10 GB padrão
     }
   }
+
+  const totalStorageUsed = files.reduce((acc, f) => acc + (f.file_size || 0), 0)
+  const storageLimit = getStorageLimitByPlan(selectedCompanyObj?.plan)
+  const storagePercentage = Math.min((totalStorageUsed / storageLimit) * 100, 100)
 
   // Manipular Exclusão de Arquivo
   const handleDelete = async (id: string) => {
@@ -380,24 +387,6 @@ export function AdminDrivePage() {
         if (import.meta.env.DEV) console.error(err)
         toast.error('Erro ao excluir documento.')
       }
-    }
-  }
-
-  // Baixar arquivo
-  const handleDownload = async (file: any) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .createSignedUrl(file.file_path, 60)
-      if (error) throw error
-      if (data?.signedUrl) {
-        window.open(data.signedUrl, '_blank')
-      } else {
-        throw new Error('Url assinada não gerada')
-      }
-    } catch (err) {
-      if (import.meta.env.DEV) console.error(err)
-      toast.error('Erro ao baixar arquivo.')
     }
   }
 
@@ -917,6 +906,11 @@ export function AdminDrivePage() {
                                         <span className="truncate block min-w-0 text-sm font-semibold text-[hsl(var(--foreground))] group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors group-hover/name:underline" title={file.name}>
                                           {file.name}
                                         </span>
+                                        {file.tags?.includes('deletado_pelo_usuario') && (
+                                          <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 shrink-0">
+                                            Deletado por {file.tags?.find((t: string) => t.startsWith('deletado_por:'))?.replace('deletado_por:', '') || 'Cliente'}
+                                          </span>
+                                        )}
                                       </div>
                                     </td>
                                     <td className="py-3 px-4 hidden md:table-cell">
@@ -931,11 +925,11 @@ export function AdminDrivePage() {
                                     <td className="py-3 px-5 text-right">
                                       <div className="flex items-center justify-end gap-1">
                                         <button
-                                          onClick={() => handleToggleFavorite(file.id, file.is_favorite)}
-                                          className="p-2 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-amber-500 transition-colors"
-                                          title={file.is_favorite ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+                                          onClick={() => setSelectedHistoryFile(file)}
+                                          className="p-2 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-brand-600 hover:bg-brand-500/10 transition-colors"
+                                          title="Histórico e Detalhes do Documento"
                                         >
-                                          <Star className={cn("h-4 w-4", file.is_favorite && "fill-amber-500 text-amber-500")} />
+                                          <Eye className="h-4 w-4" />
                                         </button>
                                         <button
                                           onClick={() => handleStartEditFile(file)}
@@ -982,11 +976,11 @@ export function AdminDrivePage() {
                                 </div>
                                 <div className="flex items-center gap-0.5 shrink-0">
                                   <button
-                                    onClick={() => handleToggleFavorite(file.id, file.is_favorite)}
-                                    className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-amber-500 transition-colors"
-                                    title={file.is_favorite ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+                                    onClick={() => setSelectedHistoryFile(file)}
+                                    className="p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-brand-600 hover:bg-brand-500/10 transition-colors"
+                                    title="Histórico e Detalhes do Documento"
                                   >
-                                    <Star className={cn("h-4 w-4", file.is_favorite && "fill-amber-500 text-amber-500")} />
+                                    <Eye className="h-4 w-4" />
                                   </button>
                                   <button
                                     onClick={() => handleStartEditFile(file)}
@@ -1214,6 +1208,13 @@ export function AdminDrivePage() {
         isOpen={!!previewFile}
         onClose={() => setPreviewFile(null)}
         file={previewFile}
+      />
+
+      {/* Modal de Histórico e Auditoria do Documento */}
+      <DocumentHistoryModal
+        isOpen={!!selectedHistoryFile}
+        onClose={() => setSelectedHistoryFile(null)}
+        file={selectedHistoryFile}
       />
     </div>
   )

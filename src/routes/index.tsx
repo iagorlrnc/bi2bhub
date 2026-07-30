@@ -35,7 +35,7 @@ const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage').th
 
 // Páginas — Área do Cliente - Lazy Loading
 const TaxesPage = lazy(() => import('@/pages/client/TaxesPage').then(m => ({ default: m.TaxesPage })))
-const TasksPage = lazy(() => import('@/pages/client/TasksPage.tsx').then(m => ({ default: m.TasksPage })))
+const TasksPage = lazy(() => import('@/pages/client/TasksPage').then(m => ({ default: m.TasksPage })))
 const DrivePage = lazy(() => import('@/pages/client/DrivePage').then(m => ({ default: m.DrivePage })))
 const TicketsPage = lazy(() => import('@/pages/client/TicketsPage').then(m => ({ default: m.TicketsPage })))
 const TeamPage = lazy(() => import('@/pages/client/TeamPage').then(m => ({ default: m.TeamPage })))
@@ -53,18 +53,20 @@ const AuditPage = lazy(() => import('@/pages/admin/AuditPage').then(m => ({ defa
 const AdminDrivePage = lazy(() => import('@/pages/admin/AdminDrivePage').then(m => ({ default: m.AdminDrivePage })))
 const AdminMonthlyPage = lazy(() => import('@/pages/admin/AdminMonthlyPage').then(m => ({ default: m.AdminMonthlyPage })))
 const AdminTaxesPage = lazy(() => import('@/pages/admin/AdminTaxesPage').then(m => ({ default: m.AdminTaxesPage })))
-const AdminNotificationsPage = lazy(() => import('@/pages/admin/AdminNotificationsPage.tsx').then(m => ({ default: m.AdminNotificationsPage })))
+const AdminNotificationsPage = lazy(() => import('@/pages/admin/AdminNotificationsPage').then(m => ({ default: m.AdminNotificationsPage })))
 
 // Componente para direcionar a raiz '/' conforme o subdomínio ativo
 function RootDomainHandler() {
   const subdomain = getSubdomain()
-  const { isAuthenticated, isAdmin } = useAuth()
+  const { isAuthenticated, isAdmin, isLoading } = useAuth()
+
+  if (isLoading) {
+    return <PageLoader />
+  }
 
   if (subdomain === 'administrador') {
-    if (isAuthenticated) {
-      if (isAdmin) {
-        return <Navigate to={ROUTES.ADMIN_DASHBOARD} replace />
-      }
+    if (isAuthenticated && isAdmin) {
+      return <Navigate to={ROUTES.ADMIN_DASHBOARD} replace />
     }
     return (
       <AuthLayout>

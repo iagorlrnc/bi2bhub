@@ -10,7 +10,6 @@ import {
   LayoutDashboard,
   Building2,
   Users,
-  UserCog,
   MessageSquare,
   ScrollText,
   Settings,
@@ -34,7 +33,6 @@ const adminSidebarCategories = [
     title: 'Visão Geral',
     items: [
       { label: 'Dashboard', icon: LayoutDashboard, path: ROUTES.ADMIN_DASHBOARD },
-      { label: 'Auditoria', icon: ScrollText, path: ROUTES.ADMIN_AUDIT },
     ],
   },
   {
@@ -57,8 +55,9 @@ const adminSidebarCategories = [
     title: 'Configurações & Pessoas',
     items: [
       { label: 'Usuários', icon: Users, path: ROUTES.ADMIN_USERS },
-      { label: 'Contadores', icon: UserCog, path: ROUTES.ADMIN_STAFF },
+      { label: 'Equipe', icon: Users, path: ROUTES.ADMIN_STAFF },
       { label: 'Configurações', icon: Settings, path: ROUTES.ADMIN_SETTINGS },
+      { label: 'Auditoria', icon: ScrollText, path: ROUTES.ADMIN_AUDIT },
     ],
   },
 ]
@@ -70,8 +69,8 @@ const adminPathLabels: Record<string, string> = {
   empresas: 'Empresas',
   users: 'Usuários',
   usuarios: 'Usuários',
-  staff: 'Contadores',
-  contadores: 'Contadores',
+  staff: 'Equipe',
+  contadores: 'Equipe',
   tickets: 'Chamados',
   chamados: 'Chamados',
   audit: 'Auditoria',

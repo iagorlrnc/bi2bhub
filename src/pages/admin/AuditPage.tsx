@@ -37,6 +37,7 @@ export function AuditPage() {
         .from('atividades')
         .select('*, profile:usuarios!user_id(full_name, email, user_type), company:empresas!company_id(name)')
         .order('created_at', { ascending: false })
+        .limit(500)
 
       if (error) throw error
 
@@ -67,16 +68,17 @@ export function AuditPage() {
 
     window.addEventListener('bi2b:refresh-data', handleGlobalRefresh)
     return () => window.removeEventListener('bi2b:refresh-data', handleGlobalRefresh)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Classificação padronizada de Ação (LOGIN, INSERT, UPDATE, DELETE, SECURITY)
   const getActionType = (action: string): 'LOGIN' | 'INSERT' | 'UPDATE' | 'DELETE' | 'SECURITY' | 'OUTROS' => {
     const act = (action || '').toLowerCase()
     if (act.includes('login') || act.includes('auth') || act.includes('acesso')) return 'LOGIN'
-    if (act.includes('delete') || act.includes('remove') || act.includes('excluir')) return 'DELETE'
+    if (act.includes('delete') || act.includes('remove') || act.includes('excluir') || act.includes('recusar')) return 'DELETE'
     if (act.includes('update') || act.includes('edit') || act.includes('alterar') || act.includes('status')) return 'UPDATE'
     if (act.includes('create') || act.includes('upload') || act.includes('insert') || act.includes('novo')) return 'INSERT'
-    if (act.includes('permissao') || act.includes('role') || act.includes('bloqueio') || act.includes('senha')) return 'SECURITY'
+    if (act.includes('permissao') || act.includes('role') || act.includes('bloqueio') || act.includes('senha') || act.includes('aprova')) return 'SECURITY'
     return 'OUTROS'
   }
 

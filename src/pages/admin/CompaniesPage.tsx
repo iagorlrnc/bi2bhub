@@ -18,7 +18,7 @@ import {
   FileText, 
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, isValid4DigitCode, generate4DigitCode, getCompanyCode, ensureUniqueCompanyCodes } from '@/lib/utils'
 import { supabase, createIsolatedAuthClient } from '@/lib/supabase'
 import { logAuditActivity } from '@/lib/audit'
 import { z } from 'zod'
@@ -99,23 +99,47 @@ export function CompaniesPage() {
   const [copiedCompanyId, setCopiedCompanyId] = useState<string | null>(null)
 
   const handleCopyId = (code: string, id: string) => {
-    navigator.clipboard.writeText(code)
+    const codeToCopy = isValid4DigitCode(code) ? code : getCompanyCode(id)
+    navigator.clipboard.writeText(codeToCopy)
     setCopiedCompanyId(id)
     toast.success('Chave de Acesso copiada!')
     setTimeout(() => setCopiedCompanyId(null), 2000)
   }
 
-  // Buscar Empresas Ativas (Real Supabase)
+  // Buscar Empresas Ativas
   const fetchCompanies = async (silent = false) => {
     if (!silent) setIsLoading(true)
     try {
+      // Prevenir choques e duplicações globais entre empresas
+      await ensureUniqueCompanyCodes(supabase)
+
       const { data, error } = await supabase
         .from('empresas')
         .select('*')
         .eq('is_active', true)
         .order('name', { ascending: true })
       if (error) throw error
-      setCompanies(data || [])
+      
+      const rawCompanies = data || []
+      const existingCodes = rawCompanies.map(c => c.codigo_exclusivo)
+
+      // Garantir que todas as empresas ativas tenham códigos numéricos únicos de 4 dígitos
+      const sanitized = await Promise.all(
+        rawCompanies.map(async (comp) => {
+          if (!isValid4DigitCode(comp.codigo_exclusivo)) {
+            const freshCode = generate4DigitCode(existingCodes)
+            existingCodes.push(freshCode)
+            await supabase
+              .from('empresas')
+              .update({ codigo_exclusivo: freshCode })
+              .eq('id', comp.id)
+            return { ...comp, codigo_exclusivo: freshCode }
+          }
+          return comp
+        })
+      )
+
+      setCompanies(sanitized)
     } catch (err) {
       if (import.meta.env.DEV) console.error(err)
       if (!silent) toast.error('Erro ao buscar empresas ativas do Supabase.')
@@ -152,12 +176,16 @@ export function CompaniesPage() {
     }
     window.addEventListener('bi2b:refresh-data', handleRefresh)
     return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // APROVAR SOLICITAÇÃO DA EMPRESA E DO GESTOR VINCULADO (Real Supabase)
   const handleApproveRequest = async (req: any) => {
     try {
-      const randomCode = req.codigo_exclusivo || String(Math.floor(1000 + Math.random() * 9000))
+      const existingCodes = companies.map(c => c.codigo_exclusivo)
+      const randomCode = isValid4DigitCode(req.codigo_exclusivo)
+        ? req.codigo_exclusivo
+        : generate4DigitCode(existingCodes)
       
       // 1. Ativar a Empresa no Supabase
       const { error: companyErr } = await supabase
@@ -750,7 +778,7 @@ export function CompaniesPage() {
                       <div className="flex items-center gap-1">
                         <span className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Token:</span>
                         <span className="font-mono text-xs font-black text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20">
-                          #{req.codigo_exclusivo || '8419'}
+                          #{req.codigo_exclusivo || getCompanyCode(req.id)}
                         </span>
                       </div>
                     </div>
@@ -874,10 +902,10 @@ export function CompaniesPage() {
               <div className="flex items-center justify-between rounded-xl border border-brand-500/30 bg-brand-500/10 p-3.5">
                 <div>
                   <p className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Chave de Conexão Gerada</p>
-                  <p className="font-mono text-xl font-black text-brand-600 dark:text-brand-400">#{selectedRequestModal.codigo_exclusivo || '8419'}</p>
+                  <p className="font-mono text-xl font-black text-brand-600 dark:text-brand-400">#{selectedRequestModal.codigo_exclusivo || getCompanyCode(selectedRequestModal.id)}</p>
                 </div>
                 <button
-                  onClick={() => handleCopyId(selectedRequestModal.codigo_exclusivo || '8419', selectedRequestModal.id)}
+                  onClick={() => handleCopyId(selectedRequestModal.codigo_exclusivo || getCompanyCode(selectedRequestModal.id), selectedRequestModal.id)}
                   className="px-3 py-1.5 rounded-lg bg-brand-500 text-white font-bold text-xs hover:brightness-110 transition-all"
                 >
                   Copiar Chave

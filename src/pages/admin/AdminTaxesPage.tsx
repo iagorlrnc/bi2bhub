@@ -165,6 +165,7 @@ export function AdminTaxesPage() {
     const handleRefresh = () => fetchTaxes(true)
     window.addEventListener('bi2b:refresh-data', handleRefresh)
     return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCompanyId])
 
   const handleDownloadFile = async (filePath: string) => {
@@ -492,14 +493,23 @@ export function AdminTaxesPage() {
                           )}
                         </td>
                         <td className="py-3 px-4">
-                          <button
-                            onClick={() => handleOpenTaxPreview(tax.name, tax.file_path)}
-                            className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-xs font-bold text-brand-600 dark:text-brand-400 transition-colors cursor-pointer shadow-none"
-                            title="Visualizar PDF da Guia no Modal"
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                            Ver Guia
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleOpenTaxPreview(tax.name, tax.file_path)}
+                              className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/20 dark:hover:bg-brand-950/40 text-xs font-bold text-brand-600 dark:text-brand-400 transition-colors cursor-pointer shadow-none"
+                              title="Visualizar PDF da Guia no Modal"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              Ver Guia
+                            </button>
+                            <button
+                              onClick={() => handleDownloadFile(tax.file_path)}
+                              className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                              title="Baixar PDF da Guia"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-center">
                           {tax.receiptPath ? (

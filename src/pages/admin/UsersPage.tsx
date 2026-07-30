@@ -64,6 +64,21 @@ export function UsersPage() {
         if (linkError) throw linkError
       }
 
+      logAuditActivity({
+        userId: currentUser?.id,
+        companyId: companyIdToLink || userToApprove.companies?.[0]?.id || null,
+        action: 'APROVAR_SOLICITACAO_USUARIO',
+        entityType: 'usuarios',
+        entityId: userToApprove.id,
+        metadata: {
+          approved_user_id: userToApprove.id,
+          approved_user_name: userToApprove.full_name,
+          approved_user_email: userToApprove.email,
+          user_type: userToApprove.user_type,
+          origin: 'Painel Admin (Aprovação de Usuário)'
+        }
+      })
+
       toast.success(`Acesso de ${userToApprove.full_name} aprovado com sucesso!`)
       fetchUsers()
     } catch (err: any) {
@@ -81,6 +96,20 @@ export function UsersPage() {
           .eq('user_id', userToReject.id)
 
         if (linkError) throw linkError
+
+        logAuditActivity({
+          userId: currentUser?.id,
+          companyId: userToReject.companies?.[0]?.id || null,
+          action: 'RECUSAR_SOLICITACAO_USUARIO',
+          entityType: 'usuarios',
+          entityId: userToReject.id,
+          metadata: {
+            rejected_user_id: userToReject.id,
+            rejected_user_name: userToReject.full_name,
+            rejected_user_email: userToReject.email,
+            origin: 'Painel Admin'
+          }
+        })
 
         toast.info(`Solicitação de ${userToReject.full_name} recusada.`)
         fetchUsers()
@@ -100,9 +129,23 @@ export function UsersPage() {
     const userName = userToDelete.full_name || userToDelete.email
     if (confirm(`Tem certeza que deseja apagar permanentemente o usuário ${userName} da autenticação e do banco de dados? Esta ação não pode ser desfeita.`)) {
       try {
+        const targetId = userToDelete.id
+
+        // Desvincular e limpar chaves estrangeiras em tabelas dependentes (chamados, mensagens, notificacoes, etc)
+        // para evitar violações de Foreign Key ao remover da tabela usuarios
+        await Promise.allSettled([
+          (supabase as any).from('chamados').update({ assigned_to: null }).eq('assigned_to', targetId),
+          (supabase as any).from('chamados').update({ created_by: null }).eq('created_by', targetId),
+          (supabase as any).from('mensagens_chamado').update({ sender_id: null }).eq('sender_id', targetId),
+          (supabase as any).from('chamados_mensagens').update({ sender_id: null }).eq('sender_id', targetId),
+          (supabase as any).from('atividades').update({ user_id: null }).eq('user_id', targetId),
+          (supabase as any).from('notificacoes').delete().eq('user_id', targetId),
+          (supabase as any).from('usuarios_empresa').delete().eq('user_id', targetId)
+        ])
+
         // 1. Chamar RPC SECURITY DEFINER para remover do auth.users, usuarios e usuarios_empresa
         const { error: rpcError } = await (supabase as any).rpc('admin_deletar_usuario', {
-          target_user_id: userToDelete.id
+          target_user_id: targetId
         })
 
         if (rpcError) {
@@ -110,16 +153,34 @@ export function UsersPage() {
             console.warn('RPC admin_deletar_usuario retornou aviso, executando remoção direta:', rpcError.message)
           }
           // Fallback: Excluir vínculo em usuarios_empresa e registro em usuarios
-          await (supabase as any).from('usuarios_empresa').delete().eq('user_id', userToDelete.id)
-          const { error: deleteErr } = await (supabase as any).from('usuarios').delete().eq('id', userToDelete.id)
+          await (supabase as any).from('usuarios_empresa').delete().eq('user_id', targetId)
+          const { error: deleteErr } = await (supabase as any).from('usuarios').delete().eq('id', targetId)
           if (deleteErr) throw deleteErr
         }
+
+        logAuditActivity({
+          userId: currentUser?.id,
+          companyId: userToDelete.companies?.[0]?.id || null,
+          action: 'EXCLUIR_USUARIO',
+          entityType: 'usuarios',
+          entityId: targetId,
+          metadata: {
+            deleted_user_name: userName,
+            deleted_user_email: userToDelete.email
+          }
+        })
 
         toast.success(`Usuário ${userName} removido da autenticação e do banco de dados com sucesso!`)
         fetchUsers()
       } catch (err: any) {
         if (import.meta.env.DEV) console.error('Erro ao excluir usuário:', err)
-        toast.error(err.message || 'Erro ao apagar usuário do banco de dados.')
+
+        let userFriendlyMsg = err.message || 'Erro ao apagar usuário do banco de dados.'
+        if (userFriendlyMsg.includes('foreign key constraint') || userFriendlyMsg.includes('violates') || userFriendlyMsg.includes('fkey')) {
+          userFriendlyMsg = `Não é possível excluir o usuário "${userName}" porque existem chamados, mensagens ou histórico de atendimentos vinculados a este usuário.`
+        }
+
+        toast.error(userFriendlyMsg)
       }
     }
   }
@@ -162,6 +223,7 @@ export function UsersPage() {
     const handleRefresh = () => fetchUsers(true)
     window.addEventListener('bi2b:refresh-data', handleRefresh)
     return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
@@ -221,12 +283,18 @@ export function UsersPage() {
 
     setIsResetting(true)
     try {
-      const { error } = await (supabase as any).rpc('admin_reset_user_password', {
+      let { error } = await (supabase as any).rpc('admin_redefinir_senha_usuario', {
         target_user_id: resetUser.id,
         new_password: newPassword
       })
 
-      if (error) throw error
+      if (error) {
+        const { error: err2 } = await (supabase as any).rpc('admin_reset_user_password', {
+          target_user_id: resetUser.id,
+          new_password: newPassword
+        })
+        if (err2) throw error
+      }
 
       toast.success(`Senha de ${resetUser.full_name} alterada com sucesso!`)
       setIsOpenResetModal(false)
@@ -285,13 +353,15 @@ export function UsersPage() {
       }
 
       const matchedComp = companies.find(c => c.id === editCompanyId)
+      const isBi2bOffice = matchedComp?.name?.toLowerCase().includes('bi2b') || editUserType === 'admin'
+      const finalUserType = isBi2bOffice ? 'admin' : editUserType
 
       // 1. Atualizar o perfil do usuário
       const { error: profileError } = await (supabase as any)
         .from('usuarios')
         .update({
           full_name: editFullName,
-          user_type: editUserType,
+          user_type: finalUserType,
           company_id: editCompanyId || null,
           codigo_empresa: matchedComp?.codigo_exclusivo || editCompanyId || null,
           status_reason: null
@@ -660,8 +730,7 @@ export function UsersPage() {
                 >
                   <option value="client_user">Colaborador</option>
                   <option value="client_master">Gestor</option>
-                  <option value="staff">Contador (Contabilidade)</option>
-                  <option value="admin">Administrador (Contabilidade)</option>
+                  <option value="admin">Administrador</option>
                 </select>
                 {editingUser.id === currentUser?.id && (
                   <p className="text-[11px] text-[hsl(var(--muted-foreground))] mt-1">Você não pode alterar a função do seu próprio perfil.</p>

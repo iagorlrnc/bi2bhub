@@ -159,6 +159,7 @@ export function AdminMonthlyPage() {
     const handleRefresh = () => fetchMonthlyDocuments(true)
     window.addEventListener('bi2b:refresh-data', handleRefresh)
     return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCompanyId, selectedMonth])
 
   const handleUploadMonthlyDoc = async (slug: string, label: string, category: string, file: File) => {
@@ -435,7 +436,14 @@ export function AdminMonthlyPage() {
                             title="Visualizar documento no modal"
                           >
                             <Eye className="h-3 w-3" />
-                            Ver Documento
+                            Ver
+                          </button>
+                          <button
+                            onClick={() => handleDownloadMonthlyDoc(doc.file_path)}
+                            className="p-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-colors"
+                            title="Baixar documento"
+                          >
+                            <Download className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteMonthlyDoc(doc.id, doc.file_path)}

@@ -80,7 +80,7 @@ export function ClientLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const { user, profile, company, signOut, isClientMaster, companyUser } = useAuth()
+  const { user, profile, company, signOut, isClientMaster, companyUser, isLoading } = useAuth()
   const { resolvedTheme, toggleTheme } = useTheme()
   const location = useLocation()
   const navigate = useNavigate()
@@ -144,6 +144,7 @@ export function ClientLayout() {
     return () => {
       supabase.removeChannel(channel)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
   // Construir a trilha de navegação (breadcrumb)
@@ -191,6 +192,17 @@ export function ClientLayout() {
       toast.success('ID da Empresa copiado!')
       setTimeout(() => setCopiedCompanyId(false), 2000)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-[hsl(var(--background))]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-500" />
+          <p className="text-sm text-[hsl(var(--muted-foreground))]">Carregando painel...</p>
+        </div>
+      </div>
+    )
   }
 
   // Se o cliente não possuir empresa vinculada ativa

@@ -9,7 +9,6 @@ import {
   TrendingUp,
   Archive,
   X,
-  Download,
   Eye,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -136,6 +135,7 @@ export function TasksPage() {
     }
     window.addEventListener('bi2b:refresh-data', handleRefresh)
     return () => window.removeEventListener('bi2b:refresh-data', handleRefresh)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company?.id, selectedMonth, authLoading])
 
   const handleUploadMonthlyDoc = async (slug: string, label: string, category: string, file: File) => {
@@ -176,21 +176,6 @@ export function TasksPage() {
       toast.error(err.message || 'Erro ao fazer upload do documento.')
     } finally {
       setUploadingSlug(null)
-    }
-  }
-
-  const handleDownloadMonthlyDoc = async (filePath: string) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .createSignedUrl(filePath, 60)
-      if (error) throw error
-      if (data?.signedUrl) {
-        window.open(data.signedUrl, '_blank')
-      }
-    } catch (err) {
-      if (import.meta.env.DEV) console.error(err)
-      toast.error('Erro ao gerar link de download.')
     }
   }
 

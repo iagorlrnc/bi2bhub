@@ -77,6 +77,7 @@ export function TicketsPage() {
       window.removeEventListener('bi2b:refresh-data', handleRefresh)
       supabase.removeChannel(channel)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company?.id, authLoading])
 
   // Atalhos de teclado
