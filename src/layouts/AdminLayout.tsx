@@ -24,6 +24,7 @@ import {
   Bell,
   PanelLeft,
   ChevronRight,
+  Wallet,
 } from 'lucide-react'
 
 import logoPng from '@/assets/logo.png'
@@ -33,10 +34,11 @@ const adminSidebarCategories = [
     title: 'Visão Geral',
     items: [
       { label: 'Dashboard', icon: LayoutDashboard, path: ROUTES.ADMIN_DASHBOARD },
+      { label: 'Finanças', icon: Wallet, path: ROUTES.ADMIN_FINANCIAL },
     ],
   },
   {
-    title: 'Operações Contábeis',
+    title: 'Operações',
     items: [
       { label: 'Empresas', icon: Building2, path: ROUTES.ADMIN_COMPANIES },
       { label: 'Drive de Documentos', icon: FolderOpen, path: ROUTES.ADMIN_DRIVE },
@@ -65,6 +67,7 @@ const adminSidebarCategories = [
 const adminPathLabels: Record<string, string> = {
   admin: 'Admin',
   dashboard: 'Dashboard',
+  financas: 'Finanças e Cobranças',
   companies: 'Empresas',
   empresas: 'Empresas',
   users: 'Usuários',

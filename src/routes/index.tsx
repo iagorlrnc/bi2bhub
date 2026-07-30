@@ -34,6 +34,7 @@ const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage').
 const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })))
 
 // Páginas — Área do Cliente - Lazy Loading
+const FinancePage = lazy(() => import('@/pages/client/FinancePage').then(m => ({ default: m.FinancePage })))
 const TaxesPage = lazy(() => import('@/pages/client/TaxesPage').then(m => ({ default: m.TaxesPage })))
 const TasksPage = lazy(() => import('@/pages/client/TasksPage').then(m => ({ default: m.TasksPage })))
 const DrivePage = lazy(() => import('@/pages/client/DrivePage').then(m => ({ default: m.DrivePage })))
@@ -45,6 +46,7 @@ const NotificationsPage = lazy(() => import('@/pages/client/NotificationsPage').
 
 // Páginas — Área de Administração - Lazy Loading
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })))
+const AdminFinancePage = lazy(() => import('@/pages/admin/AdminFinancePage').then(m => ({ default: m.AdminFinancePage })))
 const CompaniesPage = lazy(() => import('@/pages/admin/CompaniesPage').then(m => ({ default: m.CompaniesPage })))
 const UsersPage = lazy(() => import('@/pages/admin/UsersPage').then(m => ({ default: m.UsersPage })))
 const StaffPage = lazy(() => import('@/pages/admin/StaffPage').then(m => ({ default: m.StaffPage })))
@@ -79,7 +81,7 @@ function RootDomainHandler() {
 
   if (subdomain === 'app') {
     if (isAuthenticated) {
-      return <Navigate to={ROUTES.TAXES} replace />
+      return <Navigate to={ROUTES.FINANCIAL} replace />
     }
     return (
       <AuthLayout>
@@ -124,6 +126,7 @@ function SubdomainRoutes() {
           }
         >
           <Route path={ROUTES.ADMIN_DASHBOARD} element={<AdminDashboardPage />} />
+          <Route path={ROUTES.ADMIN_FINANCIAL} element={<AdminFinancePage />} />
           <Route path={ROUTES.ADMIN_COMPANIES} element={<CompaniesPage />} />
           <Route path={ROUTES.ADMIN_COMPANY_DETAIL} element={<CompaniesPage />} />
           <Route path={ROUTES.ADMIN_USERS} element={<UsersPage />} />
@@ -138,6 +141,8 @@ function SubdomainRoutes() {
           <Route path={ROUTES.ADMIN_NOTIFICATIONS} element={<AdminNotificationsPage />} />
 
           {/* Redirecionamentos de compatibilidade de rotas em inglês */}
+          <Route path="/financial" element={<Navigate to={ROUTES.ADMIN_FINANCIAL} replace />} />
+          <Route path="/cobrancas" element={<Navigate to={ROUTES.ADMIN_FINANCIAL} replace />} />
           <Route path="/companies" element={<Navigate to={ROUTES.ADMIN_COMPANIES} replace />} />
           <Route path="/users" element={<Navigate to={ROUTES.ADMIN_USERS} replace />} />
           <Route path="/staff" element={<Navigate to={ROUTES.ADMIN_STAFF} replace />} />
@@ -175,6 +180,7 @@ function SubdomainRoutes() {
             </AuthGuard>
           }
         >
+          <Route path={ROUTES.FINANCIAL} element={<PermissionGuard module="finance"><FinancePage /></PermissionGuard>} />
           <Route path={ROUTES.TAXES} element={<PermissionGuard module="strategic"><TaxesPage /></PermissionGuard>} />
           <Route path={ROUTES.TASKS} element={<PermissionGuard module="monitoring"><TasksPage /></PermissionGuard>} />
           <Route path={ROUTES.DRIVE} element={<PermissionGuard module="drive"><DrivePage /></PermissionGuard>} />
@@ -186,6 +192,8 @@ function SubdomainRoutes() {
           <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />
 
           {/* Redirecionamentos de compatibilidade de rotas em inglês */}
+          <Route path="/financial" element={<Navigate to={ROUTES.FINANCIAL} replace />} />
+          <Route path="/cobrancas" element={<Navigate to={ROUTES.FINANCIAL} replace />} />
           <Route path="/taxes" element={<Navigate to={ROUTES.TAXES} replace />} />
           <Route path="/tasks" element={<Navigate to={ROUTES.TASKS} replace />} />
           <Route path="/tickets" element={<Navigate to={ROUTES.TICKETS} replace />} />
@@ -193,10 +201,10 @@ function SubdomainRoutes() {
           <Route path="/settings" element={<Navigate to={ROUTES.SETTINGS} replace />} />
           <Route path="/profile" element={<Navigate to={ROUTES.PROFILE} replace />} />
           <Route path="/notifications" element={<Navigate to={ROUTES.NOTIFICATIONS} replace />} />
-          <Route path="/app/*" element={<Navigate to={ROUTES.TAXES} replace />} />
+          <Route path="/app/*" element={<Navigate to={ROUTES.FINANCIAL} replace />} />
         </Route>
 
-        <Route path="*" element={<Navigate to={ROUTES.TAXES} replace />} />
+        <Route path="*" element={<Navigate to={ROUTES.FINANCIAL} replace />} />
       </Routes>
     )
   }

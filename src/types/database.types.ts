@@ -568,6 +568,112 @@ export interface Database {
           updated_at?: string
         }
       }
+      planos_empresa: {
+        Row: {
+          id: string
+          company_id: string
+          plan_name: string
+          monthly_amount: number
+          due_day: number
+          status: 'ativo' | 'suspenso' | 'cancelado'
+          auto_generate: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          plan_name?: string
+          monthly_amount?: number
+          due_day?: number
+          status?: 'ativo' | 'suspenso' | 'cancelado'
+          auto_generate?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          plan_name?: string
+          monthly_amount?: number
+          due_day?: number
+          status?: 'ativo' | 'suspenso' | 'cancelado'
+          auto_generate?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      cobrancas: {
+        Row: {
+          id: string
+          company_id: string
+          title: string
+          description: string | null
+          type: 'plano' | 'honorarios' | 'servico_extra' | 'imposto_taxa' | 'outros'
+          amount: number
+          due_date: string
+          status: 'pendente' | 'pago' | 'atrasado' | 'cancelado' | 'em_processamento'
+          reference_period: string
+          pix_code: string | null
+          boleto_barcode: string | null
+          receipt_url: string | null
+          receipt_name: string | null
+          receipt_uploaded_at: string | null
+          receipt_status: 'sem_comprovante' | 'pendente_aprovacao' | 'aprovado' | 'rejeitado' | null
+          paid_at: string | null
+          payment_method: 'pix' | 'boleto' | 'cartao' | 'transferencia' | 'manual' | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          title: string
+          description?: string | null
+          type?: 'plano' | 'honorarios' | 'servico_extra' | 'imposto_taxa' | 'outros'
+          amount: number
+          due_date: string
+          status?: 'pendente' | 'pago' | 'atrasado' | 'cancelado' | 'em_processamento'
+          reference_period: string
+          pix_code?: string | null
+          boleto_barcode?: string | null
+          receipt_url?: string | null
+          receipt_name?: string | null
+          receipt_uploaded_at?: string | null
+          receipt_status?: 'sem_comprovante' | 'pendente_aprovacao' | 'aprovado' | 'rejeitado' | null
+          paid_at?: string | null
+          payment_method?: 'pix' | 'boleto' | 'cartao' | 'transferencia' | 'manual' | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          title?: string
+          description?: string | null
+          type?: 'plano' | 'honorarios' | 'servico_extra' | 'imposto_taxa' | 'outros'
+          amount?: number
+          due_date?: string
+          status?: 'pendente' | 'pago' | 'atrasado' | 'cancelado' | 'em_processamento'
+          reference_period?: string
+          pix_code?: string | null
+          boleto_barcode?: string | null
+          receipt_url?: string | null
+          receipt_name?: string | null
+          receipt_uploaded_at?: string | null
+          receipt_status?: 'sem_comprovante' | 'pendente_aprovacao' | 'aprovado' | 'rejeitado' | null
+          paid_at?: string | null
+          payment_method?: 'pix' | 'boleto' | 'cartao' | 'transferencia' | 'manual' | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {}
     Functions: {

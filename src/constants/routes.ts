@@ -13,6 +13,7 @@ export const ROUTES = {
 
   // Área do Cliente (Subdomínio app.* - Rotas internas em Português)
   APP: '/',
+  FINANCIAL: '/financas',
   TAXES: '/impostos',
   TASKS: '/tarefas',
   DRIVE: '/drive',
@@ -26,6 +27,7 @@ export const ROUTES = {
   // Área de Administração (Subdomínio administrador.* - Rotas internas em Português)
   ADMIN: '/',
   ADMIN_DASHBOARD: '/dashboard',
+  ADMIN_FINANCIAL: '/financas',
   ADMIN_COMPANIES: '/empresas',
   ADMIN_COMPANY_DETAIL: '/empresas/:id',
   ADMIN_USERS: '/usuarios',

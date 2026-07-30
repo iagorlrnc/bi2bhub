@@ -121,30 +121,62 @@ export function FilePreviewModal({ isOpen, onClose, file }: FilePreviewModalProp
 
     const fetchUrl = async () => {
       try {
-        if (file.url) {
-          if (isMounted) setSignedUrl(file.url)
-        } else if (file.filePath) {
-          let bucket = file.bucket || 'documents'
-          let { data, error: signedErr } = await supabase.storage
-            .from(bucket)
-            .createSignedUrl(file.filePath, 3600)
+        const pathOrUrl = file.url || file.filePath || ''
 
-          if (signedErr && bucket !== 'documents') {
-            const fallback = await supabase.storage
-              .from('documents')
-              .createSignedUrl(file.filePath, 3600)
-            if (fallback.data?.signedUrl) {
-              data = fallback.data
-              signedErr = null
-            }
-          }
-
-          if (signedErr) throw signedErr
-          if (isMounted && data?.signedUrl) {
-            setSignedUrl(data.signedUrl)
-          }
-        } else {
+        if (!pathOrUrl) {
           throw new Error('Caminho do arquivo não fornecido.')
+        }
+
+        const isFullHttpUrl =
+          pathOrUrl.startsWith('http://') ||
+          pathOrUrl.startsWith('https://') ||
+          pathOrUrl.startsWith('data:') ||
+          pathOrUrl.startsWith('blob:')
+
+        if (isFullHttpUrl) {
+          if (isMounted) setSignedUrl(pathOrUrl)
+          return
+        }
+
+        // Se for um caminho relativo no bucket
+        let bucket = file.bucket || 'documents'
+        let cleanPath = pathOrUrl.replace(/^\/+/, '')
+
+        // Se contiver nome do bucket na rota, extrair caminho interno
+        if (cleanPath.includes(`/${bucket}/`)) {
+          cleanPath = cleanPath.split(`/${bucket}/`)[1]
+        } else if (cleanPath.includes('/documents/')) {
+          cleanPath = cleanPath.split('/documents/')[1]
+        }
+
+        cleanPath = decodeURIComponent(cleanPath)
+
+        let { data, error: signedErr } = await supabase.storage
+          .from(bucket)
+          .createSignedUrl(cleanPath, 3600)
+
+        if (signedErr && bucket !== 'documents') {
+          const fallback = await supabase.storage
+            .from('documents')
+            .createSignedUrl(cleanPath, 3600)
+          if (fallback.data?.signedUrl) {
+            data = fallback.data
+            signedErr = null
+          }
+        }
+
+        if (signedErr || !data?.signedUrl) {
+          // Fallback para getPublicUrl se signedUrl falhar
+          const publicRes = supabase.storage.from(bucket).getPublicUrl(cleanPath)
+          if (publicRes.data?.publicUrl) {
+            if (isMounted) setSignedUrl(publicRes.data.publicUrl)
+            return
+          }
+          throw signedErr || new Error('Não foi possível gerar link do arquivo.')
+        }
+
+        if (isMounted && data?.signedUrl) {
+          setSignedUrl(data.signedUrl)
         }
       } catch (err: any) {
         if (import.meta.env.DEV) console.error('Erro ao carregar preview do arquivo:', err)

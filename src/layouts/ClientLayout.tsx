@@ -27,11 +27,18 @@ import {
   Building2,
   Copy,
   Check,
+  Wallet,
 } from 'lucide-react'
 
 import logoPng from '@/assets/logo.png'
 
 const clientSidebarCategories = [
+  {
+    title: 'Finanças & Contratos',
+    items: [
+      { label: 'Finanças', icon: Wallet, path: ROUTES.FINANCIAL, module: 'finance' },
+    ],
+  },
   {
     title: 'Gestão & Impostos',
     items: [
@@ -58,6 +65,8 @@ const clientSidebarCategories = [
 // Rótulos da trilha de navegação (breadcrumb)
 const pathLabels: Record<string, string> = {
   app: 'Início',
+  finance: 'Finanças',
+  financas: 'Finanças',
   strategic: 'Guias e Impostos',
   taxes: 'Guias e Impostos',
   impostos: 'Guias e Impostos',
@@ -158,6 +167,7 @@ export function ClientLayout() {
   // Verificar acesso ao módulo
   const hasModuleAccess = (module: string) => {
     if (module === 'team') return isClientMaster
+    if (module === 'finance') return true
     if (isClientMaster) return true
     const permissions = companyUser?.permissions ?? []
     return Array.isArray(permissions) && permissions.includes(module)

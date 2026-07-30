@@ -1,6 +1,7 @@
 // ===== Module permissions =====
 export const MODULES = [
   'dashboard',
+  'finance',
   'strategic',
   'monitoring',
   'xml',
@@ -15,6 +16,7 @@ export type ModuleKey = (typeof MODULES)[number]
 // ===== Module Labels =====
 export const MODULE_LABELS: Record<ModuleKey, string> = {
   dashboard: 'Dashboard',
+  finance: 'Finanças',
   strategic: 'Visão Estratégica',
   monitoring: 'Monitoramento',
   xml: 'XML Fiscal',
