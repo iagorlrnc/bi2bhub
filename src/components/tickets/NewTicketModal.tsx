@@ -4,6 +4,8 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity } from '@/lib/audit'
+import { createAdminNotification } from '@/lib/adminNotifications'
+import { ROUTES } from '@/constants/routes'
 
 interface NewTicketModalProps {
   isOpen: boolean
@@ -87,6 +89,21 @@ export function NewTicketModal({
           file_name: selectedFile?.name
         }
       })
+
+      if (!isAdmin && user?.id) {
+        const clientName = company?.trade_name || company?.name || 'Cliente'
+        await createAdminNotification({
+          userId: user.id,
+          companyId: targetCompanyId,
+          companyName: clientName,
+          title: selectedFile ? `Novo Chamado com Anexo: ${subject.trim()}` : `Novo Chamado de Suporte: ${subject.trim()}`,
+          message: selectedFile
+            ? `${clientName} abriu um novo chamado ("${subject.trim()}") anexando o arquivo "${selectedFile.name}".`
+            : `${clientName} abriu um novo chamado ("${subject.trim()}").`,
+          type: 'alerta',
+          actionUrl: ROUTES.ADMIN_TICKETS,
+        })
+      }
 
       // 2. Se houver anexo inicial, fazer upload e inserir primeira mensagem
       if (selectedFile && ticketData?.id) {

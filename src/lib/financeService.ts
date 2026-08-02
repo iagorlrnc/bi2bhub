@@ -10,6 +10,8 @@ import type {
 } from '@/types/finance'
 import { supabase } from '@/lib/supabase'
 import { logAuditActivity } from '@/lib/audit'
+import { createAdminNotification } from '@/lib/adminNotifications'
+import { ROUTES } from '@/constants/routes'
 
 // Helper para gerar código PIX formatado
 export function generateMockPixCode(companyName: string, amount: number, id: string): string {
@@ -393,6 +395,27 @@ export const financeService = {
         entityId: chargeId,
         metadata: { receipt_name: receiptName }
       })
+
+      try {
+        const { data: charge } = await supabase
+          .from('cobrancas')
+          .select('company_id, title, empresas(name, trade_name)')
+          .eq('id', chargeId)
+          .single()
+
+        const compName = (charge as any)?.empresas?.trade_name || (charge as any)?.empresas?.name || 'Cliente'
+        await createAdminNotification({
+          userId,
+          companyId: charge?.company_id,
+          companyName: compName,
+          title: 'Novo Comprovante de Pagamento (Finanças)',
+          message: `${compName} enviou o comprovante "${receiptName}" para a cobrança "${charge?.title || 'Fatura'}".`,
+          type: 'sucesso',
+          actionUrl: ROUTES.ADMIN_FINANCIAL,
+        })
+      } catch (nErr) {
+        if (import.meta.env.DEV) console.warn('Aviso ao notificar admin sobre comprovante:', nErr)
+      }
     }
 
     window.dispatchEvent(new CustomEvent('bi2b_finance_updated'))
@@ -674,7 +697,14 @@ export const financeService = {
 
       const { data, error } = await query
 
-      if (!error && data && data.length > 0) {
+      if (error) {
+        if (import.meta.env.DEV) {
+          console.warn('Aviso ao consultar solicitacoes_plano:', error.message)
+        }
+        return []
+      }
+
+      if (data && data.length > 0) {
         return data.map((row: any) => ({
           id: row.id,
           company_id: row.company_id,
@@ -687,37 +717,6 @@ export const financeService = {
           updated_at: row.updated_at || undefined,
           reviewed_by: row.reviewed_by || undefined,
         }))
-      }
-
-      // Fallback: Buscar nas notificações de alerta de plano
-      let notifQuery = supabase
-        .from('notificacoes')
-        .select('*, empresas(id, name, trade_name)')
-        .ilike('title', '%Solicitação de Alteração de Plano%')
-        .order('created_at', { ascending: false })
-
-      if (companyId && companyId !== 'all') {
-        notifQuery = notifQuery.eq('company_id', companyId)
-      }
-
-      const { data: notifData } = await notifQuery
-
-      if (notifData && notifData.length > 0) {
-        return notifData.map((n: any) => {
-          const compName = n.empresas?.trade_name || n.empresas?.name || 'Empresa Cliente'
-          const planMatch = n.message?.match(/Plano ([A-Za-zÀ-ÿ]+)/)
-          const requestedPlan = planMatch ? planMatch[1] : 'Pró'
-          return {
-            id: n.id,
-            company_id: n.company_id || n.user_id,
-            company_name: compName,
-            current_plan: 'Básico',
-            requested_plan: requestedPlan,
-            notes: n.message,
-            status: 'pendente' as const,
-            created_at: n.created_at,
-          }
-        })
       }
 
       return []
@@ -747,8 +746,8 @@ export const financeService = {
         due_day: 10,
       })
 
-      // 2. Atualizar status da solicitação
-      await supabase
+      // 2. Atualizar status da solicitação no Supabase
+      const { error: updateErr } = await supabase
         .from('solicitacoes_plano')
         .update({
           status: 'aprovado',
@@ -756,6 +755,19 @@ export const financeService = {
           reviewed_by: reviewerName || 'Admin',
         })
         .eq('id', requestId)
+
+      if (updateErr) {
+        console.error('Erro ao atualizar status para aprovado no Supabase:', updateErr.message)
+        // Tentativa de fallback usando apenas ID do usuário se falhar por restrição de tipo
+        await supabase
+          .from('solicitacoes_plano')
+          .update({
+            status: 'aprovado',
+            updated_at: new Date().toISOString(),
+            reviewed_by: reviewerId || null,
+          })
+          .eq('id', requestId)
+      }
 
       // 3. Notificar o cliente
       const { data: users } = await supabase
@@ -799,16 +811,30 @@ export const financeService = {
     requestId: string,
     companyId: string,
     reason?: string,
-    reviewerId?: string
+    reviewerId?: string,
+    reviewerName?: string
   ): Promise<boolean> {
     try {
-      await supabase
+      const { error: updateErr } = await supabase
         .from('solicitacoes_plano')
         .update({
           status: 'recusado',
           updated_at: new Date().toISOString(),
+          reviewed_by: reviewerName || 'Admin',
         })
         .eq('id', requestId)
+
+      if (updateErr) {
+        console.error('Erro ao recusar no Supabase:', updateErr.message)
+        await supabase
+          .from('solicitacoes_plano')
+          .update({
+            status: 'recusado',
+            updated_at: new Date().toISOString(),
+            reviewed_by: reviewerId || null,
+          })
+          .eq('id', requestId)
+      }
 
       const { data: users } = await supabase
         .from('usuarios')
@@ -842,6 +868,36 @@ export const financeService = {
       return true
     } catch (err) {
       console.error('Erro ao recusar solicitação de plano:', err)
+      throw err
+    }
+  },
+
+  // Excluir solicitação de alteração de plano
+  async deletePlanRequest(requestId: string, reviewerId?: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('solicitacoes_plano')
+        .delete()
+        .eq('id', requestId)
+
+      if (error) {
+        console.warn('Aviso delete solicitacoes_plano:', error.message)
+      }
+
+      if (reviewerId) {
+        logAuditActivity({
+          userId: reviewerId,
+          companyId: '',
+          action: 'financas.plano.excluir_solicitacao',
+          entityType: 'solicitacoes_plano',
+          entityId: requestId
+        })
+      }
+
+      window.dispatchEvent(new CustomEvent('bi2b_finance_updated'))
+      return true
+    } catch (err) {
+      console.error('Erro ao excluir solicitação de plano:', err)
       throw err
     }
   }

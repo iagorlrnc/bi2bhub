@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/contexts/ThemeContext'
 import { ROUTES } from '@/constants/routes'
 import { cn } from '@/lib/utils'
 import { APP_NAME } from '@/constants'
 import { AutoRefreshButton } from '@/components/AutoRefreshButton'
+import { ClientNotificationDropdown } from '@/components/ClientNotificationDropdown'
 import { toast } from 'sonner'
 import {
   Shield,
@@ -14,7 +14,6 @@ import {
   MessageSquare,
   Users,
   Settings,
-  Bell,
   Menu,
   X,
   LogOut,
@@ -28,6 +27,7 @@ import {
   Copy,
   Check,
   Wallet,
+  Bell,
 } from 'lucide-react'
 
 import logoPng from '@/assets/logo.png'
@@ -51,6 +51,7 @@ const clientSidebarCategories = [
     items: [
       { label: 'Drive', icon: FolderOpen, path: ROUTES.DRIVE, module: 'drive' },
       { label: 'Chamados', icon: MessageSquare, path: ROUTES.TICKETS, module: 'tickets' },
+      { label: 'Notificações', icon: Bell, path: ROUTES.NOTIFICATIONS, module: 'notifications' },
     ],
   },
   {
@@ -89,72 +90,10 @@ export function ClientLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const { user, profile, company, signOut, isClientMaster, companyUser, isLoading } = useAuth()
+  const { profile, company, signOut, isClientMaster, companyUser, isLoading } = useAuth()
   const { resolvedTheme, toggleTheme } = useTheme()
   const location = useLocation()
   const navigate = useNavigate()
-
-  const [unreadCount, setUnreadCount] = useState(0)
-
-  const fetchUnreadCount = async () => {
-    if (!user?.id) return
-    try {
-      const { count, error } = await supabase
-        .from('notificacoes')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false)
-        .neq('deleted_by_client', true)
-      if (!error) {
-        setUnreadCount(count || 0)
-      }
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Erro ao buscar notificações não lidas:', err)
-    }
-  }
-
-  const handleNotificationsClick = async () => {
-    navigate(ROUTES.NOTIFICATIONS)
-    if (unreadCount > 0 && user?.id) {
-      setUnreadCount(0)
-      try {
-        await supabase
-          .from('notificacoes')
-          .update({ is_read: true })
-          .eq('user_id', user.id)
-          .eq('is_read', false)
-      } catch (err) {
-        if (import.meta.env.DEV) console.error('Erro ao marcar notificações como lidas:', err)
-      }
-    }
-  }
-
-  useEffect(() => {
-    if (!user?.id) return
-
-    fetchUnreadCount()
-
-    const channel = supabase
-      .channel(`user-notifications-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notificacoes',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          fetchUnreadCount()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id])
 
   // Construir a trilha de navegação (breadcrumb)
   const pathSegments = location.pathname.split('/').filter(Boolean)
@@ -167,7 +106,7 @@ export function ClientLayout() {
   // Verificar acesso ao módulo
   const hasModuleAccess = (module: string) => {
     if (module === 'team') return isClientMaster
-    if (module === 'finance') return true
+    if (module === 'finance' || module === 'notifications') return true
     if (isClientMaster) return true
     const permissions = companyUser?.permissions ?? []
     return Array.isArray(permissions) && permissions.includes(module)
@@ -509,19 +448,8 @@ export function ClientLayout() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Notificações */}
-            <button
-              onClick={handleNotificationsClick}
-              className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-              title="Notificações"
-            >
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900 animate-pulse">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
+            {/* Notificações e Alertas do Cliente em Tempo Real */}
+            <ClientNotificationDropdown />
 
             {/* Alternador de Tema */}
             <button

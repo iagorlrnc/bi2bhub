@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants/routes'
 import { APP_NAME, STRONG_PASSWORD_REGEX, PASSWORD_REQUIREMENTS_MESSAGE } from '@/constants'
 import { supabase } from '@/lib/supabase'
+import { createAdminNotification } from '@/lib/adminNotifications'
 import { toast } from 'sonner'
 import { Eye, EyeOff, Loader2, User, Building2, FileText, Check, ArrowLeft, ArrowRight, Search, CheckCircle2, AlertCircle } from 'lucide-react'
 import logoPng from '@/assets/logo.png'
@@ -217,6 +218,16 @@ export function RegisterPage() {
       if (rpcError) {
         if (import.meta.env.DEV) console.warn('Aviso RPC registrar_solicitacao_acesso:', rpcError.message)
       }
+
+      await createAdminNotification({
+        userId,
+        companyId: foundCompany!.id,
+        companyName: foundCompany!.trade_name || foundCompany!.name,
+        title: 'Nova Solicitação de Acesso ao Sistema',
+        message: `${fullName.trim()} (${email.trim()}) cadastrou-se solicitando acesso à empresa ${foundCompany!.trade_name || foundCompany!.name}.`,
+        type: 'alerta',
+        actionUrl: ROUTES.ADMIN_USERS,
+      })
 
       toast.success('Solicitação de acesso enviada com sucesso! Aguarde a aprovação do gestor ou administrador.')
       navigate(ROUTES.LOGIN)

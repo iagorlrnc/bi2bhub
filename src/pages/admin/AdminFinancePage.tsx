@@ -12,6 +12,7 @@ import {
   FileCheck,
   Trash2,
   X,
+  XCircle,
   Loader2,
   Check,
   Send,
@@ -93,7 +94,16 @@ export function AdminFinancePage() {
     try {
       const list = await financeService.getCobrancas(selectedCompanyId)
       const requests = await financeService.getPlanRequests(selectedCompanyId)
-      setPlanRequests(requests)
+      setPlanRequests((prev) => {
+        const statusMap = new Map(prev.map((r) => [r.id, r]))
+        return requests.map((r) => {
+          const localItem = statusMap.get(r.id)
+          if (localItem && (localItem.status === 'aprovado' || localItem.status === 'recusado') && r.status === 'pendente') {
+            return { ...r, status: localItem.status, reviewed_by: localItem.reviewed_by || r.reviewed_by }
+          }
+          return r
+        })
+      })
 
       // Buscar todos os planos cadastrados no Supabase em uma única consulta
       const { data: allPlans } = await supabase
@@ -139,10 +149,10 @@ export function AdminFinancePage() {
     const handleUpdate = () => loadData()
     window.addEventListener('bi2b_finance_updated', handleUpdate)
 
-    // Polling automático de segurança a cada 1 segundo
+    // Polling de segurança a cada 30 segundos (Realtime cuida de atualizações instantâneas)
     const interval = setInterval(() => {
       loadData()
-    }, 1000)
+    }, 30000)
 
     // Inscrição em tempo real no Supabase Postgres Changes
     const channel = supabase
@@ -341,12 +351,19 @@ export function AdminFinancePage() {
   const handleApprovePlanRequest = async (req: SolicitacaoPlano) => {
     try {
       const approverName = profile?.full_name || profile?.email || 'Administrador Bi2B'
+
+      // Atualização otimista imediata da interface (remove os botões e exibe badge)
+      setPlanRequests((prev) =>
+        prev.map((r) => (r.id === req.id ? { ...r, status: 'aprovado', reviewed_by: approverName } : r))
+      )
+
       await financeService.approvePlanRequest(req.id, req.company_id, req.requested_plan, user?.id, approverName)
       toast.success(`Solicitação APROVADA! O plano da empresa "${req.company_name}" foi migrado para o Plano ${req.requested_plan}.`)
       loadData()
     } catch (err) {
       console.error(err)
       toast.error('Erro ao aprovar solicitação de plano.')
+      loadData()
     }
   }
 
@@ -355,12 +372,33 @@ export function AdminFinancePage() {
     const reason = prompt(`Informe o motivo da recusa para a empresa "${req.company_name}":`, 'No momento não é possível realizar a alteração de plano.')
     if (reason === null) return
     try {
-      await financeService.rejectPlanRequest(req.id, req.company_id, reason, user?.id)
+      const reviewerName = profile?.full_name || profile?.email || 'Administrador Bi2B'
+
+      // Atualização otimista imediata da interface (remove os botões e exibe badge)
+      setPlanRequests((prev) =>
+        prev.map((r) => (r.id === req.id ? { ...r, status: 'recusado', reviewed_by: reviewerName } : r))
+      )
+
+      await financeService.rejectPlanRequest(req.id, req.company_id, reason, user?.id, reviewerName)
       toast.warning('Solicitação de plano recusada e cliente notificado.')
       loadData()
     } catch (err) {
       console.error(err)
       toast.error('Erro ao recusar solicitação de plano.')
+      loadData()
+    }
+  }
+
+  // Excluir solicitação de alteração de plano
+  const handleDeletePlanRequest = async (req: SolicitacaoPlano) => {
+    if (!confirm(`Deseja realmente excluir o registro da solicitação da empresa "${req.company_name}"?`)) return
+    try {
+      setPlanRequests((prev) => prev.filter((r) => r.id !== req.id))
+      await financeService.deletePlanRequest(req.id, user?.id)
+      toast.success('Solicitação removida com sucesso.')
+    } catch (err) {
+      console.error(err)
+      toast.error('Erro ao excluir solicitação de plano.')
     }
   }
 
@@ -940,7 +978,7 @@ export function AdminFinancePage() {
 
                       <div className="flex items-center gap-2 shrink-0">
                         {item.status === 'pendente' && (
-                          <>
+                          <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleApprovePlanRequest(item)}
                               className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 transition-all"
@@ -953,19 +991,47 @@ export function AdminFinancePage() {
                             >
                               <X className="h-4 w-4" /> Recusar
                             </button>
-                          </>
+                          </div>
                         )}
 
                         {item.status === 'aprovado' && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                            <CheckCircle2 className="h-4 w-4" /> Migração Aprovada ({item.reviewed_by || 'Admin'})
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className="flex flex-col items-end gap-1">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
+                                <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Migração Aprovada
+                              </span>
+                              <span className="text-[10px] font-medium text-[hsl(var(--muted-foreground))] flex items-center gap-1">
+                                Analisado por: <strong className="text-[hsl(var(--foreground))]">{item.reviewed_by || 'Administrador'}</strong>
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleDeletePlanRequest(item)}
+                              className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 transition-all shadow-2xs"
+                              title="Excluir Histórico da Solicitação"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         )}
 
                         {item.status === 'recusado' && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                            <X className="h-4 w-4" /> Solicitação Recusada
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className="flex flex-col items-end gap-1">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 shadow-2xs">
+                                <XCircle className="h-4 w-4 text-rose-500" /> Solicitação Recusada
+                              </span>
+                              <span className="text-[10px] font-medium text-[hsl(var(--muted-foreground))] flex items-center gap-1">
+                                Analisado por: <strong className="text-[hsl(var(--foreground))]">{item.reviewed_by || 'Administrador'}</strong>
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleDeletePlanRequest(item)}
+                              className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 transition-all shadow-2xs"
+                              title="Excluir Histórico da Solicitação"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>

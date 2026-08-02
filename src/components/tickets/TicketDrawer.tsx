@@ -10,6 +10,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import { logAuditActivity } from '@/lib/audit'
+import { createAdminNotification } from '@/lib/adminNotifications'
+import { ROUTES } from '@/constants/routes'
 import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
 
 interface TicketDrawerProps {
@@ -221,6 +223,23 @@ export function TicketDrawer({
         if (prev.some(m => m.id === optimisticMsg.id)) return prev
         return [...prev, optimisticMsg]
       })
+
+      if (!isAdmin && user?.id) {
+        const clientName = ticket?.company?.trade_name || ticket?.company?.name || 'Cliente'
+        await createAdminNotification({
+          userId: user.id,
+          companyId: ticket?.company_id,
+          companyName: clientName,
+          title: selectedFile
+            ? `Novo Anexo no Chamado #${ticket?.ticket_number || '---'}`
+            : `Nova Resposta no Chamado #${ticket?.ticket_number || '---'}`,
+          message: selectedFile
+            ? `${clientName} anexou o arquivo "${selectedFile.name}" no chamado "${ticket?.subject || 'Atendimento'}".`
+            : `${clientName} respondeu ao chamado "${ticket?.subject || 'Atendimento'}".`,
+          type: selectedFile ? 'sucesso' : 'info',
+          actionUrl: ROUTES.ADMIN_TICKETS,
+        })
+      }
 
       setNewMessage('')
       setSelectedFile(null)

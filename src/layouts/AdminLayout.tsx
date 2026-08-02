@@ -354,7 +354,7 @@ export function AdminLayout() {
               {resolvedTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
 
-            {/* Botão de Atualizar Auto (3s) */}
+            {/* Botão de Atualização Automática (Horário em Tempo Real) */}
             <AutoRefreshButton />
 
             {/* Avatar do Usuário */}

@@ -754,7 +754,7 @@ export function FinancePage() {
       {/* MODAL: SOLICITAR ALTERAÇÃO DE PLANO */}
       {isPlanModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-md rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-2xl space-y-4 text-[hsl(var(--foreground))]">
+          <div className="relative w-full max-w-lg rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-2xl space-y-4 text-[hsl(var(--foreground))]">
             <div className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-3">
               <h3 className="font-heading text-lg font-bold flex items-center gap-2">
                 <BadgeCheck className="h-5 w-5 text-[#0d6084] dark:text-cyan-400" />
@@ -769,21 +769,72 @@ export function FinancePage() {
             </div>
 
             <form onSubmit={handleSendPlanRequest} className="space-y-4 text-xs">
-              <div>
-                <label className="font-semibold block mb-1">Selecione o Plano Desejado</label>
-                <select
-                  value={selectedPlanOption}
-                  onChange={(e) => setSelectedPlanOption(e.target.value)}
-                  className="w-full bg-[hsl(var(--muted))] border border-[hsl(var(--border))] rounded-xl px-3 py-2 text-xs font-bold"
-                >
-                  <option value="Básico">Plano Básico</option>
-                  <option value="Pró">Plano Pró</option>
-                  <option value="Plus">Plano Plus</option>
-                </select>
+              <div className="space-y-2">
+                <label className="font-bold text-xs text-[hsl(var(--foreground))] block mb-1">
+                  Selecione o Novo Plano Desejado:
+                </label>
+                <div className="space-y-2">
+                  {[
+                    {
+                      id: 'Básico',
+                      name: 'Plano Básico',
+                      price: 'R$ 450,00',
+                      period: '/mês',
+                      desc: 'Até 5 colaboradores • Suporte fiscal & contábil essencial',
+                    },
+                    {
+                      id: 'Pró',
+                      name: 'Plano Pró',
+                      price: 'R$ 850,00',
+                      period: '/mês',
+                      desc: 'Até 15 colaboradores • Relatórios gerenciais & suporte prioritário',
+                    },
+                    {
+                      id: 'Plus',
+                      name: 'Plano Plus',
+                      price: 'R$ 1.450,00',
+                      period: '/mês',
+                      desc: 'Usuários ilimitados • Consultoria personalizada & reuniões mensais',
+                    },
+                  ].map((opt) => {
+                    const isCurrent = (plano?.plan_name || 'Básico').toLowerCase() === opt.id.toLowerCase()
+                    const isSelected = selectedPlanOption === opt.id
+
+                    return (
+                      <div
+                        key={opt.id}
+                        onClick={() => setSelectedPlanOption(opt.id)}
+                        className={cn(
+                          "relative cursor-pointer p-3.5 rounded-xl border transition-all flex items-start justify-between gap-3",
+                          isSelected
+                            ? "border-[#0d6084] dark:border-cyan-500 bg-[#0d6084]/5 dark:bg-cyan-500/10 shadow-xs"
+                            : "border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:bg-[hsl(var(--muted))]/50"
+                        )}
+                      >
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm text-[hsl(var(--foreground))]">{opt.name}</span>
+                            {isCurrent && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                <CheckCircle2 className="h-3 w-3" /> Plano Atual (Em Uso)
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-[hsl(var(--muted-foreground))] leading-snug">{opt.desc}</p>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span className="font-heading font-black text-sm text-[#0d6084] dark:text-cyan-400">{opt.price}</span>
+                          <span className="text-[10px] text-[hsl(var(--muted-foreground))] block">{opt.period}</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
 
               <div>
-                <label className="font-semibold block mb-1">Observações ou Necessidades Especiais</label>
+                <label className="font-semibold block mb-1 text-[hsl(var(--foreground))]">Observações ou Necessidades Especiais</label>
                 <textarea
                   rows={3}
                   value={planNotes}
@@ -793,7 +844,7 @@ export function FinancePage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3 pt-2 border-t border-[hsl(var(--border))]">
                 <button
                   type="button"
                   onClick={() => setIsPlanModalOpen(false)}
@@ -804,7 +855,7 @@ export function FinancePage() {
                 <button
                   type="submit"
                   disabled={isSubmittingPlanReq}
-                  className="px-4 py-2 bg-[#0d6084] hover:bg-[#0b4d6a] text-white font-bold rounded-xl shadow flex items-center gap-2"
+                  className="px-4 py-2 bg-[#0d6084] hover:bg-[#0b4d6a] text-white font-bold rounded-xl shadow flex items-center gap-2 transition-all disabled:opacity-50"
                 >
                   <Send className="h-4 w-4" />
                   {isSubmittingPlanReq ? 'Enviando...' : 'Enviar Solicitação'}

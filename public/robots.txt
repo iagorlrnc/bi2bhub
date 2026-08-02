@@ -1,8 +1,44 @@
+# ============================================================================
+# ROBOTS.TXT — BI2B HUB (SOLUÇÕES CONTÁBEIS & GESTÃO SAAS)
+# ============================================================================
+
 User-agent: *
 Allow: /
+Allow: /login
+Allow: /registro
+Allow: /redefinir-senha
 Disallow: /admin/
+Disallow: /administrador/
 Disallow: /financas/
 Disallow: /dashboard/
 Disallow: /configuracoes/
+Disallow: /api/
 
+# Permissões específicas para Crawler de Mecanismos de Busca Tradicionais
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Permissões explícitas para Motores de Busca por IA & Generativa (GEO)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Sitemap do Site
 Sitemap: https://bi2bhub.com.br/sitemap.xml

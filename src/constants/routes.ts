@@ -41,5 +41,3 @@ export const ROUTES = {
   ADMIN_TAXES: '/impostos',
   ADMIN_NOTIFICATIONS: '/notificacoes',
 } as const
-
-export type RouteKey = keyof typeof ROUTES

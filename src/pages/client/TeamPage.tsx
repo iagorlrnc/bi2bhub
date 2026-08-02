@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity } from '@/lib/audit'
+import { createAdminNotification } from '@/lib/adminNotifications'
+import { ROUTES } from '@/constants/routes'
 
 export interface TeamMember {
   id: string
@@ -462,6 +464,17 @@ export function TeamPage() {
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         })
       if (error) throw error
+
+      await createAdminNotification({
+        userId: user.id,
+        companyId: company.id,
+        companyName: company.trade_name || company.name,
+        title: 'Novo Convite de Usuário/Colaborador',
+        message: `${company.trade_name || company.name} convidou ${inviteEmail.trim()} para participar da equipe.`,
+        type: 'info',
+        actionUrl: ROUTES.ADMIN_USERS,
+      })
+
       toast.success(`Convite enviado para ${inviteEmail}`)
       setInviteEmail('')
       setIsOpenModal(false)

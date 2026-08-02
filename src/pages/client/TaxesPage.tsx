@@ -16,6 +16,8 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity } from '@/lib/audit'
+import { createAdminNotification } from '@/lib/adminNotifications'
+import { ROUTES } from '@/constants/routes'
 import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
 import type { Tables } from '@/types/database.types'
 
@@ -205,6 +207,16 @@ export function TaxesPage() {
         }
       })
 
+      await createAdminNotification({
+        userId: user.id,
+        companyId: company.id,
+        companyName: company.trade_name || company.name,
+        title: `Comprovante de Imposto Anexado: ${taxType}`,
+        message: `${company.trade_name || company.name} enviou o comprovante de pagamento para a guia ${taxType} (${refPeriod}).`,
+        type: 'sucesso',
+        actionUrl: ROUTES.ADMIN_TAXES,
+      })
+
       if (!updatedRows || updatedRows.length === 0) {
         console.warn('Aviso: Nenhum registro foi atualizado no banco de dados. Verifique as políticas RLS no Supabase.')
       }
@@ -261,6 +273,16 @@ export function TaxesPage() {
             origin: 'Painel do Cliente',
             receipt_path: receiptPath
           }
+        })
+
+        await createAdminNotification({
+          userId: user.id,
+          companyId: company.id,
+          companyName: company.trade_name || company.name,
+          title: 'Comprovante de Imposto Cancelado',
+          message: `${company.trade_name || company.name} cancelou o envio do comprovante de pagamento de uma guia.`,
+          type: 'alerta',
+          actionUrl: ROUTES.ADMIN_TAXES,
         })
       }
 
@@ -454,6 +476,7 @@ export function TaxesPage() {
                               if (file) {
                                 handleUploadReceipt(tax.id, tax.taxType, tax.refPeriod, tax.tags, file)
                               }
+                              e.target.value = ''
                             }}
                           />
                         </label>

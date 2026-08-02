@@ -16,6 +16,9 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
+import { createAdminNotification } from '@/lib/adminNotifications'
+import { logAuditActivity } from '@/lib/audit'
+import { ROUTES } from '@/constants/routes'
 
 interface MonthlyCategory {
   slug: string
@@ -169,6 +172,29 @@ export function TasksPage() {
 
       if (dbError) throw dbError
 
+      logAuditActivity({
+        userId: profile.id,
+        companyId: company.id,
+        action: 'UPLOAD_DOCUMENTO_MENSAL',
+        entityType: 'tarefas_mensais',
+        metadata: {
+          file_name: file.name,
+          category: label,
+          month: selectedMonth,
+          slug
+        }
+      })
+
+      await createAdminNotification({
+        userId: profile.id,
+        companyId: company.id,
+        companyName: company.trade_name || company.name,
+        title: `Documento de Tarefa Anexado: ${label}`,
+        message: `${company.trade_name || company.name} enviou o documento "${file.name}" para a tarefa/obrigação "${label}" (${selectedMonth}).`,
+        type: 'sucesso',
+        actionUrl: ROUTES.ADMIN_MONTHLY,
+      })
+
       toast.success(`Documento "${file.name}" enviado com sucesso!`)
       fetchMonthlyDocuments()
     } catch (err: any) {
@@ -193,6 +219,27 @@ export function TasksPage() {
         .delete()
         .eq('id', docId)
       if (dbError) throw dbError
+
+      if (company?.id && profile?.id) {
+        logAuditActivity({
+          userId: profile.id,
+          companyId: company.id,
+          action: 'EXCLUIR_DOCUMENTO_MENSAL',
+          entityType: 'tarefas_mensais',
+          entityId: docId,
+          metadata: { file_path: filePath, month: selectedMonth }
+        })
+
+        await createAdminNotification({
+          userId: profile.id,
+          companyId: company.id,
+          companyName: company.trade_name || company.name,
+          title: 'Documento de Tarefa Removido',
+          message: `${company.trade_name || company.name} excluiu um documento de obrigação mensal (${selectedMonth}).`,
+          type: 'alerta',
+          actionUrl: ROUTES.ADMIN_MONTHLY,
+        })
+      }
 
       toast.success('Documento excluído com sucesso!')
       fetchMonthlyDocuments()

@@ -26,6 +26,8 @@ import { MAX_FILE_SIZE, ALLOWED_FILE_TYPES } from '@/constants'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity, logOrUpdateDocumentView } from '@/lib/audit'
+import { createAdminNotification } from '@/lib/adminNotifications'
+import { ROUTES } from '@/constants/routes'
 import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
 
 export function DrivePage() {
@@ -371,6 +373,18 @@ export function DrivePage() {
           }
         })
 
+        if (user?.id && company?.id) {
+          await createAdminNotification({
+            userId: user.id,
+            companyId: company.id,
+            companyName: company.trade_name || company.name,
+            title: 'Documento Removido do Drive',
+            message: `${company.trade_name || company.name} enviou o arquivo "${file.name}" para a lixeira do Drive.`,
+            type: 'alerta',
+            actionUrl: ROUTES.ADMIN_DRIVE,
+          })
+        }
+
         toast.success('Documento movido para a lixeira.')
         fetchData()
       } catch (err) {
@@ -495,6 +509,16 @@ export function DrivePage() {
           action: 'UPLOAD_DOCUMENTO',
           entityType: 'documentos',
           metadata: { file_name: file.name, file_size: file.size, file_path: filePath, category }
+        })
+
+        await createAdminNotification({
+          userId: user.id,
+          companyId: company.id,
+          companyName: company.trade_name || company.name,
+          title: 'Novo Documento no Drive',
+          message: `${company.trade_name || company.name} enviou o arquivo "${file.name}" para o Drive.`,
+          type: 'info',
+          actionUrl: ROUTES.ADMIN_DRIVE,
         })
       } catch (err: any) {
         if (import.meta.env.DEV) console.error('Erro no upload do arquivo:', err)

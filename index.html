@@ -2,14 +2,72 @@
 <html lang="pt-BR" class="antialiased">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" sizes="32x32" href="src\assets\bponto.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/src/assets/bponto.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Bi2b Consultoria — Soluções completas em consultoria, dados e gestão contábil para transformar informação em decisão e dar mais clareza ao crescimento do seu negócio." />
+    
+    <!-- SEO Meta Tags Básicas -->
+    <title>BI2B Hub — Plataforma de Gestão Contábil, Fiscal e Financeira B2B</title>
+    <meta name="description" content="Portal de soluções em consultoria contábil, gestão de guias fiscais (DAS, FGTS, DARF), armazenamento seguro de documentos e suporte integrado para empresas clientes e contadores." />
+    <meta name="keywords" content="consultoria contábil, portal do cliente contábil, guias fiscais, DAS, FGTS, DARF, gestão financeira B2B, drive contábil, chamado contábil" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://bi2bhub.com.br/" />
     <meta name="theme-color" content="#6366f1" />
+
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://bi2bhub.com.br/" />
+    <meta property="og:title" content="BI2B Hub — Plataforma de Gestão Contábil e Financeira B2B" />
+    <meta property="og:description" content="Gestão financeira, guias de impostos, suporte ágil e drive seguro para a sua empresa." />
+    <meta property="og:site_name" content="BI2B Hub" />
+    <meta property="og:locale" content="pt_BR" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BI2B Hub — Plataforma de Gestão Contábil e Financeira B2B" />
+    <meta name="twitter:description" content="Gestão financeira, guias de impostos, suporte ágil e drive seguro para a sua empresa." />
+
+    <!-- Preconexão de Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-    <title>Bi2B Consultoria</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Dados Estruturados Schema.org em JSON-LD (Essencial para SEO Técnico e GEO) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "AccountingService",
+          "@id": "https://bi2bhub.com.br/#organization",
+          "name": "BI2B Consultoria & Assessoria Contábil",
+          "url": "https://bi2bhub.com.br/",
+          "logo": "https://bi2bhub.com.br/src/assets/bponto.png",
+          "description": "Consultoria e assessoria contábil completa para empresas B2B, com automação fiscal e gestão financeira.",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "São Paulo",
+            "addressRegion": "SP",
+            "addressCountry": "BR"
+          },
+          "areaServed": "BR",
+          "priceRange": "$$"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://bi2bhub.com.br/#software",
+          "name": "BI2B Hub",
+          "operatingSystem": "Web",
+          "applicationCategory": "BusinessApplication",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "BRL"
+          },
+          "description": "Plataforma SaaS multi-tenant para distribuição de guias fiscais, armazenamento de XMLs e central de chamados contábeis."
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

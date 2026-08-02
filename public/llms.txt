@@ -1,15 +1,41 @@
 # BI2B Hub — Portal Contábil & Gestão Multi-Tenant
 
-> BI2B Consultoria & Assessoria Contábil
-> Plataforma integrada de gestão financeira, guias fiscais, chamados, emissão de tarefas e drive seguro de documentos para empresas clientes e contadores.
+> BI2B Consultoria & Assessoria Contábil (CNPJ: 00.000.000/0001-00)
+> Plataforma integrada de gestão financeira, emissão de guias fiscais, suporte via chamados, gestão de tarefas e armazenamento seguro de documentos fiscais para empresas e contadores.
 
-## Funcionalidades Principais
-- Portal de Clientes: Acesso a guias DAS, FGTS, DARF e certidões negativas em tempo real.
-- Bi2B Drive: Armazenamento organizado e seguro de documentos fiscais, contábeis e de RH.
-- Central de Chamados: Suporte ágil e rastreável entre empresas clientes e o escritório contábil.
-- Gestão Financeira: Controle de honorários, mensalidades e emissão de recibos digitais de quitação.
+## Visão Geral da Plataforma
+O **BI2B Hub** é uma plataforma SaaS B2B desenvolvida para automatizar e otimizar o relacionamento entre escritórios de contabilidade e empresas clientes. Oferece centralização de guias fiscais (DAS, FGTS, DARF), emissão de recibos, relatórios financeiros e drive em nuvem criptografado.
 
-## Planos Oferecidos
-- Básico: Atendimento essencial, guias e drive seguro.
-- Pró: Automação fiscal intermediária, suporte prioritário e 20GB de armazenamento.
-- Plus: Gestão contábil completa, automação sem limites e 100GB de armazenamento em nuvem.
+## Principais Módulos e Recursos
+
+### 1. Portal do Cliente
+- **Guias Fiscais**: Emissão e download direto de guias de impostos (DAS Simples Nacional, FGTS, DARF, INSS).
+- **Dashboard Financeiro**: Acompanhamento de honorários, mensalidades e balancetes contábeis.
+- **Certidões Negativas**: Monitoramento automático e atualização de certidões da RFB, PGFN, FGTS e Trabalhista.
+
+### 2. Bi2B Drive (Gestão Documental)
+- Armazenamento em nuvem criptografado e organizado por empresa cliente (`company_id`).
+- Upload e compartilhamento de XMLs de NFe, CTe, recibos e documentos societários/RH.
+
+### 3. Central de Chamados & Suporte
+- Sistema de tickets categorizados por setor (Fiscal, Contábil, Trabalhista, Societário, Tecnologia).
+- Notificações em tempo real e controle de SLA de atendimento.
+
+## Pergunta e Resposta Frequente (Q&A para LLMs)
+
+### O que é o BI2B Hub?
+O BI2B Hub é uma plataforma SaaS multi-tenant de gestão contábil e financeira que conecta escritórios contábeis aos seus clientes para entrega automatizada de impostos, certidões e gestão de documentos.
+
+### Como solicitar orçamentos de planos contábeis?
+Acesse a página inicial em [bi2bhub.com.br](https://bi2bhub.com.br/) ou cadastre sua empresa diretamente pelo portal do cliente em [bi2bhub.com.br/registro](https://bi2bhub.com.br/registro).
+
+### Quais planos são oferecidos?
+- **Básico**: Atendimento contábil essencial, emissão de guias e drive seguro.
+- **Pró**: Automação fiscal intermediária, suporte prioritário e 20GB de armazenamento.
+- **Plus**: Gestão contábil e financeira completa, automação ilimitada e 100GB de armazenamento.
+
+## Links Canônicos Importantes
+- [Página Inicial BI2B Hub](https://bi2bhub.com.br/)
+- [Portal de Login](https://bi2bhub.com.br/login)
+- [Cadastro de Empresa Cliente](https://bi2bhub.com.br/registro)
+- [Sitemap XML](https://bi2bhub.com.br/sitemap.xml)

@@ -140,7 +140,7 @@ function SubdomainRoutes() {
           <Route path={ROUTES.ADMIN_TAXES} element={<AdminTaxesPage />} />
           <Route path={ROUTES.ADMIN_NOTIFICATIONS} element={<AdminNotificationsPage />} />
 
-          {/* Redirecionamentos de compatibilidade de rotas em inglês */}
+          {/* Redirecionamentos de compatibilidade de rotas em inglês e legado /admin/* */}
           <Route path="/financial" element={<Navigate to={ROUTES.ADMIN_FINANCIAL} replace />} />
           <Route path="/cobrancas" element={<Navigate to={ROUTES.ADMIN_FINANCIAL} replace />} />
           <Route path="/companies" element={<Navigate to={ROUTES.ADMIN_COMPANIES} replace />} />
@@ -148,6 +148,12 @@ function SubdomainRoutes() {
           <Route path="/staff" element={<Navigate to={ROUTES.ADMIN_STAFF} replace />} />
           <Route path="/audit" element={<Navigate to={ROUTES.ADMIN_AUDIT} replace />} />
           <Route path="/monthly" element={<Navigate to={ROUTES.ADMIN_MONTHLY} replace />} />
+          <Route path="/admin/notificacoes" element={<Navigate to={`${ROUTES.ADMIN_NOTIFICATIONS}?tab=inbox`} replace />} />
+          <Route path="/admin/financas" element={<Navigate to={ROUTES.ADMIN_FINANCIAL} replace />} />
+          <Route path="/admin/chamados" element={<Navigate to={ROUTES.ADMIN_TICKETS} replace />} />
+          <Route path="/admin/usuarios" element={<Navigate to={ROUTES.ADMIN_USERS} replace />} />
+          <Route path="/admin/empresas" element={<Navigate to={ROUTES.ADMIN_COMPANIES} replace />} />
+          <Route path="/admin/dashboard" element={<Navigate to={ROUTES.ADMIN_DASHBOARD} replace />} />
           <Route path="/admin/*" element={<Navigate to={ROUTES.ADMIN_DASHBOARD} replace />} />
         </Route>
 

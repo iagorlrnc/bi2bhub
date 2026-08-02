@@ -19,16 +19,31 @@ export function NotificationsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [isMarkingAll, setIsMarkingAll] = useState(false)
 
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (isInitial = false) => {
     if (!user?.id) return
-    setIsLoading(true)
+    if (isInitial) setIsLoading(true)
     try {
-      const { data, error } = await supabase
+      const { data: ue } = await supabase
+        .from('usuarios_empresa')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      const companyId = ue?.company_id
+
+      let query = supabase
         .from('notificacoes')
         .select('id, title, message, type, action_url, is_read, created_at')
-        .eq('user_id', user.id)
         .neq('deleted_by_client', true)
         .order('created_at', { ascending: false })
+
+      if (companyId) {
+        query = query.or(`user_id.eq.${user.id},company_id.eq.${companyId}`)
+      } else {
+        query = query.eq('user_id', user.id)
+      }
+
+      const { data, error } = await query
       if (error) throw error
       setNotifications(data || [])
     } catch (err) {
@@ -42,8 +57,23 @@ export function NotificationsPage() {
   }, [user?.id])
 
   useEffect(() => {
-    fetchNotifications()
-  }, [fetchNotifications])
+    fetchNotifications(true)
+
+    const handleRefresh = () => fetchNotifications(false)
+    window.addEventListener('bi2b:refresh-data', handleRefresh)
+    window.addEventListener('bi2b_finance_updated', handleRefresh)
+
+    const channel = supabase
+      .channel(`client-notifications-page-${user?.id || 'guest'}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notificacoes' }, () => fetchNotifications(false))
+      .subscribe()
+
+    return () => {
+      window.removeEventListener('bi2b:refresh-data', handleRefresh)
+      window.removeEventListener('bi2b_finance_updated', handleRefresh)
+      supabase.removeChannel(channel)
+    }
+  }, [fetchNotifications, user?.id])
 
   const handleDelete = async (id: string) => {
     try {
