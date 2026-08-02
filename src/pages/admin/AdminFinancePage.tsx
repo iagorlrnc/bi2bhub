@@ -149,6 +149,11 @@ export function AdminFinancePage() {
       .channel('admin_finance_realtime')
       .on(
         'postgres_changes',
+        { event: '*', schema: 'public', table: 'solicitacoes_plano' },
+        () => loadData()
+      )
+      .on(
+        'postgres_changes',
         { event: '*', schema: 'public', table: 'planos_empresa' },
         () => loadData()
       )
@@ -486,7 +491,7 @@ export function AdminFinancePage() {
                 <Building2 className="h-5 w-5 text-[hsl(var(--muted-foreground))]" />
                 <span className="text-xs font-bold text-[hsl(var(--foreground))]">
                   {selectedCompanyId === 'all'
-                    ? `Visão Geral (${companies.length} Empresas)`
+                    ? `Visão Geral`
                     : companies.find((c: any) => c.id === selectedCompanyId)?.trade_name || 'Empresa Selecionada'}
                 </span>
               </div>

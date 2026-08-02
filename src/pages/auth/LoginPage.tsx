@@ -27,7 +27,7 @@ import logoPng from '@/assets/logo.png'
 import logoAzulPng from '@/assets/logoazul.png'
 import { useTheme } from '@/contexts/ThemeContext'
 import { getClientSubdomainUrl } from '@/utils/subdomain'
-import { cn } from '@/lib/utils'
+import { cn, generate4DigitCode } from '@/lib/utils'
 
 const formatCnpj = (value: string) => {
   const digits = value.replace(/\D/g, '')
@@ -111,10 +111,7 @@ export function LoginPage() {
   // Revisão de Dados & ID Gerado
   const [acceptedCompanyTerms, setAcceptedCompanyTerms] = useState(false)
   const [generatedToken] = useState(() => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-    const array = new Uint8Array(8)
-    crypto.getRandomValues(array)
-    return Array.from(array, (b) => chars[b % chars.length]).join('')
+    return generate4DigitCode()
   })
   const [copiedToken, setCopiedToken] = useState(false)
 

@@ -414,7 +414,7 @@ export function StaffPage() {
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-brand-500" />
             <span className="text-xs font-extrabold uppercase tracking-wider text-[hsl(var(--foreground))]">
-              Código Exclusivo do Escritório (Equipe)
+              Código Exclusivo do Escritório
             </span>
           </div>
           <p className="text-xs text-[hsl(var(--muted-foreground))]">

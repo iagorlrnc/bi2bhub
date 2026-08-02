@@ -601,7 +601,7 @@ export const financeService = {
     userId?: string
   }): Promise<boolean> {
     try {
-      const insertData = {
+      const insertData: any = {
         company_id: payload.companyId,
         company_name: payload.companyName,
         current_plan: payload.currentPlan || 'Básico',
@@ -611,21 +611,35 @@ export const financeService = {
         created_at: new Date().toISOString(),
       }
 
-      const { error } = await supabase.from('solicitacoes_plano').insert(insertData)
+      let { error } = await supabase.from('solicitacoes_plano').insert(insertData)
 
-      if (error && import.meta.env.DEV) {
-        console.warn('Aviso Supabase insert solicitacoes_plano:', error.message)
+      // Se falhar por conta da coluna company_name não existir no banco existente, tentar sem company_name
+      if (error && error.message?.includes('company_name')) {
+        delete insertData.company_name
+        const res = await supabase.from('solicitacoes_plano').insert(insertData)
+        error = res.error
       }
 
-      // Notificar escritório
-      await supabase.from('notificacoes').insert({
-        company_id: payload.companyId,
-        user_id: payload.companyId,
-        title: `Solicitação de Alteração de Plano: ${payload.companyName}`,
-        message: `Empresa ${payload.companyName} (Plano Atual: ${payload.currentPlan}) solicitou migração para o Plano ${payload.requestedPlan}. Observações: ${payload.notes || 'Sem observações adicionais.'}`,
-        type: 'alerta',
-        read: false,
-      })
+      if (error) {
+        console.error('Erro ao inserir em solicitacoes_plano:', error.message)
+        throw error
+      }
+
+      // Notificar escritório (se o userId do solicitante for fornecido)
+      if (payload.userId) {
+        try {
+          await supabase.from('notificacoes').insert({
+            company_id: payload.companyId,
+            user_id: payload.userId,
+            title: `Solicitação de Alteração de Plano: ${payload.companyName}`,
+            message: `Empresa ${payload.companyName} (Plano Atual: ${payload.currentPlan}) solicitou migração para o Plano ${payload.requestedPlan}. Observações: ${payload.notes || 'Sem observações adicionais.'}`,
+            type: 'alerta',
+            is_read: false,
+          })
+        } catch (nErr) {
+          if (import.meta.env.DEV) console.warn('Aviso ao gerar notificação de alteração de plano:', nErr)
+        }
+      }
 
       if (payload.userId) {
         logAuditActivity({
@@ -651,7 +665,7 @@ export const financeService = {
     try {
       let query = supabase
         .from('solicitacoes_plano')
-        .select('*')
+        .select('*, empresas(id, name, trade_name)')
         .order('created_at', { ascending: false })
 
       if (companyId && companyId !== 'all') {
@@ -661,7 +675,18 @@ export const financeService = {
       const { data, error } = await query
 
       if (!error && data && data.length > 0) {
-        return data as SolicitacaoPlano[]
+        return data.map((row: any) => ({
+          id: row.id,
+          company_id: row.company_id,
+          company_name: row.company_name || row.empresas?.trade_name || row.empresas?.name || 'Empresa Cliente',
+          current_plan: row.current_plan,
+          requested_plan: row.requested_plan,
+          notes: row.notes || undefined,
+          status: row.status || 'pendente',
+          created_at: row.created_at,
+          updated_at: row.updated_at || undefined,
+          reviewed_by: row.reviewed_by || undefined,
+        }))
       }
 
       // Fallback: Buscar nas notificações de alerta de plano

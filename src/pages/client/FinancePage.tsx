@@ -12,7 +12,6 @@ import {
   Search,
   ShieldCheck,
   Eye,
-  Sparkles,
   ChevronRight,
   BadgeCheck,
   Printer,
@@ -277,12 +276,11 @@ export function FinancePage() {
       </div>
 
       {/* Hero Banner do Plano Mensal */}
-      <div className="relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-gradient-to-br from-[#0d6084]/15 via-slate-900/5 to-cyan-500/10 p-6 sm:p-8 dark:from-[#0d6084]/40 dark:via-slate-900/60 dark:to-cyan-950/40 shadow-xl">
-        <div className="absolute -right-10 -bottom-10 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 sm:p-8 shadow-xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#0d6084]/20 text-[#0d6084] dark:bg-cyan-400/20 dark:text-cyan-300 border border-[#0d6084]/30">
-              <Sparkles className="h-3.5 w-3.5" /> Plano Ativo • {activePlan.plan_name}
+              Plano Ativo • {activePlan.plan_name}
             </div>
             <h2 className="font-heading text-xl sm:text-2xl font-extrabold text-[hsl(var(--foreground))]">
               {companyName}
