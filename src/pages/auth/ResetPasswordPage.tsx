@@ -41,6 +41,9 @@ export function ResetPasswordPage() {
       const { error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) throw error
 
+      // Revogar sessões ativas em todos os outros dispositivos após alteração de senha
+      await supabase.auth.signOut({ scope: 'global' })
+
       setIsSuccess(true)
       toast.success('Sua senha foi redefinida com sucesso!')
     } catch (err: any) {

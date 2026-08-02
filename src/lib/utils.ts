@@ -103,3 +103,33 @@ export function isBi2bCompany(comp?: { name?: string | null; trade_name?: string
   const code = (comp.codigo_exclusivo || '').toLowerCase()
   return name.includes('bi2b') || trade.includes('bi2b') || code.includes('bi2b')
 }
+
+/**
+ * Sanitiza o nome de arquivos para upload, removendo caracteres especiais, acentos e caminhos maliciosos.
+ */
+export function sanitizeFileName(filename: string): string {
+  if (!filename) return 'arquivo_unnamed'
+  const lastDot = filename.lastIndexOf('.')
+  const nameWithoutExt = lastDot !== -1 ? filename.substring(0, lastDot) : filename
+  const ext = lastDot !== -1 ? filename.substring(lastDot).toLowerCase() : ''
+  
+  const cleanName = nameWithoutExt
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .slice(0, 80)
+
+  const safeExt = ext.replace(/[^a-z0-9.]/g, '')
+  return `${cleanName}_${Date.now()}${safeExt}`
+}
+
+/**
+ * Valida a extensão do arquivo para prevenção de upload de scripts maliciosos.
+ */
+export function isAllowedFileType(filename: string, allowedExtensions = ['.pdf', '.png', '.jpg', '.jpeg', '.xlsx', '.xls', '.csv', '.xml', '.zip']): boolean {
+  if (!filename) return false
+  const lastDot = filename.lastIndexOf('.')
+  if (lastDot === -1) return false
+  const ext = filename.substring(lastDot).toLowerCase()
+  return allowedExtensions.includes(ext)
+}

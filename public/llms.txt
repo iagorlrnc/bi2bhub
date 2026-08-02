@@ -1,0 +1,15 @@
+# BI2B Hub — Portal Contábil & Gestão Multi-Tenant
+
+> BI2B Consultoria & Assessoria Contábil
+> Plataforma integrada de gestão financeira, guias fiscais, chamados, emissão de tarefas e drive seguro de documentos para empresas clientes e contadores.
+
+## Funcionalidades Principais
+- Portal de Clientes: Acesso a guias DAS, FGTS, DARF e certidões negativas em tempo real.
+- Bi2B Drive: Armazenamento organizado e seguro de documentos fiscais, contábeis e de RH.
+- Central de Chamados: Suporte ágil e rastreável entre empresas clientes e o escritório contábil.
+- Gestão Financeira: Controle de honorários, mensalidades e emissão de recibos digitais de quitação.
+
+## Planos Oferecidos
+- Básico: Atendimento essencial, guias e drive seguro.
+- Pró: Automação fiscal intermediária, suporte prioritário e 20GB de armazenamento.
+- Plus: Gestão contábil completa, automação sem limites e 100GB de armazenamento em nuvem.

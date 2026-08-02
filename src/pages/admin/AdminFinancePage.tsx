@@ -24,13 +24,14 @@ import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { financeService } from '@/lib/financeService'
+import type { Tables } from '@/types/database.types'
 import type { Cobranca, PlanoEmpresa, FinancialSummary, CobrancaType, SolicitacaoPlano } from '@/types/finance'
 import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
 import { cn, isBi2bCompany } from '@/lib/utils'
 
 export function AdminFinancePage() {
   const { user, profile } = useAuth()
-  const [companies, setCompanies] = useState<any[]>([])
+  const [companies, setCompanies] = useState<Tables<'empresas'>[]>([])
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('all')
 
   const [cobrancas, setCobrancas] = useState<Cobranca[]>([])
@@ -77,7 +78,7 @@ export function AdminFinancePage() {
 
       if (!error && data) {
         const filtered = data.filter((c) => !isBi2bCompany(c))
-        setCompanies(filtered)
+        setCompanies(filtered as any)
         if (filtered.length > 0 && !newCompanyId) {
           setNewCompanyId(filtered[0].id)
         }

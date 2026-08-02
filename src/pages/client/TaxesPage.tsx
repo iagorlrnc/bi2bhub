@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity } from '@/lib/audit'
 import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
+import type { Tables } from '@/types/database.types'
 
 interface TaxGuide {
   id: string
@@ -51,7 +52,7 @@ export function TaxesPage() {
   }
 
   // Parse tax details from document tags
-  const parseTaxFromDoc = (doc: any): TaxGuide => {
+  const parseTaxFromDoc = (doc: Tables<'documentos'> | Record<string, any>): TaxGuide => {
     const tags = doc.tags || []
     
     // Default values

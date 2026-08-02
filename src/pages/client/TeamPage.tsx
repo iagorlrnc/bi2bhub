@@ -6,6 +6,20 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity } from '@/lib/audit'
 
+export interface TeamMember {
+  id: string
+  companyUserId?: string
+  name: string
+  email: string
+  phone?: string
+  role: 'usuario_master' | 'usuario_comum'
+  userType?: string
+  status: string
+  permissions: string[]
+  createdAt?: string
+  statusReason?: string
+}
+
 export function TeamPage() {
   const { company, user, isClientMaster, isAdmin, isLoading: authLoading } = useAuth()
   const [activeMembers, setActiveMembers] = useState<any[]>([])
@@ -39,12 +53,12 @@ export function TeamPage() {
       })
 
       if (!rpcError && Array.isArray(rpcData)) {
-        const mappedActive: any[] = []
-        const mappedPending: any[] = []
+        const mappedActive: TeamMember[] = []
+        const mappedPending: TeamMember[] = []
 
-        rpcData.forEach((u: any) => {
+        rpcData.forEach((u: Record<string, any>) => {
           const isMaster = u.role === 'usuario_master' || u.role === 'client_master' || u.user_type === 'client_master'
-          const item = {
+          const item: TeamMember = {
             id: u.id,
             companyUserId: u.company_user_id,
             name: u.full_name || (u.email ? u.email.split('@')[0] : 'Usuário'),
@@ -140,8 +154,8 @@ export function TeamPage() {
         })
       }
 
-      const mappedActive: any[] = []
-      const mappedPending: any[] = []
+      const mappedActive: TeamMember[] = []
+      const mappedPending: TeamMember[] = []
 
       ;(teamData || []).forEach((tu: any) => {
         const uRel = Array.isArray(tu.usuarios) ? tu.usuarios[0] : tu.usuarios
@@ -151,7 +165,7 @@ export function TeamPage() {
         const phoneVal = userObj?.phone || ''
         const isMaster = tu.role === 'usuario_master' || tu.role === 'client_master' || userObj?.user_type === 'client_master'
 
-        const item = {
+        const item: TeamMember = {
           id: userObj?.id || tu.user_id,
           companyUserId: tu.id,
           name: nameVal,

@@ -179,7 +179,7 @@ export function LoginPage() {
         sessionStorage.setItem('login_lockout_until', String(unlockAt))
         toast.error(`Número máximo de tentativas atingido. Entrada bloqueada por ${Math.ceil(lockDuration / 1000)} segundos.`)
       } else {
-        toast.error(err.message || 'Email ou senha incorretos')
+        toast.error('E-mail ou senha incorretos.')
       }
     } finally {
       setIsSubmitting(false)

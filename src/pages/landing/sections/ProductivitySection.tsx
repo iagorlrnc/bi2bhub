@@ -107,10 +107,27 @@ interface ProductivitySectionProps {
   isDark: boolean
 }
 
+interface BarTooltipPayloadItem {
+  name?: string
+  value?: number
+  color?: string
+}
+
+interface CustomBarTooltipProps {
+  active?: boolean
+  payload?: BarTooltipPayloadItem[]
+  label?: string
+}
+
+interface CustomPieTooltipProps {
+  active?: boolean
+  payload?: Array<{ payload: { name: string; value: number; color?: string; subtitle?: string; impact?: string } }>
+}
+
 export function ProductivitySection({ isDark }: ProductivitySectionProps) {
   const [activeBarIndex, setActiveBarIndex] = useState<number | null>(null)
 
-  const CustomBarTooltip = ({ active, payload, label }: any) => {
+  const CustomBarTooltip = ({ active, payload, label }: CustomBarTooltipProps) => {
     if (active && payload && payload.length) {
       const item = chartData.find((d) => d.name === label)
       return (
@@ -126,7 +143,7 @@ export function ProductivitySection({ isDark }: ProductivitySectionProps) {
             {item?.label || label}
           </p>
           <div className="space-y-1.5">
-            {payload.map((entry: any, index: number) => {
+            {payload.map((entry: BarTooltipPayloadItem, index: number) => {
               const isManual = entry.name === 'manual'
               return (
                 <div key={`item-${index}`} className="flex items-center justify-between gap-3">
@@ -152,7 +169,7 @@ export function ProductivitySection({ isDark }: ProductivitySectionProps) {
     return null
   }
 
-  const CustomPieTooltip = ({ active, payload }: any) => {
+  const CustomPieTooltip = ({ active, payload }: CustomPieTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (

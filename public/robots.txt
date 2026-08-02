@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /financas/
+Disallow: /dashboard/
+Disallow: /configuracoes/
+
+Sitemap: https://bi2bhub.com.br/sitemap.xml
