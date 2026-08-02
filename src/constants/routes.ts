@@ -2,6 +2,7 @@
 export const ROUTES = {
   // Landing
   HOME: '/',
+  PORTAL_INFO: '/portal-cliente',
 
   // Autenticação (Rotas em Português)
   LOGIN: '/login',

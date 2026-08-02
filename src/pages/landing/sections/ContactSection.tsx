@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Phone,
   Mail,
   Send,
   ShieldCheck,
+  MessageCircle,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -37,23 +38,47 @@ export function ContactSection({ isDark }: ContactSectionProps) {
   const [leadPhone, setLeadPhone] = useState('')
   const [leadCnpj, setLeadCnpj] = useState('')
   const [websiteHoneypot, setWebsiteHoneypot] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleLeadSubmit = (e: React.FormEvent) => {
+  const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
     if (websiteHoneypot) {
-      toast.success('Demonstração solicitada! Em breve entraremos em contato via WhatsApp.')
+      toast.success('Demonstração solicitada com sucesso!')
       setWebsiteHoneypot('')
       return
     }
-    if (!leadName || !leadEmail || !leadPhone) {
-      toast.error('Preencha os campos obrigatórios!')
+
+    if (!leadName.trim() || !leadEmail.trim() || !leadPhone.trim()) {
+      toast.error('Por favor, preencha os campos obrigatórios (Nome, E-mail e Telefone).')
       return
     }
-    toast.success('Demonstração solicitada! Entraremos em contato via WhatsApp em minutos.')
+
+    setIsSubmitting(true)
+
+    // Simula envio de lead com resposta interativa imediata
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    setIsSubmitting(false)
+    toast.success(`Obrigado, ${leadName}! Sua solicitação foi recebida. Entraremos em contato via WhatsApp em breve.`)
+
+    // Prepara mensagem personalizada para o WhatsApp
+    const message = encodeURIComponent(
+      `Olá! Meu nome é ${leadName} (${leadEmail}, Tel: ${leadPhone}${leadCnpj ? `, CNPJ: ${leadCnpj}` : ''}) e solicitei uma demonstração da Bi2B Consultoria.`
+    )
+    
+    // Abre WhatsApp web/app para contato direto
+    window.open(`https://wa.me/5599999999999?text=${message}`, '_blank')
+
     setLeadName('')
     setLeadEmail('')
     setLeadPhone('')
     setLeadCnpj('')
+  }
+
+  const openDirectWhatsapp = () => {
+    const defaultMsg = encodeURIComponent('Olá! Gostaria de falar com um consultor da Bi2B Consultoria.')
+    window.open(`https://wa.me/5599999999999?text=${defaultMsg}`, '_blank')
   }
 
   return (
@@ -80,28 +105,37 @@ export function ContactSection({ isDark }: ContactSectionProps) {
               Atendimento Imediato
             </span>
             <h2 className={cn("font-sans text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight tracking-tight", isDark ? "text-white" : "text-slate-900")}>
-              Solicite uma demonstração da plataforma
+              Fale com a Bi2B Consultoria
             </h2>
             <p className={cn("text-sm sm:text-base leading-relaxed", isDark ? "text-slate-300/90" : "text-slate-600")}>
-              Descubra em primeira mão como o ecossistema do Portal Bi2B agiliza o fluxo de notas fiscais, certidões federais e atendimento contábil.
+              Agende uma conversa sem compromisso com nossos contadores e descubra como otimizar a carga tributária e a gestão financeira do seu negócio.
             </p>
 
             <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-4">
+              <div 
+                onClick={openDirectWhatsapp}
+                className={cn(
+                  "flex items-center gap-4 p-3 rounded-2xl border cursor-pointer transition-all hover:scale-[1.02]",
+                  isDark ? "bg-white/5 border-white/10 hover:border-emerald-400/40" : "bg-white border-slate-200 hover:border-emerald-500/40 shadow-sm"
+                )}
+              >
                 <div
                   className={cn(
-                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border shadow-inner",
-                    isDark ? "bg-gradient-to-br from-[#0d6084] to-[#0a4a62] border-cyan-400/30 text-cyan-200 shadow-[0_6px_20px_rgba(13,96,132,0.3)]" : "bg-cyan-50 border-cyan-200 text-[#0d6084]"
+                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border shadow-inner bg-emerald-500 text-slate-950 border-emerald-400"
                   )}
                 >
-                  <Phone className="h-5 w-5" />
+                  <MessageCircle className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Contato Comercial</p>
-                  <p className={cn("text-base font-bold", isDark ? "text-white" : "text-slate-800")}>(99) 99999-9999</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Atendimento via WhatsApp</p>
+                  <p className={cn("text-base font-bold flex items-center gap-2", isDark ? "text-white" : "text-slate-800")}>
+                    (99) 99999-9999
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-bold uppercase">Online</span>
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+
+              <div className="flex items-center gap-4 p-3">
                 <div
                   className={cn(
                     "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border shadow-inner",
@@ -148,7 +182,7 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                       id="lead-name"
                       type="text"
                       required
-                      placeholder="Ex: João"
+                      placeholder="Ex: João Silva"
                       value={leadName}
                       onChange={(e) => setLeadName(e.target.value)}
                       className={cn(
@@ -165,7 +199,7 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                       id="lead-email"
                       type="email"
                       required
-                      placeholder="joao@empresa.com"
+                      placeholder="joao@suaempresa.com"
                       value={leadEmail}
                       onChange={(e) => setLeadEmail(e.target.value)}
                       className={cn(
@@ -217,16 +251,27 @@ export function ContactSection({ isDark }: ContactSectionProps) {
                 <div className="pt-2 text-left space-y-4">
                   <button
                     type="submit"
-                    className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] py-4 text-xs font-bold uppercase tracking-wider text-white border border-cyan-400/30 shadow-[0_8px_25px_rgba(13,96,132,0.4)] hover:shadow-[0_12px_35px_rgba(13,96,132,0.55)] transition-all duration-300 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                    disabled={isSubmitting}
+                    className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] py-4 text-xs font-bold uppercase tracking-wider text-white border border-cyan-400/30 shadow-[0_8px_25px_rgba(13,96,132,0.4)] hover:shadow-[0_12px_35px_rgba(13,96,132,0.55)] transition-all duration-300 hover:-translate-y-0.5 active:scale-95 cursor-pointer disabled:opacity-70"
                   >
-                    <Send className="h-4 w-4" />
-                    Solicitar Demonstração Gratuita
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-cyan-300" />
+                        Enviando Solicitação...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        Solicitar Proposta / Atendimento
+                      </>
+                    )}
                   </button>
+                  
                   {/* LGPD seal */}
                   <div className="flex items-center justify-center gap-2">
                     <ShieldCheck className={cn("h-4 w-4", isDark ? "text-cyan-400" : "text-[#0d6084]")} />
                     <span className={cn("text-[10px] font-medium uppercase tracking-wider", isDark ? "text-slate-400" : "text-slate-500")}>
-                      Seus dados estão protegidos pela LGPD (Lei nº 13.709/2018)
+                      Seus dados estão seguros e protegidos pela LGPD
                     </span>
                   </div>
                 </div>

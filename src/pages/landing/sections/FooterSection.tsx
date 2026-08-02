@@ -1,11 +1,11 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { ROUTES } from '@/constants/routes'
 import { APP_NAME } from '@/constants'
 import { cn } from '@/lib/utils'
 import logoPng from '@/assets/logo.png'
 import logoAzulPng from '@/assets/logoazul.png'
 import { getAdminSubdomainUrl } from '@/utils/subdomain'
-import { MessageCircle, MapPin, Mail, Phone, } from 'lucide-react'
+import { MessageCircle, MapPin, Mail, Phone, Lock } from 'lucide-react'
 
 interface FooterSectionProps {
   isDark: boolean
@@ -13,11 +13,29 @@ interface FooterSectionProps {
 
 export function FooterSection({ isDark }: FooterSectionProps) {
   const navigate = useNavigate()
+  const location = useLocation()
   const currentLogo = isDark ? logoPng : logoAzulPng
 
-  const scrollTo = (id: string) => {
-    const el = document.querySelector(id)
-    el?.scrollIntoView({ behavior: 'smooth' })
+  const handleNavClick = (href: string) => {
+    if (href.startsWith('#')) {
+      const el = document.querySelector(href)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' })
+      } else {
+        navigate('/')
+        setTimeout(() => {
+          document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' })
+        }, 150)
+      }
+    } else {
+      navigate(href)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const openWhatsapp = () => {
+    const msg = encodeURIComponent('Olá! Vim pelo site da Bi2B Consultoria e gostaria de mais informações.')
+    window.open(`https://wa.me/5599999999999?text=${msg}`, '_blank')
   }
 
   return (
@@ -36,7 +54,7 @@ export function FooterSection({ isDark }: FooterSectionProps) {
               <img src={currentLogo} alt={APP_NAME} className="h-9 w-auto object-contain" />
             </div>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              Bi2B Consultoria — Soluções completas em consultoria, dados e gestão contábil para transformar informação em decisão e dar mais clareza ao crescimento do seu negócio.
+              Bi2B Consultoria — Soluções completas em consultoria contábil, tributária, BPO financeiro e tecnologia para potencializar a gestão e o crescimento do seu negócio.
             </p>
             
             {/* Social Media Links */}
@@ -45,7 +63,7 @@ export function FooterSection({ isDark }: FooterSectionProps) {
                 href="https://linkedin.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:text-cyan-300 hover:bg-white/10 transition-all duration-300"
+                className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:text-cyan-300 hover:bg-white/10 transition-all duration-300 cursor-pointer"
                 title="LinkedIn Bi2B"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -56,39 +74,37 @@ export function FooterSection({ isDark }: FooterSectionProps) {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:text-cyan-300 hover:bg-white/10 transition-all duration-300"
+                className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:text-cyan-300 hover:bg-white/10 transition-all duration-300 cursor-pointer"
                 title="Instagram Bi2B"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                 </svg>
               </a>
-              <a
-                href="https://whatsapp.com"
-                target="_blank"
-                rel="noreferrer"
-                className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:text-emerald-400 hover:bg-white/10 transition-all duration-300"
+              <button
+                onClick={openWhatsapp}
+                className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:text-emerald-400 hover:bg-white/10 transition-all duration-300 cursor-pointer"
                 title="WhatsApp Suporte"
               >
                 <MessageCircle className="w-4 h-4" />
-              </a>
+              </button>
             </div>
           </div>
 
-          {/* Links Column 1: Soluções */}
+          {/* Links Column 1: Consultoria */}
           <div>
-            <h4 className={cn("text-xs font-extrabold uppercase tracking-[0.2em] mb-4", isDark ? "text-slate-100" : "text-white")}>Soluções</h4>
+            <h4 className={cn("text-xs font-extrabold uppercase tracking-[0.2em] mb-4", isDark ? "text-slate-100" : "text-white")}>Bi2B Consultoria</h4>
             <ul className="space-y-3 text-xs font-medium">
               {[
-                { label: 'Guias Bi2B', href: '#solucoes' },
-                { label: 'Equipe & Permissões', href: '#solucoes' },
-                { label: 'Bi2B Chamados', href: '#solucoes' },
-                { label: 'Tarefas Bi2B', href: '#solucoes' },
-                { label: 'Bi2B Drive', href: '#solucoes' },
+                { label: 'Serviços Contábeis', href: '#servicos' },
+                { label: 'Sobre a Empresa', href: '#sobre' },
+                { label: 'Equipe de Contadores', href: '#equipe' },
+                { label: 'Portal do Cliente', href: ROUTES.PORTAL_INFO },
+                { label: 'Solicitar Atendimento', href: '#contato' },
               ].map((item) => (
                 <li key={item.label}>
                   <button
-                    onClick={() => scrollTo(item.href)}
+                    onClick={() => handleNavClick(item.href)}
                     className="text-slate-400 hover:text-cyan-300 transition-colors duration-300 text-left cursor-pointer"
                   >
                     {item.label}
@@ -98,20 +114,27 @@ export function FooterSection({ isDark }: FooterSectionProps) {
             </ul>
           </div>
 
-          {/* Links Column 2: Navegação */}
+          {/* Links Column 2: Portal do Cliente */}
           <div>
-            <h4 className={cn("text-xs font-extrabold uppercase tracking-[0.2em] mb-4", isDark ? "text-slate-100" : "text-white")}>Navegação</h4>
+            <h4 className={cn("text-xs font-extrabold uppercase tracking-[0.2em] mb-4", isDark ? "text-slate-100" : "text-white")}>Portal do Cliente</h4>
             <ul className="space-y-3 text-xs font-medium">
               {[
-                { label: 'Como Funciona', href: '#como-funciona' },
-                { label: 'Soluções', href: '#solucoes' },
-                { label: 'Resultados', href: '#resultados' },
-                { label: 'Planos & Preços', href: '#planos' },
-                { label: 'Contato', href: '#contato' },
+                { label: 'Página do Portal', href: ROUTES.PORTAL_INFO },
+                { label: 'Como Funciona', href: `${ROUTES.PORTAL_INFO}#como-funciona` },
+                { label: 'Recursos & Módulos', href: `${ROUTES.PORTAL_INFO}#solucoes` },
+                { label: 'Planos & Preços', href: `${ROUTES.PORTAL_INFO}#planos` },
+                { label: 'Perguntas Frequentes', href: `${ROUTES.PORTAL_INFO}#faq` },
               ].map((item) => (
                 <li key={item.label}>
                   <button
-                    onClick={() => scrollTo(item.href)}
+                    onClick={() => {
+                      if (location.pathname === ROUTES.PORTAL_INFO) {
+                        const hash = item.href.includes('#') ? '#' + item.href.split('#')[1] : item.href
+                        handleNavClick(hash)
+                      } else {
+                        navigate(ROUTES.PORTAL_INFO)
+                      }
+                    }}
                     className="text-slate-400 hover:text-cyan-300 transition-colors duration-300 text-left cursor-pointer"
                   >
                     {item.label}
@@ -121,7 +144,7 @@ export function FooterSection({ isDark }: FooterSectionProps) {
             </ul>
           </div>
 
-          {/* Links Column 3: Contato & Endereço */}
+          {/* Links Column 3: Atendimento */}
           <div>
             <h4 className={cn("text-xs font-extrabold uppercase tracking-[0.2em] mb-4", isDark ? "text-slate-100" : "text-white")}>Atendimento</h4>
             <div className="space-y-3 text-xs text-slate-400">
@@ -133,8 +156,8 @@ export function FooterSection({ isDark }: FooterSectionProps) {
                 <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>contato@bi2b.com.br</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-cyan-400 shrink-0" />
+              <div className="flex items-center gap-2 cursor-pointer hover:text-emerald-400 transition-colors" onClick={openWhatsapp}>
+                <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>(99) 99999-9999</span>
               </div>
             </div>
@@ -151,8 +174,9 @@ export function FooterSection({ isDark }: FooterSectionProps) {
           <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
             <span
               onClick={() => { window.location.href = getAdminSubdomainUrl('/') }}
-              className="hover:text-cyan-300 cursor-pointer transition-colors font-bold uppercase tracking-wider text-[11px]"
+              className="inline-flex items-center gap-1 hover:text-cyan-300 cursor-pointer transition-colors font-bold uppercase tracking-wider text-[11px]"
             >
+              <Lock className="w-3 h-3 text-cyan-400" />
               Painel Administrativo
             </span>
             <span>•</span>

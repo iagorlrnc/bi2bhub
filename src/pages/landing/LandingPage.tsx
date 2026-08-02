@@ -8,18 +8,19 @@ import {
   Moon,
   Menu,
   X,
+  Sparkles,
 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { cn } from '@/lib/utils'
 import logoPng from '@/assets/logo.png'
 import logoAzulPng from '@/assets/logoazul.png'
 
-// ===== SECTIONS =====
+// ===== SECTIONS DA CONSULTORIA =====
 import { HeroSection } from './sections/HeroSection'
-import { HowItWorksSection } from './sections/HowItWorksSection'
-import { FeaturesSection } from './sections/FeaturesSection'
-import { ProductivitySection } from './sections/ProductivitySection'
-import { PricingSection } from './sections/PricingSection'
+import { ServicesSection } from './sections/ServicesSection'
+import { CompanyAboutSection } from './sections/CompanyAboutSection'
+import { TeamSection } from './sections/TeamSection'
+import { PortalTeaserSection } from './sections/PortalTeaserSection'
 import { ContactSection } from './sections/ContactSection'
 import { FooterSection } from './sections/FooterSection'
 
@@ -47,10 +48,10 @@ export function LandingPage() {
   }, [])
 
   const navItems = [
-    { label: 'Como Funciona', href: '#como-funciona' },
-    { label: 'Soluções', href: '#solucoes' },
-    { label: 'Resultados', href: '#resultados' },
-    { label: 'Planos', href: '#planos' },
+    { label: 'Serviços', href: '#servicos' },
+    { label: 'Sobre Nós', href: '#sobre' },
+    { label: 'Equipe de Contadores', href: '#equipe' },
+    { label: 'Portal do Cliente', href: '#portal-teaser' },
     { label: 'Contato', href: '#contato' },
   ]
 
@@ -64,6 +65,11 @@ export function LandingPage() {
     window.location.href = getClientSubdomainUrl('/')
   }
 
+  const handleKnowPortal = () => {
+    navigate(ROUTES.PORTAL_INFO)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const isDark = resolvedTheme === 'dark'
   const currentLogo = isDark ? logoPng : logoAzulPng
 
@@ -75,7 +81,7 @@ export function LandingPage() {
       )}
     >
       
-      {/* Background Glows (Bi2B Consultoria Identity) - Otimizado para Mobile */}
+      {/* Background Glows (Bi2B Consultoria Identity) */}
       <div 
         className={cn(
           "hidden md:block absolute top-0 left-1/4 h-[750px] w-[750px] -translate-x-1/2 rounded-full blur-[150px] -z-10 pointer-events-none",
@@ -145,6 +151,19 @@ export function LandingPage() {
 
           <div className="flex items-center gap-3">
             <button
+              onClick={handleKnowPortal}
+              className={cn(
+                "hidden xl:inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full border transition-all cursor-pointer",
+                isDark 
+                  ? "border-cyan-500/30 text-cyan-300 bg-cyan-950/40 hover:bg-cyan-500/20" 
+                  : "border-cyan-200 text-[#0d6084] bg-cyan-50 hover:bg-cyan-100"
+              )}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              Conheça o Portal
+            </button>
+
+            <button
               onClick={toggleTheme}
               className={cn(
                 "rounded-full p-2 cursor-pointer transition-all duration-300 border border-white/10 hover:scale-110",
@@ -154,11 +173,12 @@ export function LandingPage() {
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
+
             <button
               onClick={handleClientLogin}
               className="hidden lg:inline-flex items-center justify-center bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] border border-cyan-400/30 text-white font-bold text-xs uppercase tracking-wider px-6 py-2.5 rounded-full shadow-[0_8px_25px_rgba(13,96,132,0.35)] hover:shadow-[0_12px_35px_rgba(13,96,132,0.5)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95 cursor-pointer"
             >
-              Portal Bi2B
+              Área do Cliente
             </button>
           </div>
 
@@ -203,10 +223,16 @@ export function LandingPage() {
               <div className={cn("h-px my-2", isDark ? "bg-white/10" : "bg-slate-200")} />
               <div className="flex flex-col gap-3">
                 <button
+                  onClick={() => { setMobileMenu(false); handleKnowPortal() }}
+                  className="w-full rounded-full bg-cyan-950/60 border border-cyan-500/40 py-3 text-center text-xs font-bold uppercase tracking-wider text-cyan-300 shadow-sm cursor-pointer"
+                >
+                  Conheça o Portal do Cliente
+                </button>
+                <button
                   onClick={() => { setMobileMenu(false); handleClientLogin() }}
                   className="w-full rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] border border-cyan-400/30 py-3 text-center text-xs font-bold uppercase tracking-wider text-white shadow-[0_8px_25px_rgba(13,96,132,0.35)] cursor-pointer"
                 >
-                  Portal Bi2B
+                  Área do Cliente (Login)
                 </button>
               </div>
             </motion.div>
@@ -214,15 +240,15 @@ export function LandingPage() {
         </AnimatePresence>
       </motion.header>
 
-      {/* ===== PAGE SECTIONS (Ordem Proposta: Hero → Prova Social → Como Funciona → Soluções/Ecossistema → Resultados → Depoimentos → Planos → FAQ → CTA Final → Footer) ===== */}
+      {/* ===== LANDING PAGE BI2B CONSULTORIA ===== */}
       <HeroSection isDark={isDark} />
-      <HowItWorksSection isDark={isDark} />
-      <FeaturesSection isDark={isDark} />
-      <ProductivitySection isDark={isDark} />
-      <PricingSection isDark={isDark} />
+      <ServicesSection isDark={isDark} />
+      <CompanyAboutSection isDark={isDark} />
+      <TeamSection isDark={isDark} />
+      {/* Seção com o botão "Conheça o Portal" direcionando para /portal-cliente (ANTES do Contato) */}
+      <PortalTeaserSection isDark={isDark} />
       <ContactSection isDark={isDark} />
       <FooterSection isDark={isDark} />
     </div>
   )
 }
-

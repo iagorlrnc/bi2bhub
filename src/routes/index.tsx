@@ -23,8 +23,9 @@ function PageLoader() {
   )
 }
 
-// Páginas — Landing Page (Apresentação) - Lazy Loading
+// Páginas — Landing Page & Portal (Apresentação) - Lazy Loading
 const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })))
+const PortalPage = lazy(() => import('@/pages/landing/PortalPage').then(m => ({ default: m.PortalPage })))
 
 // Páginas — Autenticação - Lazy Loading
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then(m => ({ default: m.LoginPage })))
@@ -215,10 +216,19 @@ function SubdomainRoutes() {
     )
   }
 
-  // 3. DOMÍNIO PRINCIPAL (Landing Page)
+  // 3. DOMÍNIO PRINCIPAL (Landing Page & Portal)
   return (
     <Routes>
       <Route path="/" element={<RootDomainHandler />} />
+      <Route
+        path="/portal-cliente"
+        element={
+          <LandingLayout>
+            <PortalPage />
+          </LandingLayout>
+        }
+      />
+      <Route path="/portal" element={<Navigate to="/portal-cliente" replace />} />
       <Route path="/login" element={<Navigate to={getClientSubdomainUrl('/')} replace />} />
       <Route path="/cadastrar" element={<Navigate to={getClientSubdomainUrl('/cadastrar')} replace />} />
       <Route path="/admin" element={<Navigate to={getAdminSubdomainUrl('/')} replace />} />
