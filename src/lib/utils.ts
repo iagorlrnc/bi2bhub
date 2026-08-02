@@ -91,3 +91,15 @@ export async function ensureUniqueCompanyCodes(supabaseClient: any): Promise<voi
     if (import.meta.env.DEV) console.error('Erro ao higienizar códigos de empresas:', err)
   }
 }
+
+/**
+ * Verifica se a empresa é o próprio escritório de contabilidade Bi2B (administração do sistema),
+ * para que ela não seja tratada nem listada como uma empresa cliente.
+ */
+export function isBi2bCompany(comp?: { name?: string | null; trade_name?: string | null; codigo_exclusivo?: string | null } | null): boolean {
+  if (!comp) return false
+  const name = (comp.name || '').toLowerCase()
+  const trade = (comp.trade_name || '').toLowerCase()
+  const code = (comp.codigo_exclusivo || '').toLowerCase()
+  return name.includes('bi2b') || trade.includes('bi2b') || code.includes('bi2b')
+}

@@ -11,6 +11,7 @@ import {
   Legend
 } from 'recharts'
 import { supabase } from '@/lib/supabase'
+import { isBi2bCompany } from '@/lib/utils'
 
 export function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
@@ -26,10 +27,13 @@ export function AdminDashboardPage() {
   const fetchAdminData = async (silent = false) => {
     if (!silent) setIsLoading(true)
     try {
-      // 1. Total de Clientes (Companies)
-      const { count: cCount } = await supabase
+      // 1. Total de Clientes (Companies - excluindo BI2B)
+      const { data: allComps } = await supabase
         .from('empresas')
-        .select('id', { count: 'exact', head: true })
+        .select('id, name, trade_name, codigo_exclusivo, created_at')
+
+      const clientCompanies = (allComps || []).filter((c) => !isBi2bCompany(c))
+      const cCount = clientCompanies.length
 
       // 2. Total de Usuários (Apenas clientes - exclui admin e contadores/staff)
       const { count: uCount } = await supabase
@@ -49,7 +53,7 @@ export function AdminDashboardPage() {
         .select('id', { count: 'exact', head: true })
 
       setStats({
-        companiesCount: cCount || 0,
+        companiesCount: cCount,
         usersCount: uCount || 0,
         pendingTicketsCount: tCount || 0,
         documentsCount: dCount || 0
@@ -66,10 +70,10 @@ export function AdminDashboardPage() {
       setRecentTickets(ticketsData || [])
 
       // 6. Crescimento de Empresas e Usuários (exclui contadores e admins do escritório)
-      const [{ data: companiesList }, { data: clientUsersList }] = await Promise.all([
-        supabase.from('empresas').select('created_at'),
+      const [{ data: clientUsersList }] = await Promise.all([
         supabase.from('usuarios').select('created_at').in('user_type', ['client_master', 'client_user'])
       ])
+      const companiesList = clientCompanies
 
       const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
       const periodsSet = new Set<string>()

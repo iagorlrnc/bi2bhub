@@ -34,7 +34,7 @@ import logoPng from '@/assets/logo.png'
 
 const clientSidebarCategories = [
   {
-    title: 'Finanças & Contratos',
+    title: 'Finanças & Pagamentos',
     items: [
       { label: 'Finanças', icon: Wallet, path: ROUTES.FINANCIAL, module: 'finance' },
     ],

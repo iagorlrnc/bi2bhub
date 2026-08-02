@@ -18,9 +18,10 @@ import {
   FileText, 
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn, isValid4DigitCode, generate4DigitCode, getCompanyCode, ensureUniqueCompanyCodes } from '@/lib/utils'
+import { cn, isValid4DigitCode, generate4DigitCode, getCompanyCode, ensureUniqueCompanyCodes, isBi2bCompany } from '@/lib/utils'
 import { supabase, createIsolatedAuthClient } from '@/lib/supabase'
 import { logAuditActivity } from '@/lib/audit'
+import { financeService } from '@/lib/financeService'
 import { z } from 'zod'
 
 const formatCnpj = (value: string) => {
@@ -139,7 +140,7 @@ export function CompaniesPage() {
         })
       )
 
-      setCompanies(sanitized)
+      setCompanies(sanitized.filter((c) => !isBi2bCompany(c)))
     } catch (err) {
       if (import.meta.env.DEV) console.error(err)
       if (!silent) toast.error('Erro ao buscar empresas ativas do Supabase.')
@@ -159,7 +160,7 @@ export function CompaniesPage() {
 
       if (error) throw error
 
-      setCompanyRequests(data || [])
+      setCompanyRequests((data || []).filter((c) => !isBi2bCompany(c)))
     } catch (err) {
       if (import.meta.env.DEV) console.error('Erro ao buscar solicitações pendentes do Supabase:', err)
       setCompanyRequests([])
@@ -292,6 +293,20 @@ export function CompaniesPage() {
             permissions: ['all'],
             is_active: true
           }, { onConflict: 'company_id,user_id' })
+      }
+
+      // 4. Inicializar/Sincronizar Plano da Empresa no módulo financeiro
+      const reqPlan = (req.plan || 'básico').toLowerCase()
+      const planFormatted = reqPlan.charAt(0).toUpperCase() + reqPlan.slice(1)
+      const defaultAmount = reqPlan === 'plus' ? 1450.00 : reqPlan === 'pró' ? 850.00 : 450.00
+      try {
+        await financeService.updateCompanyPlan(req.id, {
+          plan_name: planFormatted,
+          monthly_amount: defaultAmount,
+          due_day: 10,
+        })
+      } catch (e) {
+        if (import.meta.env.DEV) console.warn('Aviso ao sincronizar plano financeiro:', e)
       }
 
       logAuditActivity({
@@ -438,6 +453,7 @@ export function CompaniesPage() {
     }
 
     try {
+      let targetCompanyId = editingId
       if (editingId) {
         const { error } = await supabase
           .from('empresas')
@@ -464,6 +480,7 @@ export function CompaniesPage() {
           .single()
 
         if (error) throw error
+        targetCompanyId = createdCompany?.id
 
         logAuditActivity({
           action: 'CRIAR_EMPRESA',
@@ -474,6 +491,22 @@ export function CompaniesPage() {
 
         toast.success(`Empresa cadastrada com sucesso! ID Exclusivo: ${randomCode}`)
       }
+
+      // Sincronizar plano na tabela `planos_empresa`
+      if (targetCompanyId) {
+        const planFormatted = plan.charAt(0).toUpperCase() + plan.slice(1)
+        const defaultAmount = plan.toLowerCase() === 'plus' ? 1450.00 : plan.toLowerCase() === 'pró' ? 850.00 : 450.00
+        try {
+          await financeService.updateCompanyPlan(targetCompanyId, {
+            plan_name: planFormatted,
+            monthly_amount: defaultAmount,
+            due_day: 10,
+          })
+        } catch (e) {
+          if (import.meta.env.DEV) console.warn('Aviso ao sincronizar plano financeiro:', e)
+        }
+      }
+
       setIsOpenModal(false)
       fetchCompanies()
     } catch (err) {

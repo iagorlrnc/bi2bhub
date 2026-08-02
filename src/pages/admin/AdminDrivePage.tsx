@@ -22,7 +22,7 @@ import {
   Pencil,
   Eye,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, isBi2bCompany } from '@/lib/utils'
 import { toast } from 'sonner'
 import { MAX_FILE_SIZE, ALLOWED_FILE_TYPES } from '@/constants'
 import { supabase } from '@/lib/supabase'
@@ -234,13 +234,14 @@ export function AdminDrivePage() {
       try {
         const { data, error } = await supabase
           .from('empresas')
-          .select('id, name')
+          .select('id, name, trade_name, codigo_exclusivo')
           .eq('is_active', true)
           .order('name')
         if (error) throw error
-        setCompanies(data || [])
-        if (data && data.length > 0) {
-          setSelectedCompanyId(data[0].id)
+        const filtered = (data || []).filter((c) => !isBi2bCompany(c))
+        setCompanies(filtered)
+        if (filtered && filtered.length > 0) {
+          setSelectedCompanyId(filtered[0].id)
         }
       } catch (err) {
         if (import.meta.env.DEV) console.error('Erro ao buscar empresas:', err)

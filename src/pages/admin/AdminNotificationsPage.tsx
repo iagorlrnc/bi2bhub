@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Bell, Send, Trash2, Users, User, Loader2, Building, ShieldCheck, Link2, Search, Filter, Globe } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, isBi2bCompany } from '@/lib/utils'
 import { getNotificationConfig, NOTIFICATION_TYPES } from '@/constants/notifications'
 import type { NotificationType } from '@/types/database.types'
 
@@ -122,11 +122,11 @@ export function AdminNotificationsPage() {
       // 1. Fetch active companies
       const { data: cos, error: cosErr } = await supabase
         .from('empresas')
-        .select('id, name')
+        .select('id, name, trade_name, codigo_exclusivo')
         .eq('is_active', true)
         .order('name')
       if (cosErr) throw cosErr
-      setCompanies(cos || [])
+      setCompanies((cos || []).filter((c) => !isBi2bCompany(c)))
 
       // 2. Fetch active users and their companies
       const { data: usrs, error: usrsErr } = await supabase

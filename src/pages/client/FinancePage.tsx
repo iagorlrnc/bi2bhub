@@ -18,7 +18,6 @@ import {
   Printer,
   Send,
   X,
-  Package,
   FileCheck,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -38,7 +37,6 @@ export function FinancePage() {
   const [cobrancas, setCobrancas] = useState<Cobranca[]>([])
   const [plano, setPlano] = useState<PlanoEmpresa | null>(null)
   const [summary, setSummary] = useState<FinancialSummary | null>(null)
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date>(new Date())
 
   // Filtros
   const [activeTab, setActiveTab] = useState<'cobrancas' | 'plano' | 'historico'>('cobrancas')
@@ -83,7 +81,6 @@ export function FinancePage() {
       setCobrancas(allCobrancas)
       setPlano(currentPlan)
       setSummary(currentSummary)
-      setLastSyncedAt(new Date())
     } catch (err) {
       console.error('Erro ao carregar dados financeiros:', err)
     }
@@ -95,10 +92,10 @@ export function FinancePage() {
     const handleUpdate = () => loadData()
     window.addEventListener('bi2b_finance_updated', handleUpdate)
 
-    // Polling automático de segurança a cada 5 segundos
+    // Polling automático de segurança a cada 1 segundo
     const interval = setInterval(() => {
       loadData()
-    }, 5000)
+    }, 1000)
 
     // Inscrição em tempo real no Supabase Postgres Changes
     const channel = supabase
@@ -133,11 +130,13 @@ export function FinancePage() {
     setIsSubmittingPlanReq(true)
     try {
       if (companyId) {
-        await supabase.from('notificacoes').insert({
-          user_id: companyId,
-          title: `Solicitação de Alteração de Plano: ${companyName}`,
-          message: `Empresa ${companyName} solicitou migração para o Plano ${selectedPlanOption}. Observações: ${planNotes || 'Sem observações adicionais.'}`,
-          read: false,
+        await financeService.requestPlanChange({
+          companyId,
+          companyName,
+          currentPlan: plano?.plan_name || 'Básico',
+          requestedPlan: selectedPlanOption,
+          notes: planNotes,
+          userId: user?.id,
         })
       }
       toast.success(`Solicitação enviada ao escritório! Seu contador entrará em contato para confirmar a migração para o Plano ${selectedPlanOption}.`)
@@ -145,8 +144,7 @@ export function FinancePage() {
       setPlanNotes('')
     } catch (err) {
       console.error('Erro ao solicitar plano:', err)
-      toast.success('Solicitação registrada! Seu contador entrará em contato em breve.')
-      setIsPlanModalOpen(false)
+      toast.error('Erro ao registrar solicitação de plano.')
     } finally {
       setIsSubmittingPlanReq(false)
     }
@@ -268,27 +266,14 @@ export function FinancePage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Cabeçalho da Página */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-[hsl(var(--foreground))] flex items-center gap-2.5">
-            <Wallet className="h-7 w-7 text-brand-500 dark:text-cyan-400" />
-            Finanças & Pagamentos
-          </h1>
-          <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
-            Gerencie o pagamento do plano contábil, fatura mensal e cobranças avulsas da sua empresa.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 shrink-0 shadow-sm">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          <span>Sincronização em Tempo Real (Supabase)</span>
-          <span className="text-[10px] opacity-75 hidden md:inline font-mono">
-            • {lastSyncedAt ? lastSyncedAt.toLocaleTimeString('pt-BR') : 'Ativa'}
-          </span>
-        </div>
+      <div>
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-[hsl(var(--foreground))] flex items-center gap-2.5">
+          <Wallet className="h-7 w-7 text-brand-500 dark:text-cyan-400" />
+          Finanças & Pagamentos
+        </h1>
+        <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
+          Gerencie o pagamento do plano contábil, fatura mensal e cobranças avulsas da sua empresa.
+        </p>
       </div>
 
       {/* Hero Banner do Plano Mensal */}
@@ -571,85 +556,72 @@ export function FinancePage() {
 
       {/* ABA 2: MEU PLANO CONTÁBIL */}
       {activeTab === 'plano' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm space-y-5">
-              <div className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-4">
-                <div>
-                  <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))]">
-                    Visão Geral do Seu Plano Ativo
-                  </h3>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                    Detalhes do contrato de prestação de serviços contábeis com a Bi2B
-                  </p>
-                </div>
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[hsl(var(--border))] pb-4">
+              <div>
+                <h3 className="font-heading text-lg font-bold text-[hsl(var(--foreground))]">
+                  Visão Geral do Seu Plano Ativo
+                </h3>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                  Detalhes do plano contábil da sua empresa com a Bi2B
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
                 <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
                   <CheckCircle2 className="h-3.5 w-3.5" /> Plano {activePlan.plan_name} • Ativo
                 </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-[hsl(var(--border))] pb-5">
-                <div className="p-4 rounded-xl bg-[hsl(var(--muted))]/30 border border-[hsl(var(--border))] space-y-1">
-                  <span className="text-[10px] font-bold text-[hsl(var(--muted-foreground))] uppercase">Valor Mensal</span>
-                  <p className="font-heading text-2xl font-extrabold text-[#0d6084] dark:text-cyan-400">
-                    {formatCurrency(activePlan.monthly_amount)}
-                  </p>
-                </div>
-                <div className="p-4 rounded-xl bg-[hsl(var(--muted))]/30 border border-[hsl(var(--border))] space-y-1">
-                  <span className="text-[10px] font-bold text-[hsl(var(--muted-foreground))] uppercase">Vencimento Fixo</span>
-                  <p className="font-heading text-xl font-bold text-[hsl(var(--foreground))]">
-                    Todo dia {activePlan.due_day}
-                  </p>
-                </div>
-                <div className="p-4 rounded-xl bg-[hsl(var(--muted))]/30 border border-[hsl(var(--border))] space-y-1">
-                  <span className="text-[10px] font-bold text-[hsl(var(--muted-foreground))] uppercase">Recorrência</span>
-                  <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-1">
-                    <ShieldCheck className="h-4 w-4" /> Automática
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-heading text-sm font-bold text-[hsl(var(--foreground))]">
-                  Recursos e Coberturas Inclusas no Plano {activePlan.plan_name}
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    'Emissão e envio de Guias de Impostos (DAS, FGTS, INSS, IR)',
-                    'Escrituração Contábil, Fiscal e Societária completa',
-                    'Elaboração de Balancetes e Demonstração do Resultado (DRE)',
-                    'Gestão e guarda de documentos ilimitados no Drive Seguro',
-                    'Suporte prioritário via Chamados da plataforma',
-                    'Folha de Pagamento para Sócios (Pró-Labore)',
-                    'Atendimento dedicado de contador responsável',
-                    'Relatórios mensais de conformidade fiscal e tributária',
-                  ].map((feature, idx) => (
-                    <div key={idx} className="flex items-start gap-2.5 p-3 rounded-xl bg-[hsl(var(--muted))]/40 border border-[hsl(var(--border))]">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                      <span className="text-xs font-medium text-[hsl(var(--foreground))]">{feature}</span>
-                    </div>
-                  ))}
-                </div>
+                <button
+                  onClick={() => setIsPlanModalOpen(true)}
+                  className="px-3.5 py-1.5 bg-[#0d6084] hover:bg-[#0b4d6a] text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition-all"
+                >
+                  Alterar Plano <ChevronRight className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
-          </div>
 
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 text-[#0d6084] dark:text-cyan-400">
-                <Package className="h-5 w-5" />
-                <h3 className="font-heading text-base font-bold text-[hsl(var(--foreground))]">Gestão do Contrato</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-[hsl(var(--border))] pb-5">
+              <div className="p-4 rounded-xl bg-[hsl(var(--muted))]/30 border border-[hsl(var(--border))] space-y-1">
+                <span className="text-[10px] font-bold text-[hsl(var(--muted-foreground))] uppercase">Valor Mensal</span>
+                <p className="font-heading text-2xl font-extrabold text-[#0d6084] dark:text-cyan-400">
+                  {formatCurrency(activePlan.monthly_amount)}
+                </p>
               </div>
-              <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Deseja adicionar novos serviços avulsos, alterar o pacote de sócios/funcionários ou fazer upgrade de plano contábil? Envie sua solicitação direta para a equipe contábil.
-              </p>
+              <div className="p-4 rounded-xl bg-[hsl(var(--muted))]/30 border border-[hsl(var(--border))] space-y-1">
+                <span className="text-[10px] font-bold text-[hsl(var(--muted-foreground))] uppercase">Vencimento Fixo</span>
+                <p className="font-heading text-xl font-bold text-[hsl(var(--foreground))]">
+                  Todo dia {activePlan.due_day}
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-[hsl(var(--muted))]/30 border border-[hsl(var(--border))] space-y-1">
+                <span className="text-[10px] font-bold text-[hsl(var(--muted-foreground))] uppercase">Recorrência</span>
+                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-1">
+                  <ShieldCheck className="h-4 w-4" /> Automática
+                </p>
+              </div>
+            </div>
 
-              <button
-                onClick={() => setIsPlanModalOpen(true)}
-                className="w-full py-3 bg-[#0d6084] hover:bg-[#0b4d6a] text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all"
-              >
-                Solicitar Migração / Alteração de Plano <ChevronRight className="h-4 w-4" />
-              </button>
+            <div className="space-y-3">
+              <h4 className="font-heading text-sm font-bold text-[hsl(var(--foreground))]">
+                Recursos e Coberturas Inclusas no Plano {activePlan.plan_name}
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {[
+                  'Emissão e envio de Guias de Impostos (DAS, FGTS, INSS, IR)',
+                  'Escrituração Contábil, Fiscal e Societária completa',
+                  'Elaboração de Balancetes e Demonstração do Resultado (DRE)',
+                  'Gestão e guarda de documentos ilimitados no Drive Seguro',
+                  'Suporte prioritário via Chamados da plataforma',
+                  'Folha de Pagamento para Sócios (Pró-Labore)',
+                  'Atendimento dedicado de contador responsável',
+                  'Relatórios mensais de conformidade fiscal e tributária',
+                ].map((feature, idx) => (
+                  <div key={idx} className="flex items-start gap-2.5 p-3 rounded-xl bg-[hsl(var(--muted))]/40 border border-[hsl(var(--border))]">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className="text-xs font-medium text-[hsl(var(--foreground))]">{feature}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -676,7 +648,7 @@ export function FinancePage() {
             </div>
 
             <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-sm space-y-1">
-              <span className="text-[10px] font-bold text-[hsl(var(--muted-foreground))] uppercase">Status do Contrato</span>
+              <span className="text-[10px] font-bold text-[hsl(var(--muted-foreground))] uppercase">Status Financeiro</span>
               <p className="font-heading text-lg font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-1">
                 <CheckCircle2 className="h-5 w-5" /> Adimplente
               </p>
@@ -806,10 +778,9 @@ export function FinancePage() {
                   onChange={(e) => setSelectedPlanOption(e.target.value)}
                   className="w-full bg-[hsl(var(--muted))] border border-[hsl(var(--border))] rounded-xl px-3 py-2 text-xs font-bold"
                 >
-                  <option value="Básico">Plano Básico (R$ 550,00/mês)</option>
-                  <option value="Pró">Plano Pró (R$ 850,00/mês)</option>
-                  <option value="Plus">Plano Plus (R$ 1.250,00/mês)</option>
-                  <option value="Enterprise">Plano Enterprise (Sob Consulta)</option>
+                  <option value="Básico">Plano Básico</option>
+                  <option value="Pró">Plano Pró</option>
+                  <option value="Plus">Plano Plus</option>
                 </select>
               </div>
 
@@ -881,6 +852,7 @@ export function FinancePage() {
               <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))]">
                 <div>Forma: <strong className="text-[hsl(var(--foreground))]">{selectedReceiptCobranca.payment_method?.toUpperCase() || 'PIX'}</strong></div>
                 <div>Data Pagamento: <strong className="text-[hsl(var(--foreground))]">{selectedReceiptCobranca.paid_at ? new Date(selectedReceiptCobranca.paid_at).toLocaleDateString('pt-BR') : formatDate(selectedReceiptCobranca.due_date)}</strong></div>
+                <div className="col-span-2">Aprovado Por: <strong className="text-[#0d6084] dark:text-cyan-400 font-bold">{selectedReceiptCobranca.approved_by_name || 'Equipe Contábil Bi2B'}</strong></div>
                 <div className="col-span-2 truncate">ID Transação: <strong className="text-[hsl(var(--foreground))]">{selectedReceiptCobranca.id}</strong></div>
               </div>
             </div>

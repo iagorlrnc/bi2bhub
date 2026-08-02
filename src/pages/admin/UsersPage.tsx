@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Search, Key, UserX, Loader2, Edit2, UserPlus, Users, Trash2, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, isBi2bCompany } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logAuditActivity } from '@/lib/audit'
@@ -206,11 +206,11 @@ export function UsersPage() {
     try {
       const { data, error } = await supabase
         .from('empresas')
-        .select('id, name, codigo_exclusivo')
+        .select('id, name, trade_name, codigo_exclusivo')
         .eq('is_active', true)
         .order('name', { ascending: true })
       if (error) throw error
-      setCompanies(data || [])
+      setCompanies((data || []).filter((c) => !isBi2bCompany(c)))
     } catch (err) {
       if (import.meta.env.DEV) console.error('Erro ao buscar empresas:', err)
     }

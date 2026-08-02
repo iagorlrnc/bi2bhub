@@ -27,6 +27,7 @@ export interface Cobranca {
   notes?: string
   created_at: string
   created_by?: string
+  approved_by_name?: string
 }
 
 export interface PlanoEmpresa {
@@ -62,4 +63,19 @@ export interface NovoCobrancaPayload {
   pix_code?: string
   boleto_barcode?: string
   send_notification?: boolean
+}
+
+export type SolicitacaoPlanoStatus = 'pendente' | 'aprovado' | 'recusado'
+
+export interface SolicitacaoPlano {
+  id: string
+  company_id: string
+  company_name: string
+  current_plan: string
+  requested_plan: string
+  notes?: string
+  status: SolicitacaoPlanoStatus
+  created_at: string
+  updated_at?: string
+  reviewed_by?: string
 }

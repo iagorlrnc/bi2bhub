@@ -16,30 +16,34 @@ import {
   Check,
   Send,
   ChevronRight,
+  ArrowRight,
+  Filter,
+  RefreshCw,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { financeService } from '@/lib/financeService'
-import type { Cobranca, PlanoEmpresa, FinancialSummary, CobrancaType } from '@/types/finance'
+import type { Cobranca, PlanoEmpresa, FinancialSummary, CobrancaType, SolicitacaoPlano } from '@/types/finance'
 import { FilePreviewModal, type PreviewFile } from '@/components/FilePreviewModal'
-import { cn } from '@/lib/utils'
+import { cn, isBi2bCompany } from '@/lib/utils'
 
 export function AdminFinancePage() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [companies, setCompanies] = useState<any[]>([])
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('all')
 
   const [cobrancas, setCobrancas] = useState<Cobranca[]>([])
   const [planosMap, setPlanosMap] = useState<Record<string, PlanoEmpresa>>({})
+  const [planRequests, setPlanRequests] = useState<SolicitacaoPlano[]>([])
   const [summary, setSummary] = useState<FinancialSummary | null>(null)
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date>(new Date())
 
   // Filtros
-  const [activeTab, setActiveTab] = useState<'cobrancas' | 'planos' | 'comprovantes'>('cobrancas')
+  const [activeTab, setActiveTab] = useState<'cobrancas' | 'planos' | 'comprovantes' | 'solicitacoes'>('cobrancas')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('todos')
   const [typeFilter, setTypeFilter] = useState<string>('todos')
+  const [requestStatusFilter, setRequestStatusFilter] = useState<string>('todos')
 
   // Modais
   const [isNewChargeModalOpen, setIsNewChargeModalOpen] = useState(false)
@@ -72,9 +76,10 @@ export function AdminFinancePage() {
         .order('name')
 
       if (!error && data) {
-        setCompanies(data)
-        if (data.length > 0 && !newCompanyId) {
-          setNewCompanyId(data[0].id)
+        const filtered = data.filter((c) => !isBi2bCompany(c))
+        setCompanies(filtered)
+        if (filtered.length > 0 && !newCompanyId) {
+          setNewCompanyId(filtered[0].id)
         }
       }
     } catch (err) {
@@ -82,10 +87,12 @@ export function AdminFinancePage() {
     }
   }
 
-  // Carregar dados de cobrança
+  // Carregar dados de cobrança e solicitações de plano
   const loadData = async () => {
     try {
       const list = await financeService.getCobrancas(selectedCompanyId)
+      const requests = await financeService.getPlanRequests(selectedCompanyId)
+      setPlanRequests(requests)
 
       // Buscar todos os planos cadastrados no Supabase em uma única consulta
       const { data: allPlans } = await supabase
@@ -95,7 +102,7 @@ export function AdminFinancePage() {
       const map: Record<string, PlanoEmpresa> = {}
       if (allPlans) {
         for (const p of allPlans) {
-          if (p.company_id) {
+          if (p.company_id && !isBi2bCompany(p.empresas)) {
             map[p.company_id] = {
               company_id: p.company_id,
               company_name: p.empresas?.trade_name || p.empresas?.name || 'Empresa Cliente',
@@ -119,7 +126,6 @@ export function AdminFinancePage() {
       const sum = financeService.getSummary(list, activePlanAmount)
       setCobrancas(list)
       setSummary(sum)
-      setLastSyncedAt(new Date())
     } catch (err) {
       console.error('Erro ao carregar cobranças:', err)
     }
@@ -132,10 +138,10 @@ export function AdminFinancePage() {
     const handleUpdate = () => loadData()
     window.addEventListener('bi2b_finance_updated', handleUpdate)
 
-    // Polling automático de segurança a cada 5 segundos
+    // Polling automático de segurança a cada 1 segundo
     const interval = setInterval(() => {
       loadData()
-    }, 5000)
+    }, 1000)
 
     // Inscrição em tempo real no Supabase Postgres Changes
     const channel = supabase
@@ -248,11 +254,19 @@ export function AdminFinancePage() {
   // Dar baixa manual
   const handleMarkAsPaid = async (charge: Cobranca) => {
     try {
+      let approverName = profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name
+      if (!approverName && user?.id) {
+        const { data: uData } = await supabase.from('usuarios').select('full_name, email').eq('id', user.id).maybeSingle()
+        approverName = uData?.full_name || uData?.email
+      }
+      approverName = approverName || user?.email || 'Administrador Bi2B'
+
       await financeService.updateStatus(charge.id, 'pago', {
         paymentMethod: 'manual',
         receiptStatus: 'aprovado',
         notes: 'Baixa efetuada manualmente pelo escritório admin.',
         userId: user?.id,
+        approverName,
       })
       toast.success(`Baixa efetuada na cobrança "${charge.title}"!`)
       loadData()
@@ -276,7 +290,14 @@ export function AdminFinancePage() {
   // Aprovar comprovante
   const handleApproveReceipt = async (charge: Cobranca) => {
     try {
-      await financeService.reviewReceipt(charge.id, true, 'Comprovante validado pelo escritório.', user?.id)
+      let approverName = profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name
+      if (!approverName && user?.id) {
+        const { data: uData } = await supabase.from('usuarios').select('full_name, email').eq('id', user.id).maybeSingle()
+        approverName = uData?.full_name || uData?.email
+      }
+      approverName = approverName || user?.email || 'Administrador Bi2B'
+
+      await financeService.reviewReceipt(charge.id, true, 'Comprovante validado pelo escritório.', user?.id, approverName)
       toast.success('Comprovante aprovado! Pagamento confirmado.')
       loadData()
     } catch (err) {
@@ -307,6 +328,33 @@ export function AdminFinancePage() {
     } catch (err) {
       console.error(err)
       toast.error('Erro ao excluir cobrança.')
+    }
+  }
+
+  // Aprovar solicitação de migração de plano
+  const handleApprovePlanRequest = async (req: SolicitacaoPlano) => {
+    try {
+      const approverName = profile?.full_name || profile?.email || 'Administrador Bi2B'
+      await financeService.approvePlanRequest(req.id, req.company_id, req.requested_plan, user?.id, approverName)
+      toast.success(`Solicitação APROVADA! O plano da empresa "${req.company_name}" foi migrado para o Plano ${req.requested_plan}.`)
+      loadData()
+    } catch (err) {
+      console.error(err)
+      toast.error('Erro ao aprovar solicitação de plano.')
+    }
+  }
+
+  // Recusar solicitação de migração de plano
+  const handleRejectPlanRequest = async (req: SolicitacaoPlano) => {
+    const reason = prompt(`Informe o motivo da recusa para a empresa "${req.company_name}":`, 'No momento não é possível realizar a alteração de plano.')
+    if (reason === null) return
+    try {
+      await financeService.rejectPlanRequest(req.id, req.company_id, reason, user?.id)
+      toast.warning('Solicitação de plano recusada e cliente notificado.')
+      loadData()
+    } catch (err) {
+      console.error(err)
+      toast.error('Erro ao recusar solicitação de plano.')
     }
   }
 
@@ -375,21 +423,12 @@ export function AdminFinancePage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
             <Wallet className="h-5 w-5" />
           </div>
-          <div>
-            <div className="flex items-center gap-3">
+            <div>
               <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Gestão Financeira & Cobranças</h1>
-              <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span>Tempo Real • {lastSyncedAt ? lastSyncedAt.toLocaleTimeString('pt-BR') : 'Ativo'}</span>
-              </div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">
+                Emita cobranças, controle mensalidades e valide comprovantes dos clientes
+              </p>
             </div>
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">
-              Emita cobranças, controle mensalidades e valide comprovantes dos clientes
-            </p>
-          </div>
         </div>
 
         <div className="flex flex-wrap items-end gap-3">
@@ -510,6 +549,23 @@ export function AdminFinancePage() {
           {summary && summary.countPendingReceipts > 0 && (
             <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-purple-600 text-white font-bold">
               {summary.countPendingReceipts}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('solicitacoes')}
+          className={cn(
+            "pb-3 border-b-2 transition-all flex items-center gap-2 text-xs sm:text-sm relative",
+            activeTab === 'solicitacoes'
+              ? "border-[#0d6084] text-[#0d6084] dark:border-cyan-400 dark:text-cyan-400 font-bold"
+              : "border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+          )}
+        >
+          <RefreshCw className="h-4 w-4" />
+          Solicitações de Alteração de Planos
+          {planRequests.filter((r) => r.status === 'pendente').length > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500 text-white font-bold animate-pulse">
+              {planRequests.filter((r) => r.status === 'pendente').length}
             </span>
           )}
         </button>
@@ -810,6 +866,109 @@ export function AdminFinancePage() {
           </div>
         </div>
       )}
+
+      {/* ABA 4: SOLICITAÇÕES DE ALTERAÇÃO DE PLANO */}
+      {activeTab === 'solicitacoes' && (
+        <div className="space-y-6">
+          {/* Filtro e Lista */}
+          <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[hsl(var(--border))] pb-4">
+              <div>
+                <h3 className="font-heading text-base font-bold text-[hsl(var(--foreground))]">Solicitações Detalhadas de Migração de Plano</h3>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">Gerencie as solicitações enviadas pelos clientes para upgrade/downgrade de pacote</p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                <select
+                  value={requestStatusFilter}
+                  onChange={(e) => setRequestStatusFilter(e.target.value)}
+                  className="bg-[hsl(var(--muted))]/50 border border-[hsl(var(--border))] rounded-xl px-3 py-1.5 text-xs font-bold text-[hsl(var(--foreground))] focus:outline-none"
+                >
+                  <option value="todos">Todos os Status</option>
+                  <option value="pendente">Apenas Pendentes</option>
+                  <option value="aprovado">Aprovadas</option>
+                  <option value="recusado">Recusadas</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="divide-y divide-[hsl(var(--border))] space-y-3">
+              {planRequests.filter((r) => requestStatusFilter === 'todos' || r.status === requestStatusFilter).length === 0 ? (
+                <div className="p-8 text-center text-[hsl(var(--muted-foreground))] font-medium">
+                  Nenhuma solicitação de alteração de plano encontrada.
+                </div>
+              ) : (
+                planRequests
+                  .filter((r) => requestStatusFilter === 'todos' || r.status === requestStatusFilter)
+                  .map((item: SolicitacaoPlano) => (
+                    <div key={item.id} className="pt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold text-sm text-[hsl(var(--foreground))]">{item.company_name}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-md bg-[hsl(var(--muted))] border border-[hsl(var(--border))] font-medium text-[hsl(var(--muted-foreground))]">
+                            ID: #{item.company_id.slice(0, 8)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs font-bold">
+                          <span className="px-2.5 py-1 rounded-lg bg-gray-500/10 text-gray-700 dark:text-gray-300 border border-gray-500/20">
+                            Plano Atual: {item.current_plan || 'Básico'}
+                          </span>
+                          <ArrowRight className="h-4 w-4 text-[#0d6084] dark:text-cyan-400" />
+                          <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            Solicitado: Plano {item.requested_plan}
+                          </span>
+                        </div>
+
+                        {item.notes && (
+                          <p className="text-xs text-[hsl(var(--muted-foreground))] bg-[hsl(var(--muted))]/30 p-2.5 rounded-xl border border-[hsl(var(--border))] mt-1">
+                            <strong className="text-[hsl(var(--foreground))]">Observações do Cliente:</strong> {item.notes}
+                          </p>
+                        )}
+
+                        <div className="text-[11px] text-[hsl(var(--muted-foreground))] flex items-center gap-2 pt-1">
+                          <Clock className="h-3.5 w-3.5" /> Solicitado em: {new Date(item.created_at).toLocaleString('pt-BR')}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {item.status === 'pendente' && (
+                          <>
+                            <button
+                              onClick={() => handleApprovePlanRequest(item)}
+                              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+                            >
+                              <Check className="h-4 w-4" /> Aprovar Migração
+                            </button>
+                            <button
+                              onClick={() => handleRejectPlanRequest(item)}
+                              className="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+                            >
+                              <X className="h-4 w-4" /> Recusar
+                            </button>
+                          </>
+                        )}
+
+                        {item.status === 'aprovado' && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            <CheckCircle2 className="h-4 w-4" /> Migração Aprovada ({item.reviewed_by || 'Admin'})
+                          </span>
+                        )}
+
+                        {item.status === 'recusado' && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                            <X className="h-4 w-4" /> Solicitação Recusada
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
         </div>
       )}
 
@@ -973,7 +1132,6 @@ export function AdminFinancePage() {
                   <option value="Básico">Básico</option>
                   <option value="Pró">Pró</option>
                   <option value="Plus">Plus</option>
-                  <option value="Enterprise">Enterprise</option>
                 </select>
               </div>
 

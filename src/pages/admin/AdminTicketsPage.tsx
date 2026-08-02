@@ -4,7 +4,7 @@ import {
   ChevronLeft, ChevronRight
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, isBi2bCompany } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 
 import { TicketDashboardCards } from '@/components/tickets/TicketDashboardCards'
@@ -61,7 +61,7 @@ export function AdminTicketsPage() {
           .from('usuarios')
           .select('id, full_name, email, user_type')
           .order('full_name', { ascending: true }),
-        supabase.from('empresas').select('id, name').order('name', { ascending: true })
+        supabase.from('empresas').select('id, name, trade_name, codigo_exclusivo').order('name', { ascending: true })
       ])
 
       let realStaff: any[] = []
@@ -87,7 +87,7 @@ export function AdminTicketsPage() {
       }
 
       setStaffList(realStaff)
-      if (companiesRes.data) setCompaniesList(companiesRes.data)
+      if (companiesRes.data) setCompaniesList(companiesRes.data.filter((c: any) => !isBi2bCompany(c)))
     } catch (err) {
       if (import.meta.env.DEV) console.error('Erro ao carregar contadores e administradores do banco:', err)
     }

@@ -6,6 +6,7 @@ import type {
   CobrancaStatus,
   PaymentMethod,
   ReceiptStatus,
+  SolicitacaoPlano,
 } from '@/types/finance'
 import { supabase } from '@/lib/supabase'
 import { logAuditActivity } from '@/lib/audit'
@@ -45,6 +46,18 @@ export const financeService = {
         return []
       }
 
+      // Buscar lista de usuários para resolver o nome real do aprovador pelo ID
+      const { data: usersList } = await supabase
+        .from('usuarios')
+        .select('id, full_name, email')
+
+      const usersMap: Record<string, string> = {}
+      if (usersList) {
+        for (const u of usersList) {
+          usersMap[u.id] = u.full_name || u.email || 'Administrador Bi2B'
+        }
+      }
+
       const nowStr = new Date().toISOString().split('T')[0]
       const result: Cobranca[] = (data || []).map((row: any) => {
         const compName = row.empresas?.trade_name || row.empresas?.name || 'Empresa Cliente'
@@ -58,6 +71,11 @@ export const financeService = {
             .eq('id', row.id)
             .then()
         }
+
+        const realApproverName =
+          row.approved_by_name ||
+          (row.approved_by ? usersMap[row.approved_by] : undefined) ||
+          (row.status === 'pago' ? 'Equipe Contábil Bi2B' : undefined)
 
         return {
           id: row.id,
@@ -78,9 +96,9 @@ export const financeService = {
           receipt_status: row.receipt_status || 'sem_comprovante',
           paid_at: row.paid_at || undefined,
           payment_method: row.payment_method || undefined,
-          notes: row.notes || undefined,
           created_at: row.created_at,
           created_by: row.created_by || undefined,
+          approved_by_name: realApproverName,
         }
       })
 
@@ -300,6 +318,7 @@ export const financeService = {
       receiptStatus?: ReceiptStatus
       notes?: string
       userId?: string
+      approverName?: string
     }
   ): Promise<boolean> {
     const isPaying = status === 'pago'
@@ -310,6 +329,7 @@ export const financeService = {
       payment_method: options?.paymentMethod || (isPaying ? 'pix' : null),
       receipt_status: options?.receiptStatus || (isPaying ? 'aprovado' : 'sem_comprovante'),
       notes: options?.notes || null,
+      approved_by_name: isPaying ? (options?.approverName || 'Equipe Contábil Bi2B') : null,
       updated_at: new Date().toISOString(),
     }
 
@@ -384,13 +404,15 @@ export const financeService = {
     chargeId: string,
     approved: boolean,
     notes?: string,
-    userId?: string
+    userId?: string,
+    approverName?: string
   ): Promise<boolean> {
     const updatePayload = {
       status: approved ? 'pago' : 'pendente',
       paid_at: approved ? new Date().toISOString() : null,
       receipt_status: approved ? 'aprovado' : 'rejeitado',
       notes: notes || (approved ? 'Comprovante aprovado pelo escritório.' : 'Comprovante rejeitado pelo escritório.'),
+      approved_by_name: approved ? (approverName || 'Equipe Contábil Bi2B') : null,
       updated_at: new Date().toISOString(),
     }
 
@@ -567,5 +589,236 @@ export const financeService = {
       countPaid,
       countPendingReceipts,
     }
+  },
+
+  // Registrar solicitação de alteração de plano pelo cliente
+  async requestPlanChange(payload: {
+    companyId: string
+    companyName: string
+    currentPlan: string
+    requestedPlan: string
+    notes?: string
+    userId?: string
+  }): Promise<boolean> {
+    try {
+      const insertData = {
+        company_id: payload.companyId,
+        company_name: payload.companyName,
+        current_plan: payload.currentPlan || 'Básico',
+        requested_plan: payload.requestedPlan,
+        notes: payload.notes || null,
+        status: 'pendente',
+        created_at: new Date().toISOString(),
+      }
+
+      const { error } = await supabase.from('solicitacoes_plano').insert(insertData)
+
+      if (error && import.meta.env.DEV) {
+        console.warn('Aviso Supabase insert solicitacoes_plano:', error.message)
+      }
+
+      // Notificar escritório
+      await supabase.from('notificacoes').insert({
+        company_id: payload.companyId,
+        user_id: payload.companyId,
+        title: `Solicitação de Alteração de Plano: ${payload.companyName}`,
+        message: `Empresa ${payload.companyName} (Plano Atual: ${payload.currentPlan}) solicitou migração para o Plano ${payload.requestedPlan}. Observações: ${payload.notes || 'Sem observações adicionais.'}`,
+        type: 'alerta',
+        read: false,
+      })
+
+      if (payload.userId) {
+        logAuditActivity({
+          userId: payload.userId,
+          companyId: payload.companyId,
+          action: 'financas.plano.solicitar_alteracao',
+          entityType: 'empresas',
+          entityId: payload.companyId,
+          metadata: { requested_plan: payload.requestedPlan }
+        })
+      }
+
+      window.dispatchEvent(new CustomEvent('bi2b_finance_updated'))
+      return true
+    } catch (err) {
+      console.error('Erro ao solicitar alteração de plano:', err)
+      throw err
+    }
+  },
+
+  // Obter solicitações de alteração de plano
+  async getPlanRequests(companyId?: string): Promise<SolicitacaoPlano[]> {
+    try {
+      let query = supabase
+        .from('solicitacoes_plano')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (companyId && companyId !== 'all') {
+        query = query.eq('company_id', companyId)
+      }
+
+      const { data, error } = await query
+
+      if (!error && data && data.length > 0) {
+        return data as SolicitacaoPlano[]
+      }
+
+      // Fallback: Buscar nas notificações de alerta de plano
+      let notifQuery = supabase
+        .from('notificacoes')
+        .select('*, empresas(id, name, trade_name)')
+        .ilike('title', '%Solicitação de Alteração de Plano%')
+        .order('created_at', { ascending: false })
+
+      if (companyId && companyId !== 'all') {
+        notifQuery = notifQuery.eq('company_id', companyId)
+      }
+
+      const { data: notifData } = await notifQuery
+
+      if (notifData && notifData.length > 0) {
+        return notifData.map((n: any) => {
+          const compName = n.empresas?.trade_name || n.empresas?.name || 'Empresa Cliente'
+          const planMatch = n.message?.match(/Plano ([A-Za-zÀ-ÿ]+)/)
+          const requestedPlan = planMatch ? planMatch[1] : 'Pró'
+          return {
+            id: n.id,
+            company_id: n.company_id || n.user_id,
+            company_name: compName,
+            current_plan: 'Básico',
+            requested_plan: requestedPlan,
+            notes: n.message,
+            status: 'pendente' as const,
+            created_at: n.created_at,
+          }
+        })
+      }
+
+      return []
+    } catch (err) {
+      console.error('Erro ao buscar solicitações de plano:', err)
+      return []
+    }
+  },
+
+  // Aprovar solicitação de alteração de plano
+  async approvePlanRequest(
+    requestId: string,
+    companyId: string,
+    requestedPlan: string,
+    reviewerId?: string,
+    reviewerName?: string
+  ): Promise<boolean> {
+    try {
+      const pName = requestedPlan.toLowerCase()
+      const defaultAmount = pName.includes('plus') ? 1450.00 : pName.includes('pró') ? 850.00 : 450.00
+      const planFormatted = requestedPlan.charAt(0).toUpperCase() + requestedPlan.slice(1)
+
+      // 1. Atualizar o plano da empresa
+      await this.updateCompanyPlan(companyId, {
+        plan_name: planFormatted,
+        monthly_amount: defaultAmount,
+        due_day: 10,
+      })
+
+      // 2. Atualizar status da solicitação
+      await supabase
+        .from('solicitacoes_plano')
+        .update({
+          status: 'aprovado',
+          updated_at: new Date().toISOString(),
+          reviewed_by: reviewerName || 'Admin',
+        })
+        .eq('id', requestId)
+
+      // 3. Notificar o cliente
+      const { data: users } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('company_id', companyId)
+
+      if (users && users.length > 0) {
+        const notifs = users.map((u) => ({
+          user_id: u.id,
+          company_id: companyId,
+          title: 'Solicitação de Plano Aprovada! 🎉',
+          message: `Sua solicitação de alteração para o Plano ${planFormatted} foi aprovada com sucesso pelo escritório!`,
+          type: 'sucesso' as const,
+          action_url: '/financas',
+        }))
+        await supabase.from('notificacoes').insert(notifs)
+      }
+
+      if (reviewerId) {
+        logAuditActivity({
+          userId: reviewerId,
+          companyId,
+          action: 'financas.plano.aprovar_alteracao',
+          entityType: 'empresas',
+          entityId: companyId,
+          metadata: { plan_name: planFormatted }
+        })
+      }
+
+      window.dispatchEvent(new CustomEvent('bi2b_finance_updated'))
+      return true
+    } catch (err) {
+      console.error('Erro ao aprovar solicitação de plano:', err)
+      throw err
+    }
+  },
+
+  // Recusar solicitação de alteração de plano
+  async rejectPlanRequest(
+    requestId: string,
+    companyId: string,
+    reason?: string,
+    reviewerId?: string
+  ): Promise<boolean> {
+    try {
+      await supabase
+        .from('solicitacoes_plano')
+        .update({
+          status: 'recusado',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', requestId)
+
+      const { data: users } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('company_id', companyId)
+
+      if (users && users.length > 0) {
+        const notifs = users.map((u) => ({
+          user_id: u.id,
+          company_id: companyId,
+          title: 'Solicitação de Alteração de Plano',
+          message: `Sua solicitação de alteração de plano não pôde ser concluída neste momento. Motivo: ${reason || 'Verifique com seu contador responsável.'}`,
+          type: 'alerta' as const,
+          action_url: '/financas',
+        }))
+        await supabase.from('notificacoes').insert(notifs)
+      }
+
+      if (reviewerId) {
+        logAuditActivity({
+          userId: reviewerId,
+          companyId,
+          action: 'financas.plano.recusar_alteracao',
+          entityType: 'empresas',
+          entityId: companyId,
+          metadata: { reason }
+        })
+      }
+
+      window.dispatchEvent(new CustomEvent('bi2b_finance_updated'))
+      return true
+    } catch (err) {
+      console.error('Erro ao recusar solicitação de plano:', err)
+      throw err
+    }
   }
 }
+
