@@ -175,7 +175,7 @@ export function PaymentModal({ cobranca, isOpen, onClose, onSuccess }: PaymentMo
             onClick={() => setActiveTab('comprovante')}
             className={`flex-1 py-2.5 px-3 text-xs font-bold flex items-center justify-center gap-1.5 border-b-2 transition-all ${
               activeTab === 'comprovante'
-                ? 'border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-500/10'
+                ? 'border-[#0d6084] text-[#0d6084] dark:text-cyan-300 bg-[#0d6084]/15'
                 : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
             }`}
           >
@@ -328,8 +328,8 @@ export function PaymentModal({ cobranca, isOpen, onClose, onSuccess }: PaymentMo
           {/* TAB 3: ENVIAR COMPROVANTE */}
           {activeTab === 'comprovante' && (
             <form onSubmit={handleUploadReceipt} className="flex flex-col gap-3.5">
-              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-700 dark:text-purple-300 text-xs">
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#0d6084]/10 border border-[#0d6084]/20 text-[#0d6084] dark:text-cyan-300 text-xs">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-[#0d6084] dark:text-cyan-400" />
                 <span className="text-[11px] leading-tight">
                   Efetuou o pagamento via transferência, TED ou PIX direto? Anexe o comprovante abaixo para rápida verificação pelo nosso escritório.
                 </span>
@@ -341,7 +341,7 @@ export function PaymentModal({ cobranca, isOpen, onClose, onSuccess }: PaymentMo
                   type="file"
                   accept=".pdf,.png,.jpg,.jpeg,.webp"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  className="w-full text-xs text-[hsl(var(--muted-foreground))] file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:bg-purple-500 file:cursor-pointer cursor-pointer border border-[hsl(var(--border))] rounded-2xl bg-[hsl(var(--muted))]/40 p-2"
+                  className="w-full text-xs text-[hsl(var(--muted-foreground))] file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#0d6084] file:text-white hover:file:bg-[#0a4a62] file:cursor-pointer cursor-pointer border border-[hsl(var(--border))] rounded-2xl bg-[hsl(var(--muted))]/40 p-2"
                 />
               </div>
 
@@ -355,7 +355,7 @@ export function PaymentModal({ cobranca, isOpen, onClose, onSuccess }: PaymentMo
               <button
                 type="submit"
                 disabled={isUploading || !selectedFile}
-                className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all mt-1"
+                className="w-full py-2.5 bg-gradient-to-r from-[#0d6084] via-[#0f729d] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all mt-1 cursor-pointer"
               >
                 {isUploading ? (
                   <>
@@ -375,7 +375,7 @@ export function PaymentModal({ cobranca, isOpen, onClose, onSuccess }: PaymentMo
         <div className="border-t border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30 px-5 py-2.5 flex items-center justify-between text-[11px] text-[hsl(var(--muted-foreground))] shrink-0">
           <div className="flex items-center gap-1.5">
             <Lock className="h-3.5 w-3.5 text-emerald-500" />
-            <span>Ambiente 100% Criptografado e Seguro</span>
+            <span>Ambiente Criptografado e Seguro</span>
           </div>
           <button
             onClick={onClose}

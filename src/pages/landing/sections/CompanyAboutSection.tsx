@@ -14,7 +14,7 @@ export function CompanyAboutSection({ isDark }: CompanyAboutSectionProps) {
           {/* Left Column: Story */}
           <div className="lg:col-span-6 space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#0d6084]/30 bg-[#0d6084]/10 text-[#0d6084] dark:text-cyan-300 font-extrabold text-xs uppercase tracking-widest">
-              Sobre a Bi2B Consultoria
+              Sobre o atendimento
             </div>
 
             <h2

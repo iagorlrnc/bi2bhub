@@ -1,10 +1,10 @@
-# BI2B Hub — Portal Contábil & Gestão Multi-Tenant
+# BI2B Consultoria & Assessoria Contábil — Portal Contábil & Gestão da Empresa
 
-> BI2B Consultoria & Assessoria Contábil (CNPJ: 00.000.000/0001-00)
+> BI2B Consultoria & Assessoria Contábil (CNPJ: 63.172.986/0001-05)
 > Plataforma integrada de gestão financeira, emissão de guias fiscais, suporte via chamados, gestão de tarefas e armazenamento seguro de documentos fiscais para empresas e contadores.
 
 ## Visão Geral da Plataforma
-O **BI2B Hub** é uma plataforma SaaS B2B desenvolvida para automatizar e otimizar o relacionamento entre escritórios de contabilidade e empresas clientes. Oferece centralização de guias fiscais (DAS, FGTS, DARF), emissão de recibos, relatórios financeiros e drive em nuvem criptografado.
+O **BI2B Consultoria & Assessoria Contábil** é uma plataforma SaaS B2B desenvolvida para automatizar e otimizar o relacionamento entre escritórios de contabilidade e empresas clientes. Oferece centralização de guias fiscais (DAS, FGTS, DARF), emissão de recibos, relatórios financeiros e drive em nuvem criptografado.
 
 ## Principais Módulos e Recursos
 
@@ -14,7 +14,7 @@ O **BI2B Hub** é uma plataforma SaaS B2B desenvolvida para automatizar e otimiz
 - **Certidões Negativas**: Monitoramento automático e atualização de certidões da RFB, PGFN, FGTS e Trabalhista.
 
 ### 2. Bi2B Drive (Gestão Documental)
-- Armazenamento em nuvem criptografado e organizado por empresa cliente (`company_id`).
+- Armazenamento em nuvem criptografado e organizado por empresa.
 - Upload e compartilhamento de XMLs de NFe, CTe, recibos e documentos societários/RH.
 
 ### 3. Central de Chamados & Suporte
@@ -27,7 +27,7 @@ O **BI2B Hub** é uma plataforma SaaS B2B desenvolvida para automatizar e otimiz
 O BI2B Hub é uma plataforma SaaS multi-tenant de gestão contábil e financeira que conecta escritórios contábeis aos seus clientes para entrega automatizada de impostos, certidões e gestão de documentos.
 
 ### Como solicitar orçamentos de planos contábeis?
-Acesse a página inicial em [bi2bhub.com.br](https://bi2bhub.com.br/) ou cadastre sua empresa diretamente pelo portal do cliente em [bi2bhub.com.br/registro](https://bi2bhub.com.br/registro).
+Acesse a página inicial em [bi2consultoria.com.br](https://www.bi2bconsultoria.com.br/) ou cadastre sua empresa diretamente pelo portal do cliente em [bi2bconsultoria.com.br/login](https://www.app.bi2bconsultoria.com.br/login).
 
 ### Quais planos são oferecidos?
 - **Básico**: Atendimento contábil essencial, emissão de guias e drive seguro.
@@ -35,7 +35,7 @@ Acesse a página inicial em [bi2bhub.com.br](https://bi2bhub.com.br/) ou cadastr
 - **Plus**: Gestão contábil e financeira completa, automação ilimitada e 100GB de armazenamento.
 
 ## Links Canônicos Importantes
-- [Página Inicial BI2B Hub](https://bi2bhub.com.br/)
-- [Portal de Login](https://bi2bhub.com.br/login)
-- [Cadastro de Empresa Cliente](https://bi2bhub.com.br/registro)
-- [Sitemap XML](https://bi2bhub.com.br/sitemap.xml)
+- [Página Inicial BI2B Hub](https://www.bi2bconsultoria.com.br/)
+- [Portal de Login](https://www.app.bi2bconsultoria.com.br/)
+- [Cadastro de Empresa Cliente](https://www.app.bi2bconsultoria.com.br/login)
+- [Sitemap XML](https://www.bi2bconsultoria.com.br/sitemap.xml)

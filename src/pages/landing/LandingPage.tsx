@@ -66,11 +66,6 @@ export function LandingPage() {
     window.location.href = getClientSubdomainUrl('/')
   }
 
-  const handleKnowPortal = () => {
-    navigate(ROUTES.PORTAL_INFO)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
   const isDark = resolvedTheme === 'dark'
   const currentLogo = isDark ? logoPng : logoAzulPng
 
@@ -153,16 +148,6 @@ export function LandingPage() {
 
             <button
               onClick={handleClientLogin}
-              className={cn(
-                "hidden xl:inline-flex items-center text-xs font-semibold px-4 py-2 rounded-full cursor-pointer",
-                isDark ? "text-slate-300 hover:text-white" : "text-slate-700 hover:text-[#0d6084]"
-              )}
-            >
-              Entrar
-            </button>
-
-            <button
-              onClick={handleKnowPortal}
               className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] border border-cyan-400/30 text-white font-semibold text-xs xl:text-sm h-10 px-5 shadow-lg shadow-[#0d6084]/25 cursor-pointer"
             >
               <span>Portal do Cliente</span>
@@ -207,16 +192,10 @@ export function LandingPage() {
             <div className={cn("h-px my-2", isDark ? "bg-white/10" : "bg-slate-200")} />
             <div className="flex flex-col gap-3">
               <button
-                onClick={() => { setMobileMenu(false); handleKnowPortal() }}
+                onClick={() => { setMobileMenu(false); handleClientLogin() }}
                 className="w-full rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] border border-cyan-400/30 py-3 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md cursor-pointer"
               >
-                Conheça o Portal do Cliente
-              </button>
-              <button
-                onClick={() => { setMobileMenu(false); handleClientLogin() }}
-                className="w-full rounded-full bg-slate-100 dark:bg-white/10 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white cursor-pointer"
-              >
-                Entrar no Portal (Login)
+                Portal do Cliente
               </button>
             </div>
           </div>

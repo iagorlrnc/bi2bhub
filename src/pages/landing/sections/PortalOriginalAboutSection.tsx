@@ -5,13 +5,6 @@ interface PortalOriginalAboutSectionProps {
   isDark?: boolean
 }
 
-const stats = [
-  { value: '+500', label: 'Empresas Atendidas', sub: 'Em diversos segmentos do mercado' },
-  { value: '99,8%', label: 'Conformidade Fiscal', sub: 'Índice de precisão nas obrigações' },
-  { value: 'R$ 15M+', label: 'Economia Tributária', sub: 'Redução legal de impostos gerada' },
-  { value: '100%', label: 'Atendimento Dedicado', sub: 'Contadores especialistas prontos' },
-]
-
 const differentials = [
   {
     icon: ShieldCheck,
@@ -134,32 +127,6 @@ export function PortalOriginalAboutSection({ isDark }: PortalOriginalAboutSectio
                 </div>
               )
             })}
-          </div>
-        </div>
-
-        {/* Bottom Banner: Key Numbers & Metrics */}
-        <div
-          className={cn(
-            'rounded-3xl p-8 sm:p-12 border relative overflow-hidden',
-            isDark
-              ? 'bg-gradient-to-r from-[#040914] via-[#06152d] to-[#040914] border-white/10 shadow-2xl'
-              : 'bg-gradient-to-r from-slate-900 via-[#0d6084] to-slate-900 text-white border-slate-800 shadow-xl'
-          )}
-        >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center relative z-10">
-            {stats.map((stat, sIdx) => (
-              <div key={sIdx} className="space-y-1">
-                <div className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-white via-cyan-200 to-cyan-400 bg-clip-text text-transparent tracking-tight">
-                  {stat.value}
-                </div>
-                <div className="text-sm font-bold text-slate-100 uppercase tracking-wider">
-                  {stat.label}
-                </div>
-                <div className="text-xs text-slate-400 font-normal hidden sm:block">
-                  {stat.sub}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>

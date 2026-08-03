@@ -47,7 +47,7 @@ export function PortalHeroSection({ isDark }: PortalHeroSectionProps) {
         {/* Subtitle Estático */}
         <p
           className={cn(
-            'mt-6 text-base sm:text-lg md:text-xl leading-relaxed max-w-3xl font-normal text-balance',
+            'mt-6 text-base sm:text-lg md:text-xl leading-relaxed max-w-4xl font-normal text-balance',
             isDark ? 'text-slate-300' : 'text-slate-600'
           )}
         >

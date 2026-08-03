@@ -306,9 +306,9 @@ export function FinancePage() {
               </div>
               <button
                 onClick={() => handleOpenPayment(nextPending)}
-                className="w-full py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-gradient-to-r from-[#0d6084] via-[#0f729d] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] text-white font-black text-xs rounded-xl shadow-lg shadow-[#0d6084]/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <QrCode className="h-4 w-4" /> Pagar Fatura Atual
+                <QrCode className="h-4 w-4" /> Pagar Fatura Agora
               </button>
             </div>
           ) : (
@@ -521,9 +521,9 @@ export function FinancePage() {
                       {isPending ? (
                         <button
                           onClick={() => handleOpenPayment(item)}
-                          className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all"
+                          className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-[#0d6084] via-[#0f729d] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] text-white font-black text-xs rounded-xl shadow-md shadow-[#0d6084]/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
                         >
-                          <QrCode className="h-4 w-4" /> Pagar Agora
+                          <QrCode className="h-4 w-4" /> Pagar Fatura Agora
                         </button>
                       ) : (
                         <button

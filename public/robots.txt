@@ -1,5 +1,5 @@
 # ============================================================================
-# ROBOTS.TXT — BI2B HUB (SOLUÇÕES CONTÁBEIS & GESTÃO SAAS)
+# ROBOTS.TXT — BI2B CONSULTORIA & ASSESSORIA CONTÁBIL (SOLUÇÕES CONTÁBEIS & GESTÃO DE EMPRESAS)
 # ============================================================================
 
 User-agent: *
@@ -41,4 +41,4 @@ User-agent: Applebot-Extended
 Allow: /
 
 # Sitemap do Site
-Sitemap: https://bi2bhub.com.br/sitemap.xml
+Sitemap: https://www.bi2bconsultoria.com.br/sitemap.xml
