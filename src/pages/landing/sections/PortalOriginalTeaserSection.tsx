@@ -12,11 +12,11 @@ import {
   MonitorCheck,
 } from 'lucide-react'
 
-interface PortalTeaserSectionProps {
+interface PortalOriginalTeaserSectionProps {
   isDark?: boolean
 }
 
-export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
+export function PortalOriginalTeaserSection({ isDark }: PortalOriginalTeaserSectionProps) {
   const navigate = useNavigate()
 
   const handleKnowPortal = () => {
@@ -48,7 +48,7 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
   ]
 
   return (
-    <section id="portal-teaser" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section id="portal-teaser-original" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div
           className={cn(
@@ -69,12 +69,12 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 text-[#0d6084] dark:text-cyan-300 font-extrabold text-xs uppercase tracking-widest">
                 <MonitorCheck className="w-4 h-4 text-cyan-400" />
-                Tecnologia & Gestão Digital
+                Tecnologia Exclusiva
               </div>
 
               <h2
                 className={cn(
-                  'text-3xl sm:text-4xl md:text-5xl font-black tracking-tight font-sans leading-[1.12]',
+                  'text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight font-sans leading-[1.12]',
                   isDark ? 'text-white' : 'text-slate-900'
                 )}
               >
@@ -90,10 +90,10 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
                   isDark ? 'text-slate-300' : 'text-slate-600'
                 )}
               >
-                Uma plataforma digital corporativa criada para dar visibilidade total à sua empresa. Acompanhe impostos, envie documentos, abra chamados e tenha a contabilidade na palma da mão.
+                Uma plataforma digital moderna criada para dar visibilidade total à sua empresa. Acompanhe impostos, envie documentos, solicite chamados e tenha a contabilidade na palma da mão.
               </p>
 
-              {/* Grid de 4 recursos */}
+              {/* Grid of 4 features */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 {highlights.map((item, idx) => {
                   const Icon = item.icon
@@ -104,11 +104,11 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
                         'p-4 rounded-2xl border flex items-start gap-3.5',
                         isDark
                           ? 'bg-white/5 border-white/10'
-                          : 'bg-white/90 border-slate-200'
+                          : 'bg-white/80 border-slate-200'
                       )}
                     >
-                      <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#0d6084] to-[#0a4a62] text-white shrink-0 shadow-md">
-                        <Icon className="w-5 h-5 text-cyan-300" />
+                      <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#0d6084] to-cyan-500 text-white shrink-0 shadow-md">
+                        <Icon className="w-5 h-5" />
                       </div>
                       <div>
                         <h4
@@ -133,28 +133,28 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
                 })}
               </div>
 
-              {/* Botão de Ação "Conheça o Portal" */}
+              {/* Main Call to Action Button */}
               <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                 <button
                   onClick={handleKnowPortal}
-                  className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#0d6084] via-[#0f729d] to-cyan-500 hover:from-[#0f6f99] hover:to-cyan-400 text-white font-black text-sm uppercase tracking-wider px-8 py-4 rounded-full shadow-[0_8px_25px_rgba(13,96,132,0.4)] cursor-pointer"
+                  className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#0d6084] via-[#0f729d] to-cyan-500 text-white font-extrabold text-sm uppercase tracking-wider px-8 py-4 rounded-full shadow-lg cursor-pointer active:scale-95 group"
                 >
-                  <span>Conheça o Portal do Cliente</span>
+                  <span>Conheça o Portal</span>
                   <ArrowRight className="w-5 h-5" />
                 </button>
 
-                <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  <span>Segurança SSL Criptografada</span>
+                  <span>Acesso Seguro SSL & Criptografia 256-bit</span>
                 </div>
               </div>
             </div>
 
-            {/* Mockup do Portal */}
-            <div className="lg:col-span-5 relative flex justify-center">
+            {/* Right Card / Visual Preview */}
+            <div className="lg:col-span-5 relative flex justify-center text-left">
               <div
                 className={cn(
-                  'w-full max-w-md rounded-2xl p-6 border shadow-2xl space-y-4 backdrop-blur-md text-left',
+                  'w-full max-w-md rounded-2xl p-6 border shadow-2xl space-y-4 backdrop-blur-md',
                   isDark
                     ? 'bg-[#040914]/90 border-cyan-500/40 text-slate-100 shadow-cyan-950/60'
                     : 'bg-white border-slate-200 text-slate-900 shadow-xl'
@@ -166,36 +166,36 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
                     <div className="w-3 h-3 rounded-full bg-yellow-500" />
                     <div className="w-3 h-3 rounded-full bg-green-500" />
                   </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-cyan-600 dark:text-cyan-400">
-                    Portal Bi2B
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-600 dark:text-cyan-400">
+                    Portal Bi2B v2.0
                   </span>
                 </div>
 
                 <div className="space-y-3">
                   <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#0d6084]/20 to-cyan-500/20 border border-cyan-500/30 flex items-center justify-between">
                     <div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Guias de Imposto</div>
-                      <div className="text-xs sm:text-sm font-black text-[#0d6084] dark:text-cyan-300">DAS Simples Nacional</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">Imposto a Vencer</div>
+                      <div className="text-sm font-black text-[#0d6084] dark:text-cyan-300">DAS Simples Nacional</div>
                     </div>
-                    <span className="text-xs font-extrabold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
                       Disponível
                     </span>
                   </div>
 
                   <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between">
                     <div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Balancete Mensal</div>
-                      <div className="text-xs font-bold">Relatório Gerencial DRE</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">Balancete Mensal</div>
+                      <div className="text-xs font-bold">Relatório Gerencial Q3</div>
                     </div>
-                    <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400">
+                    <span className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">
                       Visualizar
                     </span>
                   </div>
 
                   <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between">
                     <div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Atendimento Chamado</div>
-                      <div className="text-xs font-bold">Dúvida Fiscal NF-e</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">Chamado em Aberto</div>
+                      <div className="text-xs font-bold">Dúvida Faturamento NF-e</div>
                     </div>
                     <span className="text-xs font-bold text-amber-500">
                       Em Atendimento
@@ -205,9 +205,9 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
 
                 <button
                   onClick={handleKnowPortal}
-                  className="w-full mt-2 py-3 rounded-xl bg-[#0d6084] text-white text-xs font-extrabold uppercase tracking-wider hover:bg-[#0f6f99] transition-colors cursor-pointer"
+                  className="w-full mt-2 py-2.5 rounded-xl bg-[#0d6084] text-white text-xs font-bold uppercase tracking-wider hover:bg-cyan-600 transition-colors cursor-pointer"
                 >
-                  Ver Todas as Funcionalidades
+                  Explorar Todas as Funcionalidades
                 </button>
               </div>
             </div>

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { ROUTES } from '@/constants/routes'
 import { APP_NAME } from '@/constants'
 import {
@@ -8,7 +7,7 @@ import {
   Moon,
   Menu,
   X,
-  Sparkles,
+  ArrowRight,
 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { cn } from '@/lib/utils'
@@ -21,6 +20,7 @@ import { ServicesSection } from './sections/ServicesSection'
 import { CompanyAboutSection } from './sections/CompanyAboutSection'
 import { TeamSection } from './sections/TeamSection'
 import { PortalTeaserSection } from './sections/PortalTeaserSection'
+import { FaqSection } from './sections/FaqSection'
 import { ContactSection } from './sections/ContactSection'
 import { FooterSection } from './sections/FooterSection'
 
@@ -30,15 +30,14 @@ export function LandingPage() {
   const navigate = useNavigate()
   const { resolvedTheme, toggleTheme } = useTheme()
   const [mobileMenu, setMobileMenu] = useState(false)
-  const [showNavbar, setShowNavbar] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 100) {
-        setShowNavbar(true)
+      if (window.scrollY > 30) {
+        setIsScrolled(true)
       } else {
-        setShowNavbar(false)
-        setMobileMenu(false)
+        setIsScrolled(false)
       }
     }
 
@@ -48,10 +47,11 @@ export function LandingPage() {
   }, [])
 
   const navItems = [
-    { label: 'Serviços', href: '#servicos' },
+    { label: 'Soluções', href: '#servicos' },
     { label: 'Sobre Nós', href: '#sobre' },
-    { label: 'Equipe de Contadores', href: '#equipe' },
+    { label: 'Equipe', href: '#equipe' },
     { label: 'Portal do Cliente', href: '#portal-teaser' },
+    { label: 'FAQ', href: '#faq' },
     { label: 'Contato', href: '#contato' },
   ]
 
@@ -76,7 +76,7 @@ export function LandingPage() {
   return (
     <div
       className={cn(
-        "min-h-screen font-sans relative overflow-x-hidden theme-transition-sync",
+        "min-h-screen font-sans relative overflow-x-hidden",
         isDark ? "bg-[#040914] text-slate-100 selection:bg-cyan-500 selection:text-slate-950" : "bg-slate-50 text-slate-900 selection:bg-[#0d6084]/20 selection:text-slate-900"
       )}
     >
@@ -94,54 +94,37 @@ export function LandingPage() {
           isDark ? "bg-[#0a4a62]/30" : "bg-[#38bdf8]/12"
         )} 
       />
-      <div 
-        className={cn(
-          "hidden md:block absolute bottom-[20%] left-1/3 h-[850px] w-[850px] rounded-full blur-[170px] -z-10 pointer-events-none",
-          isDark ? "bg-[#0d6084]/20" : "bg-[#0d6084]/8"
-        )} 
-      />
-      
-      {/* Grid Pattern Background Overlay */}
-      <div 
-        className={cn(
-          "absolute inset-0 grid-pattern pointer-events-none",
-          isDark ? "opacity-30" : "opacity-20"
-        )} 
-      />
 
-      {/* ===== HEADER / NAVBAR ===== */}
-      <motion.header
-        initial={{ y: -100, opacity: 0 }}
-        animate={{
-          y: showNavbar ? 0 : -100,
-          opacity: showNavbar ? 1 : 0,
-        }}
-        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-8",
-          !showNavbar && "pointer-events-none"
-        )}
+      {/* ===== HEADER FLUTUANTE ESTÁTICO ===== */}
+      <header
+        className="fixed left-1/2 -translate-x-1/2 z-[60] w-full max-w-6xl top-3 px-4"
       >
         <div 
           className={cn(
-            "mx-auto max-w-7xl rounded-full px-6 py-3 flex items-center justify-between transition-all duration-300 border backdrop-blur-xl",
-            isDark 
-              ? "bg-[#040914]/85 border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] shadow-cyan-950/20" 
-              : "bg-white/90 border-slate-200/80 shadow-lg shadow-slate-200/40"
+            "mx-auto rounded-full px-5 py-2.5 flex items-center justify-between border shadow-lg backdrop-blur-xl",
+            isScrolled
+              ? (isDark 
+                  ? "bg-[#040914]/95 border-white/15 shadow-cyan-950/40" 
+                  : "bg-white/95 border-slate-200/90 shadow-slate-200/50")
+              : (isDark 
+                  ? "bg-[#040914]/80 border-white/10" 
+                  : "bg-white/90 border-slate-200/70")
           )}
         >
-          <div className="flex items-center cursor-pointer transition-transform hover:scale-105" onClick={() => navigate(ROUTES.HOME)}>
+          {/* Logo */}
+          <div className="flex items-center cursor-pointer" onClick={() => navigate(ROUTES.HOME)}>
             <img src={currentLogo} alt={APP_NAME} className="h-8 w-auto object-contain" />
           </div>
 
-          <nav className="hidden lg:flex items-center gap-1 bg-white/[0.03] border border-white/10 rounded-full px-3 py-1.5 backdrop-blur-md">
+          {/* Navigation Links Estáticos */}
+          <nav className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => (
               <button
                 key={item.href}
                 onClick={() => scrollTo(item.href)}
                 className={cn(
-                  "font-bold text-[11px] uppercase tracking-[0.18em] cursor-pointer px-4 py-1.5 rounded-full transition-all duration-300",
-                  isDark ? "text-slate-300 hover:text-white hover:bg-white/10" : "text-slate-600 hover:text-[#0d6084] hover:bg-slate-200/60"
+                  "font-medium text-[13px] xl:text-sm cursor-pointer px-3.5 py-1.5 rounded-full",
+                  isDark ? "text-slate-300 hover:text-white hover:bg-white/10" : "text-slate-600 hover:text-[#0d6084] hover:bg-slate-100"
                 )}
               >
                 {item.label}
@@ -149,24 +132,12 @@ export function LandingPage() {
             ))}
           </nav>
 
+          {/* Right Action Buttons */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={handleKnowPortal}
-              className={cn(
-                "hidden xl:inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full border transition-all cursor-pointer",
-                isDark 
-                  ? "border-cyan-500/30 text-cyan-300 bg-cyan-950/40 hover:bg-cyan-500/20" 
-                  : "border-cyan-200 text-[#0d6084] bg-cyan-50 hover:bg-cyan-100"
-              )}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              Conheça o Portal
-            </button>
-
             <button
               onClick={toggleTheme}
               className={cn(
-                "rounded-full p-2 cursor-pointer transition-all duration-300 border border-white/10 hover:scale-110",
+                "rounded-full p-2 cursor-pointer border border-white/10",
                 isDark ? "text-slate-300 bg-white/5 hover:bg-white/10 hover:text-cyan-300" : "text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-[#0d6084]"
               )}
               title="Alternar Tema"
@@ -176,77 +147,83 @@ export function LandingPage() {
 
             <button
               onClick={handleClientLogin}
-              className="hidden lg:inline-flex items-center justify-center bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] border border-cyan-400/30 text-white font-bold text-xs uppercase tracking-wider px-6 py-2.5 rounded-full shadow-[0_8px_25px_rgba(13,96,132,0.35)] hover:shadow-[0_12px_35px_rgba(13,96,132,0.5)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95 cursor-pointer"
-            >
-              Área do Cliente
-            </button>
-          </div>
-
-          {/* Hamburger Mobile */}
-          <div className="flex items-center gap-3 lg:hidden">
-            <button 
-              onClick={() => setMobileMenu(!mobileMenu)}
               className={cn(
-                "p-2 rounded-full border border-white/10 cursor-pointer",
-                isDark ? "text-slate-300 bg-white/5" : "text-slate-700 bg-slate-100"
+                "hidden xl:inline-flex items-center text-xs font-semibold px-4 py-2 rounded-full cursor-pointer",
+                isDark ? "text-slate-300 hover:text-white" : "text-slate-700 hover:text-[#0d6084]"
               )}
             >
-              {mobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              Entrar
             </button>
+
+            <button
+              onClick={handleKnowPortal}
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] border border-cyan-400/30 text-white font-semibold text-xs xl:text-sm h-10 px-5 shadow-lg shadow-[#0d6084]/25 cursor-pointer"
+            >
+              <span>Portal do Cliente</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            {/* Hamburger Mobile */}
+            <div className="flex items-center gap-2 lg:hidden">
+              <button 
+                onClick={() => setMobileMenu(!mobileMenu)}
+                className={cn(
+                  "p-2 rounded-full border border-white/10 cursor-pointer",
+                  isDark ? "text-slate-300 bg-white/5" : "text-slate-700 bg-slate-100"
+                )}
+              >
+                {mobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Menu Mobile */}
-        <AnimatePresence>
-          {mobileMenu && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className={cn(
-                "absolute left-4 right-4 top-20 rounded-2xl border p-6 backdrop-blur-2xl shadow-2xl flex flex-col gap-4 lg:hidden",
-                isDark ? "border-white/15 bg-[#040914]/95 text-slate-100 shadow-cyan-950/30" : "border-slate-200 bg-white/95 text-slate-800"
-              )}
-            >
-              {navItems.map((item) => (
-                <button
-                  key={item.href}
-                  onClick={() => scrollTo(item.href)}
-                  className={cn(
-                    "block w-full py-2.5 text-left text-xs font-bold uppercase tracking-widest cursor-pointer transition-colors",
-                    isDark ? "text-slate-300 hover:text-cyan-300" : "text-slate-700 hover:text-[#0d6084]"
-                  )}
-                >
-                  {item.label}
-                </button>
-              ))}
-              <div className={cn("h-px my-2", isDark ? "bg-white/10" : "bg-slate-200")} />
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => { setMobileMenu(false); handleKnowPortal() }}
-                  className="w-full rounded-full bg-cyan-950/60 border border-cyan-500/40 py-3 text-center text-xs font-bold uppercase tracking-wider text-cyan-300 shadow-sm cursor-pointer"
-                >
-                  Conheça o Portal do Cliente
-                </button>
-                <button
-                  onClick={() => { setMobileMenu(false); handleClientLogin() }}
-                  className="w-full rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] border border-cyan-400/30 py-3 text-center text-xs font-bold uppercase tracking-wider text-white shadow-[0_8px_25px_rgba(13,96,132,0.35)] cursor-pointer"
-                >
-                  Área do Cliente (Login)
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.header>
+        {/* Menu Mobile Estático */}
+        {mobileMenu && (
+          <div
+            className={cn(
+              "absolute left-4 right-4 top-16 rounded-2xl border p-6 backdrop-blur-2xl shadow-2xl flex flex-col gap-4 lg:hidden",
+              isDark ? "border-white/15 bg-[#040914]/98 text-slate-100 shadow-cyan-950/40" : "border-slate-200 bg-white/98 text-slate-800"
+            )}
+          >
+            {navItems.map((item) => (
+              <button
+                key={item.href}
+                onClick={() => scrollTo(item.href)}
+                className={cn(
+                  "block w-full py-2.5 text-left text-xs font-bold uppercase tracking-widest cursor-pointer",
+                  isDark ? "text-slate-300 hover:text-cyan-300" : "text-slate-700 hover:text-[#0d6084]"
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+            <div className={cn("h-px my-2", isDark ? "bg-white/10" : "bg-slate-200")} />
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => { setMobileMenu(false); handleKnowPortal() }}
+                className="w-full rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] border border-cyan-400/30 py-3 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md cursor-pointer"
+              >
+                Conheça o Portal do Cliente
+              </button>
+              <button
+                onClick={() => { setMobileMenu(false); handleClientLogin() }}
+                className="w-full rounded-full bg-slate-100 dark:bg-white/10 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white cursor-pointer"
+              >
+                Entrar no Portal (Login)
+              </button>
+            </div>
+          </div>
+        )}
+      </header>
 
-      {/* ===== LANDING PAGE BI2B CONSULTORIA ===== */}
+      {/* ===== SEÇÕES DA LANDING PAGE 100% ESTÁTICAS ===== */}
       <HeroSection isDark={isDark} />
       <ServicesSection isDark={isDark} />
       <CompanyAboutSection isDark={isDark} />
       <TeamSection isDark={isDark} />
-      {/* Seção com o botão "Conheça o Portal" direcionando para /portal-cliente (ANTES do Contato) */}
       <PortalTeaserSection isDark={isDark} />
+      <FaqSection isDark={isDark} />
       <ContactSection isDark={isDark} />
       <FooterSection isDark={isDark} />
     </div>

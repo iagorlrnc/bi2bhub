@@ -624,3 +624,16 @@ button.shadow-none:active {
   transform: none !important;
 }
 
+/* ===== PERFORMANCE DE SCROLL & ACELERAÇÃO GPU ===== */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.gpu-accelerated {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
