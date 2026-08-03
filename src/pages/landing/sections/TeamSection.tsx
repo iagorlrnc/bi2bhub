@@ -7,40 +7,22 @@ interface TeamSectionProps {
 
 const teamMembers = [
   {
-    name: 'Carlos Eduardo Silva',
+    name: 'Caio Job Baldassaune',
     role: 'Sócio-Fundador & Contador Responsável',
-    crc: 'CRC-SP 123.456/O-8',
+    crc: 'CRC-TO 123.456',
     specialties: ['Planejamento Tributário', 'Lucro Real', 'Reestruturação'],
-    bio: 'Mais de 15 anos de atuação em contabilidade de médio e grande porte. Especialista em estratégias fiscais e governança.',
-    initials: 'CE',
+    bio: 'Especialista em estratégias fiscais e governança.',
+    initials: 'CJB',
     gradient: 'from-[#0d6084] to-[#0a4a62]',
   },
   {
-    name: 'Mariana Oliveira, Esp.',
-    role: 'Head de Contabilidade Consultiva',
-    crc: 'CRC-SP 234.567/O-1',
-    specialties: ['Balancetes Gerenciais', 'KPIs Financeiros', 'Auditoria'],
-    bio: 'Especialista em transformação de dados contábeis em inteligência de negócios e relatórios executivos para diretoria.',
-    initials: 'MO',
+    name: 'Arthur',
+    role: 'Sócio-Fundador & Contador Responsável',
+    crc: 'CRC-TO 654.321',
+    specialties: ['Balancetes Gerenciais', 'Financeiros', 'Auditoria'],
+    bio: 'Especialista em dados contábeis e inteligência de negócios.',
+    initials: 'A',
     gradient: 'from-blue-600 to-[#0d6084]',
-  },
-  {
-    name: 'Roberto Mendes',
-    role: 'Líder de BPO Financeiro & Controladoria',
-    crc: 'CRA-SP 45.890',
-    specialties: ['Gestão de Caixa', 'Conciliação Bancária', 'Valuation'],
-    bio: 'Expert em gestão de tesouraria, fluxo de caixa diário e estruturação de rotinas financeiras de alta eficiência.',
-    initials: 'RM',
-    gradient: 'from-[#0a4a62] to-[#0d6084]',
-  },
-  {
-    name: 'Fernanda Costa',
-    role: 'Gestora de Departamento Pessoal',
-    crc: 'Especialista eSocial',
-    specialties: ['Folha de Pagamento', 'eSocial', 'Leis Trabalhistas'],
-    bio: 'Especialista no eSocial e legislação trabalhista, garantindo conformidade em contratações, tributos sobre folha e rescisões.',
-    initials: 'FC',
-    gradient: 'from-cyan-600 to-[#0a4a62]',
   },
 ]
 
@@ -78,8 +60,8 @@ export function TeamSection({ isDark }: TeamSectionProps) {
           </p>
         </div>
 
-        {/* Team Grid Estática */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Team Grid Estática Centralizada */}
+        <div className="grid grid-cols-2 md:grid-cols-2 max-w-5xl mx-auto gap-8 justify-center items-stretch">
           {teamMembers.map((member) => (
             <div
               key={member.name}

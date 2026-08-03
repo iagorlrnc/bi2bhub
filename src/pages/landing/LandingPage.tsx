@@ -16,6 +16,7 @@ import logoAzulPng from '@/assets/logoazul.png'
 
 // ===== SECTIONS DA CONSULTORIA =====
 import { HeroSection } from './sections/HeroSection'
+import { PortalOriginalAboutSection } from './sections/PortalOriginalAboutSection'
 import { ServicesSection } from './sections/ServicesSection'
 import { CompanyAboutSection } from './sections/CompanyAboutSection'
 import { TeamSection } from './sections/TeamSection'
@@ -34,7 +35,7 @@ export function LandingPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 30) {
+      if (window.scrollY > 200) {
         setIsScrolled(true)
       } else {
         setIsScrolled(false)
@@ -95,9 +96,14 @@ export function LandingPage() {
         )} 
       />
 
-      {/* ===== HEADER FLUTUANTE ESTÁTICO ===== */}
+      {/* ===== HEADER FLUTUANTE ESTÁTICO DADOS DE SCROLL ===== */}
       <header
-        className="fixed left-1/2 -translate-x-1/2 z-[60] w-full max-w-6xl top-3 px-4"
+        className={cn(
+          "fixed left-1/2 -translate-x-1/2 z-[60] w-full max-w-6xl top-3 px-4 transition-all duration-500",
+          isScrolled
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 -translate-y-full pointer-events-none"
+        )}
       >
         <div 
           className={cn(
@@ -219,12 +225,13 @@ export function LandingPage() {
 
       {/* ===== SEÇÕES DA LANDING PAGE 100% ESTÁTICAS ===== */}
       <HeroSection isDark={isDark} />
+      <PortalOriginalAboutSection isDark={isDark} />
       <ServicesSection isDark={isDark} />
       <CompanyAboutSection isDark={isDark} />
       <TeamSection isDark={isDark} />
-      <PortalTeaserSection isDark={isDark} />
       <FaqSection isDark={isDark} />
       <ContactSection isDark={isDark} />
+      <PortalTeaserSection isDark={isDark} />
       <FooterSection isDark={isDark} />
     </div>
   )

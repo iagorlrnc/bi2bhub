@@ -29,14 +29,14 @@ export function HeroSection({ isDark }: HeroSectionProps) {
   }
 
   return (
-    <section className="relative pt-36 pb-20 px-4 sm:px-6 md:px-8 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 md:px-8 overflow-hidden font-sans">
       {/* Background Accent radial gradient Estático */}
       <div 
         className={cn(
-          "absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] pointer-events-none -z-10",
+          "absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none -z-10",
           isDarkTheme 
-            ? "bg-[radial-gradient(80%_60%_at_50%_20%,rgba(13,96,132,0.35)_0%,rgba(4,9,20,0)_100%)]" 
-            : "bg-[radial-gradient(80%_60%_at_50%_20%,rgba(13,96,132,0.12)_0%,rgba(248,250,252,0)_100%)]"
+            ? "bg-[radial-gradient(80%_60%_at_50%_40%,rgba(13,96,132,0.35)_0%,rgba(4,9,20,0)_100%)]" 
+            : "bg-[radial-gradient(80%_60%_at_50%_40%,rgba(13,96,132,0.12)_0%,rgba(248,250,252,0)_100%)]"
         )} 
       />
 

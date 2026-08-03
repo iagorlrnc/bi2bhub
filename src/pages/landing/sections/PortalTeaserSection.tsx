@@ -1,8 +1,8 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants/routes'
 import {
-  Sparkles,
   LayoutDashboard,
   FileCheck2,
   Receipt,
@@ -12,12 +12,17 @@ import {
   MonitorCheck,
 } from 'lucide-react'
 
+import portalImg from '@/assets/portal.png'
+import portal2Img from '@/assets/portal2.png'
+import portal3Img from '@/assets/portal3.png'
+
 interface PortalTeaserSectionProps {
   isDark?: boolean
 }
 
 export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
   const navigate = useNavigate()
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
 
   const handleKnowPortal = () => {
     navigate(ROUTES.PORTAL_INFO)
@@ -48,8 +53,8 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
   ]
 
   return (
-    <section id="portal-teaser" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="max-w-7xl mx-auto">
+    <section id="portal-teaser" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden font-sans">
+      <div className="max-w-7xl mx-auto space-y-12">
         <div
           className={cn(
             'relative rounded-3xl p-8 sm:p-12 md:p-16 border shadow-2xl backdrop-blur-xl',
@@ -60,16 +65,15 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
         >
           {/* Top Badge */}
           <div className="absolute top-6 right-6 hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-500 dark:text-cyan-300 text-xs font-extrabold uppercase tracking-widest">
-            <Sparkles className="w-3.5 h-3.5" />
             Exclusivo Clientes Bi2B
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="lg:col-span-6 space-y-6 text-left">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 text-[#0d6084] dark:text-cyan-300 font-extrabold text-xs uppercase tracking-widest">
                 <MonitorCheck className="w-4 h-4 text-cyan-400" />
-                Tecnologia & Gestão Digital
+                Tecnologia Exclusiva
               </div>
 
               <h2
@@ -111,14 +115,14 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
                         <Icon className="w-5 h-5 text-cyan-300" />
                       </div>
                       <div>
-                        <h4
+                        <h3
                           className={cn(
                             'text-xs font-bold mb-0.5',
                             isDark ? 'text-white' : 'text-slate-900'
                           )}
                         >
                           {item.title}
-                        </h4>
+                        </h3>
                         <p
                           className={cn(
                             'text-[11px] leading-tight',
@@ -145,71 +149,73 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
 
                 <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  <span>Segurança SSL Criptografada</span>
+                  <span>Sistema Criptografado</span>
                 </div>
               </div>
             </div>
 
-            {/* Mockup do Portal */}
-            <div className="lg:col-span-5 relative flex justify-center">
-              <div
-                className={cn(
-                  'w-full max-w-md rounded-2xl p-6 border shadow-2xl space-y-4 backdrop-blur-md text-left',
-                  isDark
-                    ? 'bg-[#040914]/90 border-cyan-500/40 text-slate-100 shadow-cyan-950/60'
-                    : 'bg-white border-slate-200 text-slate-900 shadow-xl'
-                )}
-              >
-                <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-white/10">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-cyan-600 dark:text-cyan-400">
-                    Portal Bi2B
-                  </span>
-                </div>
+            {/* Coluna Direita: Efeito Leque de Imagens (Fanned Stack Showcase) */}
+            <div className="lg:col-span-6 relative flex flex-col items-center justify-center pt-6 lg:pt-0">
+              <div className="relative w-full max-w-lg h-[320px] sm:h-[380px] flex items-center justify-center my-4 group/fan">
+                {/* Glow de fundo */}
+                <div
+                  className={cn(
+                    'absolute inset-0 rounded-3xl blur-2xl opacity-30 transition-opacity duration-500 group-hover/fan:opacity-60 pointer-events-none',
+                    isDark ? 'bg-gradient-to-r from-cyan-500 via-[#0d6084] to-cyan-400' : 'bg-gradient-to-r from-[#0d6084] via-cyan-400 to-[#0a4a62]'
+                  )}
+                />
 
-                <div className="space-y-3">
-                  <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#0d6084]/20 to-cyan-500/20 border border-cyan-500/30 flex items-center justify-between">
-                    <div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Guias de Imposto</div>
-                      <div className="text-xs sm:text-sm font-black text-[#0d6084] dark:text-cyan-300">DAS Simples Nacional</div>
-                    </div>
-                    <span className="text-xs font-extrabold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
-                      Disponível
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between">
-                    <div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Balancete Mensal</div>
-                      <div className="text-xs font-bold">Relatório Gerencial DRE</div>
-                    </div>
-                    <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400">
-                      Visualizar
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between">
-                    <div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Atendimento Chamado</div>
-                      <div className="text-xs font-bold">Dúvida Fiscal NF-e</div>
-                    </div>
-                    <span className="text-xs font-bold text-amber-500">
-                      Em Atendimento
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleKnowPortal}
-                  className="w-full mt-2 py-3 rounded-xl bg-[#0d6084] text-white text-xs font-extrabold uppercase tracking-wider hover:bg-[#0f6f99] transition-colors cursor-pointer"
+                {/* Imagem 1 (Esquerda / Central de Guias - portal2.png) */}
+                <div
+                  onClick={() => setActiveImageIndex(1)}
+                  className={cn(
+                    'absolute top-4 left-0 w-[74%] sm:w-[78%] rounded-2xl border shadow-xl overflow-hidden cursor-pointer transition-all duration-500 ease-out transform origin-bottom-left',
+                    '-rotate-6 -translate-x-3 sm:-translate-x-6 z-10 opacity-80 group-hover/fan:-rotate-12 group-hover/fan:-translate-x-10 hover:!rotate-0 hover:!translate-x-0 hover:!z-30 hover:!opacity-100 hover:!scale-105 hover:!shadow-[0_20px_50px_rgba(13,96,132,0.5)]',
+                    activeImageIndex === 1 ? '!z-30 !rotate-0 !translate-x-0 !opacity-100 !scale-105 ring-2 ring-cyan-400' : '',
+                    isDark ? 'border-white/15 bg-[#060e20]' : 'border-slate-300 bg-white'
+                  )}
                 >
-                  Ver Todas as Funcionalidades
-                </button>
+                  <img src={portal2Img} alt="Central de Guias & Impostos" className="w-full h-auto object-cover" />
+                  <div className="absolute bottom-2 left-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-cyan-300 border border-cyan-400/30">
+                    Central de Guias
+                  </div>
+                </div>
+
+                {/* Imagem 3 (Direita / Drive Cloud - portal3.png) */}
+                <div
+                  onClick={() => setActiveImageIndex(2)}
+                  className={cn(
+                    'absolute top-4 right-0 w-[74%] sm:w-[78%] rounded-2xl border shadow-xl overflow-hidden cursor-pointer transition-all duration-500 ease-out transform origin-bottom-right',
+                    'rotate-6 translate-x-3 sm:translate-x-6 z-10 opacity-80 group-hover/fan:rotate-12 group-hover/fan:translate-x-10 hover:!rotate-0 hover:!translate-x-0 hover:!z-30 hover:!opacity-100 hover:!scale-105 hover:!shadow-[0_20px_50px_rgba(13,96,132,0.5)]',
+                    activeImageIndex === 2 ? '!z-30 !rotate-0 !translate-x-0 !opacity-100 !scale-105 ring-2 ring-cyan-400' : '',
+                    isDark ? 'border-white/15 bg-[#060e20]' : 'border-slate-300 bg-white'
+                  )}
+                >
+                  <img src={portal3Img} alt="Bi2B Drive Cloud" className="w-full h-auto object-cover" />
+                  <div className="absolute bottom-2 right-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-cyan-300 border border-cyan-400/30">
+                    Bi2B Drive Cloud
+                  </div>
+                </div>
+
+                {/* Imagem 2 (Centro / Painel Principal - portal.png) */}
+                <div
+                  onClick={() => setActiveImageIndex(0)}
+                  className={cn(
+                    'relative w-[80%] sm:w-[82%] rounded-2xl border shadow-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-out transform z-20 hover:!z-30 hover:!scale-105 hover:!-translate-y-2 hover:!rotate-0 hover:!shadow-[0_20px_50px_rgba(13,96,132,0.6)]',
+                    activeImageIndex === 0 ? '!z-30 !scale-105 ring-2 ring-cyan-400' : '',
+                    isDark ? 'border-cyan-400/50 bg-[#060e20] shadow-cyan-950/80' : 'border-[#0d6084]/40 bg-white shadow-2xl'
+                  )}
+                >
+                  <img src={portalImg} alt="Painel Principal do Cliente Bi2B" className="w-full h-auto object-cover" />
+                  <div className="absolute bottom-2 right-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-cyan-300 border border-cyan-400/30">
+                    Finanças
+                  </div>
+                </div>
               </div>
+
+              <p className={cn('text-xs text-center font-semibold mt-2', isDark ? 'text-slate-400' : 'text-slate-500')}>
+                Passe o mouse por cima das imagens para destacar cada tela do portal
+              </p>
             </div>
           </div>
         </div>

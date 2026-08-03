@@ -6,13 +6,7 @@ import { cn } from '@/lib/utils'
 
 // ===== SECTIONS ATUAIS E RESTAURADAS DO COMMIT b9cd7ac =====
 import { PortalHeroSection } from './sections/PortalHeroSection'
-import { PortalOriginalHeroSection } from './sections/PortalOriginalHeroSection'
-import { PortalOriginalTeaserSection } from './sections/PortalOriginalTeaserSection'
 import { HowItWorksSection } from './sections/HowItWorksSection'
-import { FeaturesSection } from './sections/FeaturesSection'
-import { PortalOriginalServicesSection } from './sections/PortalOriginalServicesSection'
-import { PortalOriginalAboutSection } from './sections/PortalOriginalAboutSection'
-import { PortalOriginalTeamSection } from './sections/PortalOriginalTeamSection'
 import { ProductivitySection } from './sections/ProductivitySection'
 import { PricingSection } from './sections/PricingSection'
 import { FaqSection } from './sections/FaqSection'
@@ -69,13 +63,7 @@ export function PortalPage() {
 
       {/* ===== SEÇÕES DO PORTAL DO CLIENTE (INCLUINDO AS SEÇÕES RESTAURADAS DO COMMIT b9cd7ac) ===== */}
       <PortalHeroSection isDark={isDark} />
-      <PortalOriginalHeroSection isDark={isDark} />
-      <PortalOriginalTeaserSection isDark={isDark} />
       <HowItWorksSection isDark={isDark} />
-      <FeaturesSection isDark={isDark} />
-      <PortalOriginalServicesSection isDark={isDark} />
-      <PortalOriginalAboutSection isDark={isDark} />
-      <PortalOriginalTeamSection isDark={isDark} />
       <ProductivitySection isDark={isDark} />
       <PricingSection isDark={isDark} />
       <FaqSection isDark={isDark} />
