@@ -13,7 +13,6 @@ import {
   CartesianGrid,
 } from 'recharts'
 import {
-  TrendingUp,
   Clock,
   ShieldCheck,
   FileText,
@@ -201,7 +200,6 @@ export function ProductivitySection({ isDark }: ProductivitySectionProps) {
             'inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] shadow-sm',
             isDark ? 'border-cyan-400/30 bg-cyan-500/10 text-cyan-300' : 'border-[#0d6084]/20 bg-[#0d6084]/10 text-[#0d6084]'
           )}>
-            <TrendingUp className={cn('w-3.5 h-3.5', isDark ? 'text-cyan-400' : 'text-[#0d6084]')} />
             Métricas de Impacto Operacional
           </span>
           <h2 className={cn('font-sans text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-balance', isDark ? 'text-white' : 'text-slate-900')}>
@@ -449,7 +447,7 @@ export function ProductivitySection({ isDark }: ProductivitySectionProps) {
             >
               <div>
                 <div className="mb-6">
-                  <h3 className={cn('font-sans text-xl font-bold', isDark ? 'text-white' : 'text-slate-900')}>
+                  <h3 className={cn('font-sans text-lg sm:text-xl font-bold', isDark ? 'text-white' : 'text-slate-900')}>
                     Comparativo de Produtividade por Módulo
                   </h3>
                   <p className={cn('text-xs mt-1', isDark ? 'text-slate-400' : 'text-slate-500')}>
@@ -457,8 +455,8 @@ export function ProductivitySection({ isDark }: ProductivitySectionProps) {
                   </p>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
+                <div className="overflow-x-auto pb-2 scrollbar-none">
+                  <table className="w-full text-xs min-w-[480px]">
                     <thead>
                       <tr className={cn('border-b font-extrabold text-[11px] uppercase tracking-wider', isDark ? 'border-white/10 text-slate-400' : 'border-slate-200 text-slate-600')}>
                         <th className="pb-3 text-left w-[26%]">Módulo</th>
@@ -479,10 +477,10 @@ export function ProductivitySection({ isDark }: ProductivitySectionProps) {
                     <tbody className={cn('divide-y', isDark ? 'divide-white/5' : 'divide-slate-200/80')}>
                       {comparisonRows.map((row, idx) => (
                         <tr key={idx} className={cn('group transition-colors', isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50')}>
-                          <td className="py-4 pr-3 align-top">
+                          <td className="py-3.5 pr-3 align-top">
                             <div
                               className={cn(
-                                'font-bold text-sm',
+                                'font-bold text-xs sm:text-sm',
                                 row.highlight
                                   ? isDark ? 'text-cyan-300' : 'text-[#0d6084]'
                                   : isDark ? 'text-slate-100' : 'text-slate-900'
@@ -492,26 +490,26 @@ export function ProductivitySection({ isDark }: ProductivitySectionProps) {
                             </div>
                           </td>
 
-                          <td className="py-4 pr-3 align-top">
-                            <div className={cn('text-xs leading-relaxed mb-2 font-normal', isDark ? 'text-slate-300' : 'text-slate-600')}>
+                          <td className="py-3.5 pr-3 align-top">
+                            <div className={cn('text-xs leading-relaxed mb-1.5 font-normal', isDark ? 'text-slate-300' : 'text-slate-600')}>
                               {row.manual}
                             </div>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
                               <Clock className="w-2.5 h-2.5 opacity-90" />
                               {row.hoursManual}/semana
                             </span>
                           </td>
 
-                          <td className="py-4 align-top">
-                            <div className={cn('text-xs font-semibold leading-relaxed mb-2', isDark ? 'text-white' : 'text-slate-900')}>
+                          <td className="py-3.5 align-top">
+                            <div className={cn('text-xs font-semibold leading-relaxed mb-1.5', isDark ? 'text-white' : 'text-slate-900')}>
                               {row.bi2b}
                             </div>
                             <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-400/30">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-400/30">
                                 <CheckCircle2 className="w-3 h-3 text-cyan-400" />
                                 {row.hoursBi2b}/semana
                               </span>
-                              <span className="inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                                 {row.saved}
                               </span>
                             </div>

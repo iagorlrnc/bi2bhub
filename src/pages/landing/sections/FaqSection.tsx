@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronDown, HelpCircle } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface FaqSectionProps {
@@ -87,7 +87,6 @@ export function FaqSection({ isDark }: FaqSectionProps) {
             "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border",
             isDark ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" : "bg-[#0d6084]/10 border-[#0d6084]/20 text-[#0d6084]"
           )}>
-            <HelpCircle className="h-3.5 w-3.5" />
             <span>Tire Suas Dúvidas</span>
           </div>
 

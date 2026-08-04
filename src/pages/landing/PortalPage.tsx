@@ -22,7 +22,7 @@ export function PortalPage() {
   return (
     <div
       className={cn(
-        'min-h-screen font-sans relative overflow-x-hidden pt-12',
+        'min-h-screen font-sans relative overflow-x-hidden pt-20 sm:pt-16',
         isDark
           ? 'bg-[#040914] text-slate-100 selection:bg-cyan-500 selection:text-slate-950'
           : 'bg-slate-50 text-slate-900 selection:bg-[#0d6084]/20 selection:text-slate-900'
@@ -45,18 +45,18 @@ export function PortalPage() {
       {/* Top Banner FIXO no topo ao rolar a página */}
       <div
         className={cn(
-          'fixed top-0 left-0 right-0 z-[100] w-full py-2.5 px-4 text-center border-b flex items-center justify-center gap-3 text-xs font-semibold backdrop-blur-xl shadow-md transition-colors',
+          'fixed top-0 left-0 right-0 z-[100] w-full py-2 sm:py-2.5 px-3 sm:px-4 text-center border-b flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3 text-[11px] sm:text-xs font-semibold backdrop-blur-xl shadow-md transition-colors',
           isDark
             ? 'bg-[#040914]/95 border-cyan-500/20 text-cyan-300 shadow-cyan-950/40'
             : 'bg-white/95 border-cyan-200 text-[#0d6084] shadow-slate-200/60'
         )}
       >
-        <span>Você está visualizando a página informativa do <strong>Portal do Cliente Bi2B</strong></span>
+        <span>Você está na página informativa do <strong>Portal do Cliente Bi2B</strong></span>
         <button
           onClick={() => navigate(ROUTES.HOME)}
-          className="inline-flex items-center gap-1.5 underline hover:no-underline font-extrabold cursor-pointer ml-2 px-3 py-1 rounded-full bg-[#0d6084] text-white shadow-sm hover:bg-[#0f6f99] transition-colors"
+          className="inline-flex items-center gap-1.5 font-extrabold cursor-pointer px-3 py-1 rounded-full bg-[#0d6084] text-white shadow-sm hover:bg-[#0f6f99] transition-colors text-[10px] sm:text-xs"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           Voltar para Bi2B Consultoria
         </button>
       </div>

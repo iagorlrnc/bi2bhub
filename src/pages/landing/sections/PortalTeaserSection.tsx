@@ -57,10 +57,10 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
       <div className="max-w-7xl mx-auto space-y-12">
         <div
           className={cn(
-            'relative rounded-3xl p-8 sm:p-12 md:p-16 border shadow-2xl backdrop-blur-xl',
+            'relative rounded-3xl p-8 sm:p-12 md:p-16 border shadow-xl',
             isDark
-              ? 'bg-gradient-to-br from-[#061329] via-[#040914] to-[#0a2342] border-cyan-500/30 shadow-cyan-950/50'
-              : 'bg-gradient-to-br from-white via-cyan-50/40 to-slate-100 border-[#0d6084]/20 shadow-cyan-900/10'
+              ? 'bg-[#060e20] border-white/10'
+              : 'bg-white border-slate-200'
           )}
         >
           {/* Top Badge */}
@@ -141,10 +141,10 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
               <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                 <button
                   onClick={handleKnowPortal}
-                  className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#0d6084] via-[#0f729d] to-cyan-500 hover:from-[#0f6f99] hover:to-cyan-400 text-white font-black text-sm uppercase tracking-wider px-8 py-4 rounded-full shadow-[0_8px_25px_rgba(13,96,132,0.4)] cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] border border-cyan-400/30 text-white font-black text-xs sm:text-sm uppercase tracking-wider px-6 sm:px-8 py-3.5 sm:py-4 rounded-full shadow-lg shadow-[#0d6084]/25 cursor-pointer"
                 >
                   <span>Conheça o Portal do Cliente</span>
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
 
                 <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -155,28 +155,21 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
             </div>
 
             {/* Coluna Direita: Efeito Leque de Imagens (Fanned Stack Showcase) */}
-            <div className="lg:col-span-6 relative flex flex-col items-center justify-center pt-6 lg:pt-0">
-              <div className="relative w-full max-w-lg h-[320px] sm:h-[380px] flex items-center justify-center my-4 group/fan">
-                {/* Glow de fundo */}
-                <div
-                  className={cn(
-                    'absolute inset-0 rounded-3xl blur-2xl opacity-30 transition-opacity duration-500 group-hover/fan:opacity-60 pointer-events-none',
-                    isDark ? 'bg-gradient-to-r from-cyan-500 via-[#0d6084] to-cyan-400' : 'bg-gradient-to-r from-[#0d6084] via-cyan-400 to-[#0a4a62]'
-                  )}
-                />
+            <div className="lg:col-span-6 relative flex flex-col items-center justify-center pt-4 lg:pt-0">
+              <div className="relative w-full max-w-lg h-[260px] sm:h-[360px] md:h-[380px] flex items-center justify-center my-2 sm:my-4 group/fan">
 
                 {/* Imagem 1 (Esquerda / Central de Guias - portal2.png) */}
                 <div
                   onClick={() => setActiveImageIndex(1)}
                   className={cn(
-                    'absolute top-4 left-0 w-[74%] sm:w-[78%] rounded-2xl border shadow-xl overflow-hidden cursor-pointer transition-all duration-500 ease-out transform origin-bottom-left',
-                    '-rotate-6 -translate-x-3 sm:-translate-x-6 z-10 opacity-80 group-hover/fan:-rotate-12 group-hover/fan:-translate-x-10 hover:!rotate-0 hover:!translate-x-0 hover:!z-30 hover:!opacity-100 hover:!scale-105 hover:!shadow-[0_20px_50px_rgba(13,96,132,0.5)]',
+                    'absolute top-2 sm:top-4 left-0 w-[76%] sm:w-[78%] rounded-xl sm:rounded-2xl border overflow-hidden cursor-pointer transition-all duration-500 ease-out transform origin-bottom-left',
+                    '-rotate-3 sm:-rotate-6 -translate-x-1 sm:-translate-x-6 z-10 opacity-80 group-hover/fan:-rotate-6 sm:group-hover/fan:-rotate-12 group-hover/fan:-translate-x-4 sm:group-hover/fan:-translate-x-10 hover:!rotate-0 hover:!translate-x-0 hover:!z-30 hover:!opacity-100 hover:!scale-105',
                     activeImageIndex === 1 ? '!z-30 !rotate-0 !translate-x-0 !opacity-100 !scale-105 ring-2 ring-cyan-400' : '',
                     isDark ? 'border-white/15 bg-[#060e20]' : 'border-slate-300 bg-white'
                   )}
                 >
                   <img src={portal2Img} alt="Central de Guias & Impostos" className="w-full h-auto object-cover" />
-                  <div className="absolute bottom-2 left-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-cyan-300 border border-cyan-400/30">
+                  <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 bg-slate-950/85 backdrop-blur-md px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-bold text-cyan-300 border border-cyan-400/30">
                     Central de Guias
                   </div>
                 </div>
@@ -185,14 +178,14 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
                 <div
                   onClick={() => setActiveImageIndex(2)}
                   className={cn(
-                    'absolute top-4 right-0 w-[74%] sm:w-[78%] rounded-2xl border shadow-xl overflow-hidden cursor-pointer transition-all duration-500 ease-out transform origin-bottom-right',
-                    'rotate-6 translate-x-3 sm:translate-x-6 z-10 opacity-80 group-hover/fan:rotate-12 group-hover/fan:translate-x-10 hover:!rotate-0 hover:!translate-x-0 hover:!z-30 hover:!opacity-100 hover:!scale-105 hover:!shadow-[0_20px_50px_rgba(13,96,132,0.5)]',
+                    'absolute top-2 sm:top-4 right-0 w-[76%] sm:w-[78%] rounded-xl sm:rounded-2xl border overflow-hidden cursor-pointer transition-all duration-500 ease-out transform origin-bottom-right',
+                    'rotate-3 sm:rotate-6 translate-x-1 sm:translate-x-6 z-10 opacity-80 group-hover/fan:rotate-6 sm:group-hover/fan:rotate-12 group-hover/fan:translate-x-4 sm:group-hover/fan:translate-x-10 hover:!rotate-0 hover:!translate-x-0 hover:!z-30 hover:!opacity-100 hover:!scale-105',
                     activeImageIndex === 2 ? '!z-30 !rotate-0 !translate-x-0 !opacity-100 !scale-105 ring-2 ring-cyan-400' : '',
                     isDark ? 'border-white/15 bg-[#060e20]' : 'border-slate-300 bg-white'
                   )}
                 >
                   <img src={portal3Img} alt="Bi2B Drive Cloud" className="w-full h-auto object-cover" />
-                  <div className="absolute bottom-2 right-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-cyan-300 border border-cyan-400/30">
+                  <div className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 bg-slate-950/85 backdrop-blur-md px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-bold text-cyan-300 border border-cyan-400/30">
                     Bi2B Drive Cloud
                   </div>
                 </div>
@@ -201,20 +194,20 @@ export function PortalTeaserSection({ isDark }: PortalTeaserSectionProps) {
                 <div
                   onClick={() => setActiveImageIndex(0)}
                   className={cn(
-                    'relative w-[80%] sm:w-[82%] rounded-2xl border shadow-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-out transform z-20 hover:!z-30 hover:!scale-105 hover:!-translate-y-2 hover:!rotate-0 hover:!shadow-[0_20px_50px_rgba(13,96,132,0.6)]',
+                    'relative w-[82%] sm:w-[82%] rounded-xl sm:rounded-2xl border overflow-hidden cursor-pointer transition-all duration-500 ease-out transform z-20 hover:!z-30 hover:!scale-105 hover:!-translate-y-2 hover:!rotate-0',
                     activeImageIndex === 0 ? '!z-30 !scale-105 ring-2 ring-cyan-400' : '',
-                    isDark ? 'border-cyan-400/50 bg-[#060e20] shadow-cyan-950/80' : 'border-[#0d6084]/40 bg-white shadow-2xl'
+                    isDark ? 'border-cyan-400/50 bg-[#060e20]' : 'border-[#0d6084]/40 bg-white'
                   )}
                 >
                   <img src={portalImg} alt="Painel Principal do Cliente Bi2B" className="w-full h-auto object-cover" />
-                  <div className="absolute bottom-2 right-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-cyan-300 border border-cyan-400/30">
+                  <div className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 bg-slate-950/85 backdrop-blur-md px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-bold text-cyan-300 border border-cyan-400/30">
                     Finanças
                   </div>
                 </div>
               </div>
 
-              <p className={cn('text-xs text-center font-semibold mt-2', isDark ? 'text-slate-400' : 'text-slate-500')}>
-                Passe o mouse por cima das imagens para destacar cada tela do portal
+              <p className={cn('text-[11px] sm:text-xs text-center font-semibold mt-2', isDark ? 'text-slate-400' : 'text-slate-500')}>
+                Toque ou passe o mouse por cima das imagens para destacar cada tela do portal
               </p>
             </div>
           </div>

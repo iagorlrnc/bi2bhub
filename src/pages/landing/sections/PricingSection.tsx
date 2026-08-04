@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils'
 import { getClientSubdomainUrl } from '@/utils/subdomain'
 import {
   CheckCircle2,
-  Sparkles,
   ArrowRight,
   PhoneCall,
 } from 'lucide-react'
@@ -154,7 +153,6 @@ export function PricingSection({ isDark }: PricingSectionProps) {
               {p.pop && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30">
                   <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#0d6084] to-[#0a4a62] text-white text-[10px] font-extrabold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md border border-cyan-400/40">
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
                     Mais Recomendado
                   </span>
                 </div>

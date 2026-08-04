@@ -91,30 +91,27 @@ export function LandingPage() {
         )} 
       />
 
-      {/* ===== HEADER FLUTUANTE ESTÁTICO DADOS DE SCROLL ===== */}
+      {/* ===== HEADER FLUTUANTE RESPONSIVO ===== */}
       <header
         className={cn(
-          "fixed left-1/2 -translate-x-1/2 z-[60] w-full max-w-6xl top-3 px-4 transition-all duration-500",
-          isScrolled
-            ? "opacity-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 -translate-y-full pointer-events-none"
+          "fixed left-1/2 -translate-x-1/2 z-[60] w-full max-w-6xl top-2 sm:top-3 px-3 sm:px-4 transition-all duration-300 pointer-events-auto"
         )}
       >
         <div 
           className={cn(
-            "mx-auto rounded-full px-5 py-2.5 flex items-center justify-between border shadow-lg backdrop-blur-xl",
+            "mx-auto rounded-full px-4 sm:px-5 py-2 sm:py-2.5 flex items-center justify-between border transition-all duration-300 backdrop-blur-xl",
             isScrolled
               ? (isDark 
-                  ? "bg-[#040914]/95 border-white/15 shadow-cyan-950/40" 
-                  : "bg-white/95 border-slate-200/90 shadow-slate-200/50")
+                  ? "bg-[#040914]/95 border-white/15 shadow-lg shadow-cyan-950/40" 
+                  : "bg-white/95 border-slate-200/90 shadow-md shadow-slate-200/50")
               : (isDark 
-                  ? "bg-[#040914]/80 border-white/10" 
-                  : "bg-white/90 border-slate-200/70")
+                  ? "bg-[#040914]/80 border-white/10 shadow-sm" 
+                  : "bg-white/90 border-slate-200/80 shadow-sm")
           )}
         >
           {/* Logo */}
           <div className="flex items-center cursor-pointer" onClick={() => navigate(ROUTES.HOME)}>
-            <img src={currentLogo} alt={APP_NAME} className="h-8 w-auto object-contain" />
+            <img src={currentLogo} alt={APP_NAME} className="h-7 sm:h-8 w-auto object-contain" />
           </div>
 
           {/* Navigation Links Estáticos */}
@@ -124,7 +121,7 @@ export function LandingPage() {
                 key={item.href}
                 onClick={() => scrollTo(item.href)}
                 className={cn(
-                  "font-medium text-[13px] xl:text-sm cursor-pointer px-3.5 py-1.5 rounded-full",
+                  "font-medium text-[13px] xl:text-sm cursor-pointer px-3.5 py-1.5 rounded-full transition-colors",
                   isDark ? "text-slate-300 hover:text-white hover:bg-white/10" : "text-slate-600 hover:text-[#0d6084] hover:bg-slate-100"
                 )}
               >
@@ -134,11 +131,11 @@ export function LandingPage() {
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={toggleTheme}
               className={cn(
-                "rounded-full p-2 cursor-pointer border border-white/10",
+                "rounded-full p-2 cursor-pointer border border-white/10 transition-colors",
                 isDark ? "text-slate-300 bg-white/5 hover:bg-white/10 hover:text-cyan-300" : "text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-[#0d6084]"
               )}
               title="Alternar Tema"
@@ -148,7 +145,7 @@ export function LandingPage() {
 
             <button
               onClick={handleClientLogin}
-              className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] border border-cyan-400/30 text-white font-semibold text-xs xl:text-sm h-10 px-5 shadow-lg shadow-[#0d6084]/25 cursor-pointer"
+              className="group hidden sm:inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] border border-cyan-400/30 text-white font-semibold text-xs xl:text-sm h-9 sm:h-10 px-4 sm:px-5 shadow-lg shadow-[#0d6084]/25 cursor-pointer"
             >
               <span>Portal do Cliente</span>
               <ArrowRight className="w-4 h-4" />
@@ -159,9 +156,10 @@ export function LandingPage() {
               <button 
                 onClick={() => setMobileMenu(!mobileMenu)}
                 className={cn(
-                  "p-2 rounded-full border border-white/10 cursor-pointer",
+                  "p-2 rounded-full border border-white/10 cursor-pointer transition-colors",
                   isDark ? "text-slate-300 bg-white/5" : "text-slate-700 bg-slate-100"
                 )}
+                aria-label="Abrir Menu"
               >
                 {mobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
@@ -169,11 +167,11 @@ export function LandingPage() {
           </div>
         </div>
 
-        {/* Menu Mobile Estático */}
+        {/* Menu Mobile */}
         {mobileMenu && (
           <div
             className={cn(
-              "absolute left-4 right-4 top-16 rounded-2xl border p-6 backdrop-blur-2xl shadow-2xl flex flex-col gap-4 lg:hidden",
+              "absolute left-3 right-3 sm:left-4 sm:right-4 top-14 sm:top-16 rounded-2xl border p-5 sm:p-6 backdrop-blur-2xl shadow-2xl flex flex-col gap-3 sm:gap-4 lg:hidden z-[70]",
               isDark ? "border-white/15 bg-[#040914]/98 text-slate-100 shadow-cyan-950/40" : "border-slate-200 bg-white/98 text-slate-800"
             )}
           >
@@ -182,14 +180,14 @@ export function LandingPage() {
                 key={item.href}
                 onClick={() => scrollTo(item.href)}
                 className={cn(
-                  "block w-full py-2.5 text-left text-xs font-bold uppercase tracking-widest cursor-pointer",
+                  "block w-full py-2.5 text-left text-xs font-bold uppercase tracking-widest cursor-pointer transition-colors",
                   isDark ? "text-slate-300 hover:text-cyan-300" : "text-slate-700 hover:text-[#0d6084]"
                 )}
               >
                 {item.label}
               </button>
             ))}
-            <div className={cn("h-px my-2", isDark ? "bg-white/10" : "bg-slate-200")} />
+            <div className={cn("h-px my-1 sm:my-2", isDark ? "bg-white/10" : "bg-slate-200")} />
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => { setMobileMenu(false); handleClientLogin() }}

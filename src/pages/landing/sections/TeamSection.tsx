@@ -61,7 +61,7 @@ export function TeamSection({ isDark }: TeamSectionProps) {
         </div>
 
         {/* Team Grid Estática Centralizada */}
-        <div className="grid grid-cols-2 md:grid-cols-2 max-w-5xl mx-auto gap-8 justify-center items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto gap-6 sm:gap-8 justify-center items-stretch">
           {teamMembers.map((member) => (
             <div
               key={member.name}
