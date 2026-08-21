@@ -13,7 +13,8 @@ import {
   Check,
   Copy,
   Maximize2,
-  Minimize2
+  Minimize2,
+  ExternalLink
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
@@ -98,6 +99,7 @@ function renderFileIcon(category: ReturnType<typeof getFileTypeCategory>) {
 
 export function FilePreviewModal({ isOpen, onClose, file }: FilePreviewModalProps) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [textContent, setTextContent] = useState<string | null>(null)
@@ -108,6 +110,7 @@ export function FilePreviewModal({ isOpen, onClose, file }: FilePreviewModalProp
   useEffect(() => {
     if (!isOpen || !file) {
       setSignedUrl(null)
+      setPdfBlobUrl(null)
       setTextContent(null)
       setError(null)
       setIsLoading(false)
@@ -118,6 +121,7 @@ export function FilePreviewModal({ isOpen, onClose, file }: FilePreviewModalProp
     setIsLoading(true)
     setError(null)
     setTextContent(null)
+    setPdfBlobUrl(null)
 
     const fetchUrl = async () => {
       try {
@@ -193,6 +197,47 @@ export function FilePreviewModal({ isOpen, onClose, file }: FilePreviewModalProp
     }
   }, [isOpen, file])
 
+  // Se for PDF, cria Blob URL para garantir renderização perfeita e sem bloqueios CSP de iframes externos
+  useEffect(() => {
+    if (!signedUrl || !file) return
+    const category = getFileTypeCategory(file.name, file.type)
+    if (category !== 'pdf') return
+
+    let isMounted = true
+    let blobUrl: string | null = null
+
+    if (signedUrl.startsWith('blob:') || signedUrl.startsWith('data:')) {
+      setPdfBlobUrl(signedUrl)
+      return
+    }
+
+    fetch(signedUrl)
+      .then(res => {
+        if (!res.ok) throw new Error('Falha ao carregar stream do PDF')
+        return res.blob()
+      })
+      .then(blob => {
+        if (isMounted) {
+          const pdfBlob = new Blob([blob], { type: 'application/pdf' })
+          blobUrl = URL.createObjectURL(pdfBlob)
+          setPdfBlobUrl(blobUrl)
+        }
+      })
+      .catch(err => {
+        if (import.meta.env.DEV) console.warn('Carregando PDF com URL direta:', err)
+        if (isMounted) {
+          setPdfBlobUrl(signedUrl)
+        }
+      })
+
+    return () => {
+      isMounted = false
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl)
+      }
+    }
+  }, [signedUrl, file])
+
   // Se for texto, buscar o conteúdo para exibir no visualizador de código
   useEffect(() => {
     if (!signedUrl || !file) return
@@ -212,6 +257,7 @@ export function FilePreviewModal({ isOpen, onClose, file }: FilePreviewModalProp
 
   const category = getFileTypeCategory(file.name, file.type)
   const fileExt = getFileExtension(file.name).toUpperCase()
+  const displayPdfUrl = pdfBlobUrl || signedUrl
 
   const handleDownload = async () => {
     if (!signedUrl) {
@@ -280,7 +326,35 @@ export function FilePreviewModal({ isOpen, onClose, file }: FilePreviewModalProp
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            {signedUrl && (
+              <a
+                href={signedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition-colors flex items-center justify-center"
+                title="Abrir arquivo em nova aba"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            )}
+
+            {signedUrl && (
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="p-2 rounded-xl text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition-colors flex items-center justify-center disabled:opacity-50"
+                title="Baixar arquivo"
+              >
+                {isDownloading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setIsFullscreen(!isFullscreen)}
@@ -293,7 +367,7 @@ export function FilePreviewModal({ isOpen, onClose, file }: FilePreviewModalProp
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition-colors"
+              className="p-2 rounded-xl text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition-colors ml-1"
               title="Fechar visualizador"
             >
               <X className="h-5 w-5" />
@@ -345,11 +419,48 @@ export function FilePreviewModal({ isOpen, onClose, file }: FilePreviewModalProp
 
               {/* PDF PREVIEW */}
               {category === 'pdf' && (
-                <iframe
-                  src={`${signedUrl}#toolbar=1`}
-                  title={file.name}
-                  className="w-full h-full border-0 rounded-lg shadow-inner bg-gray-900"
-                />
+                <div className="w-full h-full relative rounded-lg overflow-hidden bg-gray-900">
+                  <object
+                    data={displayPdfUrl ? `${displayPdfUrl}#toolbar=1` : undefined}
+                    type="application/pdf"
+                    className="w-full h-full border-0 rounded-lg shadow-inner bg-gray-900"
+                  >
+                    <iframe
+                      src={displayPdfUrl ? `${displayPdfUrl}#toolbar=1` : undefined}
+                      title={file.name}
+                      className="w-full h-full border-0 rounded-lg shadow-inner bg-gray-900"
+                    >
+                      <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-[hsl(var(--card))] text-[hsl(var(--foreground))] rounded-xl">
+                        <FileText className="h-12 w-12 text-rose-500 mb-3" />
+                        <h4 className="text-sm font-bold mb-1">Visualização de Documento</h4>
+                        <p className="text-xs text-[hsl(var(--muted-foreground))] max-w-sm mb-4">
+                          O navegador não carregou o leitor embutido de PDF. Você pode abrir o documento diretamente ou fazer download.
+                        </p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {signedUrl && (
+                            <a
+                              href={signedUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition-all shadow-xs"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Abrir em Nova Aba
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={handleDownload}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[hsl(var(--muted))] hover:bg-[hsl(var(--muted))]/80 text-[hsl(var(--foreground))] text-xs font-bold transition-all"
+                          >
+                            <Download className="h-4 w-4" />
+                            Baixar PDF
+                          </button>
+                        </div>
+                      </div>
+                    </iframe>
+                  </object>
+                </div>
               )}
 
               {/* TEXT / CODE PREVIEW */}

@@ -34,7 +34,7 @@ const adminSidebarCategories = [
     title: 'Visão Geral',
     items: [
       { label: 'Dashboard', icon: LayoutDashboard, path: ROUTES.ADMIN_DASHBOARD },
-      { label: 'Finanças', icon: Wallet, path: ROUTES.ADMIN_FINANCIAL },
+      { label: 'Finanças', icon: Wallet, path: ROUTES.ADMIN_FINANCIAL, disabled: true },
     ],
   },
   {
@@ -202,8 +202,37 @@ export function AdminLayout() {
               )}
 
               <nav className="space-y-0.5">
-                {category.items.map((item) => {
+                {category.items.map((item: any) => {
                   const Icon = item.icon
+
+                  if (item.disabled) {
+                    return (
+                      <div
+                        key={item.path || item.label}
+                        title="Módulo de Finanças bloqueado temporariamente"
+                        className={cn(
+                          'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium opacity-50 cursor-not-allowed select-none text-sky-200/60 dark:text-slate-500 hover:bg-transparent',
+                          isCollapsed && 'justify-center px-0 py-2.5'
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0 text-sky-300/40 dark:text-slate-500" />
+                        {!isCollapsed && (
+                          <div className="flex items-center justify-between flex-1 min-w-0">
+                            <span className="truncate">{item.label}</span>
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/10 dark:bg-slate-800 text-sky-200/70 dark:text-slate-400">
+                              EM ANDAMENTO
+                            </span>
+                          </div>
+                        )}
+                        {isCollapsed && (
+                          <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
+                            {item.label} (Bloqueado)
+                          </span>
+                        )}
+                      </div>
+                    )
+                  }
+
                   return (
                     <NavLink
                       key={item.path}

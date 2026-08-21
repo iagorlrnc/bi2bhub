@@ -294,7 +294,8 @@ export function LoginPage() {
       }
 
       // 2. Chamar RPC SECURITY DEFINER para gravar empresa e gestor atomicamente
-      const { error: rpcErr } = await supabase.rpc('cadastrar_empresa_e_gestor', {
+      let companyCreatedId: string | null = null
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('cadastrar_empresa_e_gestor', {
         p_company_name: companyName.trim(),
         p_company_trade_name: companyTradeName.trim() || companyName.trim(),
         p_company_cnpj: companyCnpj.replace(/\D/g, ''),
@@ -317,7 +318,85 @@ export function LoginPage() {
         p_codigo_exclusivo: generatedToken
       })
 
-      if (rpcErr) throw rpcErr
+      if (rpcErr) {
+        if (import.meta.env.DEV) console.warn('RPC cadastrar_empresa_e_gestor falhou, executando fallback direto:', rpcErr.message)
+
+        // Fallback direto: Inserir em empresas
+        const { data: compData, error: compErr } = await supabase
+          .from('empresas')
+          .insert({
+            name: companyName.trim(),
+            trade_name: companyTradeName.trim() || companyName.trim(),
+            cnpj: companyCnpj.replace(/\D/g, ''),
+            codigo_exclusivo: generatedToken,
+            state_registration: companyStateRegistration.trim() || null,
+            municipal_registration: companyMunicipalRegistration.trim() || null,
+            email: companyCorporateEmail,
+            phone: cleanCompanyPhone || null,
+            address_street: addressStreet.trim() || null,
+            address_number: addressNumber.trim() || null,
+            address_complement: addressComplement.trim() || null,
+            address_neighborhood: addressNeighborhood.trim() || null,
+            address_city: addressCity.trim() || null,
+            address_state: addressState.trim() || null,
+            address_zip: cleanZip || null,
+            plan: companyPlan as any,
+            is_active: false
+          })
+          .select('id')
+          .single()
+
+        if (compErr) throw compErr
+        companyCreatedId = compData?.id
+
+        // Se gestorUserId existe, vincular no usuarios e usuarios_empresa
+        if (gestorUserId && companyCreatedId) {
+          await supabase
+            .from('usuarios')
+            .upsert({
+              id: gestorUserId,
+              email: gestorEmail,
+              full_name: adminFullName.trim(),
+              phone: cleanAdminPhone || null,
+              company_id: companyCreatedId,
+              codigo_empresa: generatedToken,
+              user_type: 'client_master',
+              is_active: false
+            }, { onConflict: 'id' })
+
+          await supabase
+            .from('usuarios_empresa')
+            .upsert({
+              company_id: companyCreatedId,
+              user_id: gestorUserId,
+              role: 'usuario_master',
+              permissions: ['all'],
+              is_active: false
+            }, { onConflict: 'user_id' })
+        }
+      } else if (rpcRes && gestorUserId) {
+        // Garantir que o gestor esteja atualizado com o ID da empresa retornada pela RPC
+        companyCreatedId = rpcRes
+        await supabase
+          .from('usuarios')
+          .update({
+            company_id: companyCreatedId,
+            codigo_empresa: generatedToken,
+            user_type: 'client_master',
+            is_active: false
+          })
+          .eq('id', gestorUserId)
+
+        await supabase
+          .from('usuarios_empresa')
+          .upsert({
+            company_id: companyCreatedId,
+            user_id: gestorUserId,
+            role: 'usuario_master',
+            permissions: ['all'],
+            is_active: false
+          }, { onConflict: 'user_id' })
+      }
 
       toast.success(`Solicitação de empresa e cadastro do Gestor enviados! ID Gerado: #${generatedToken}`)
       setCompanyStep(5)

@@ -68,8 +68,8 @@ const companySchema = z.object({
 })
 
 export function CompaniesPage() {
-  // Controle de Sub-abas: 'empresas' (Cadastradas) ou 'solicitacoes' (Pendentes de Aprovação)
-  const [viewTab, setViewTab] = useState<'empresas' | 'solicitacoes'>('empresas')
+  // Controle de Sub-abas: 'ativas' (Empresas Ativas), 'inativas' (Empresas Inativas) ou 'solicitacoes' (Pendentes de Aprovação)
+  const [viewTab, setViewTab] = useState<'ativas' | 'inativas' | 'solicitacoes'>('ativas')
 
   const [companies, setCompanies] = useState<any[]>([])
   const [companyRequests, setCompanyRequests] = useState<any[]>([])
@@ -107,7 +107,7 @@ export function CompaniesPage() {
     setTimeout(() => setCopiedCompanyId(null), 2000)
   }
 
-  // Buscar Empresas Ativas
+  // Buscar Todas as Empresas (Ativas e Inativas)
   const fetchCompanies = async (silent = false) => {
     if (!silent) setIsLoading(true)
     try {
@@ -117,14 +117,13 @@ export function CompaniesPage() {
       const { data, error } = await supabase
         .from('empresas')
         .select('*')
-        .eq('is_active', true)
         .order('name', { ascending: true })
       if (error) throw error
       
       const rawCompanies = data || []
-      const existingCodes = rawCompanies.map(c => c.codigo_exclusivo)
+      const existingCodes = rawCompanies.map(c => c.codigo_exclusivo).filter(Boolean)
 
-      // Garantir que todas as empresas ativas tenham códigos numéricos únicos de 4 dígitos
+      // Garantir que todas as empresas tenham códigos numéricos únicos de 4 dígitos
       const sanitized = await Promise.all(
         rawCompanies.map(async (comp) => {
           if (!isValid4DigitCode(comp.codigo_exclusivo)) {
@@ -143,24 +142,92 @@ export function CompaniesPage() {
       setCompanies(sanitized.filter((c) => !isBi2bCompany(c)))
     } catch (err) {
       if (import.meta.env.DEV) console.error(err)
-      if (!silent) toast.error('Erro ao buscar empresas ativas do Supabase.')
+      if (!silent) toast.error('Erro ao buscar empresas do Supabase.')
     } finally {
       if (!silent) setIsLoading(false)
     }
   }
 
-  // Buscar Solicitações Pendentes (Real Supabase: empresas com is_active = false)
+  // Buscar Solicitações Pendentes (Empresas pendentes + dados dos Gestores vinculados)
   const fetchCompanyRequests = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: rawCompanies, error: compErr } = await supabase
         .from('empresas')
         .select('*')
         .eq('is_active', false)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (compErr) throw compErr
 
-      setCompanyRequests((data || []).filter((c) => !isBi2bCompany(c)))
+      const pending = (rawCompanies || []).filter((c) => !isBi2bCompany(c))
+
+      // Enriquecer cada solicitação com os dados do gestor associado
+      const enrichedRequests = await Promise.all(
+        pending.map(async (comp) => {
+          let gestorData: any = null
+
+          // 1. Tentar buscar em usuarios por company_id
+          const { data: uByComp } = await supabase
+            .from('usuarios')
+            .select('id, full_name, email, phone, user_type, is_active')
+            .eq('company_id', comp.id)
+            .maybeSingle()
+
+          if (uByComp) {
+            gestorData = uByComp
+          }
+
+          // 2. Se não encontrou, buscar por codigo_empresa
+          if (!gestorData && comp.codigo_exclusivo) {
+            const { data: uByCode } = await supabase
+              .from('usuarios')
+              .select('id, full_name, email, phone, user_type, is_active')
+              .eq('codigo_empresa', comp.codigo_exclusivo)
+              .maybeSingle()
+
+            if (uByCode) {
+              gestorData = uByCode
+            }
+          }
+
+          // 3. Se não encontrou, buscar via usuarios_empresa
+          if (!gestorData) {
+            const { data: ueList } = await supabase
+              .from('usuarios_empresa')
+              .select('user_id, role, usuarios(id, full_name, email, phone, user_type, is_active)')
+              .eq('company_id', comp.id)
+              .maybeSingle()
+
+            if (ueList && (ueList as any).usuarios) {
+              gestorData = (ueList as any).usuarios
+            }
+          }
+
+          // 4. Se não encontrou, buscar por email
+          if (!gestorData && comp.email) {
+            const { data: uByEmail } = await supabase
+              .from('usuarios')
+              .select('id, full_name, email, phone, user_type, is_active')
+              .eq('email', comp.email.trim().toLowerCase())
+              .maybeSingle()
+
+            if (uByEmail) {
+              gestorData = uByEmail
+            }
+          }
+
+          return {
+            ...comp,
+            admin_name: gestorData?.full_name || comp.admin_name || 'Gestor Responsável',
+            admin_email: gestorData?.email || comp.admin_email || comp.email,
+            admin_phone: gestorData?.phone || comp.admin_phone || comp.phone,
+            gestor_user_id: gestorData?.id || comp.gestor_user_id,
+            gestor_is_active: gestorData?.is_active
+          }
+        })
+      )
+
+      setCompanyRequests(enrichedRequests)
     } catch (err) {
       if (import.meta.env.DEV) console.error('Erro ao buscar solicitações pendentes do Supabase:', err)
       setCompanyRequests([])
@@ -200,45 +267,56 @@ export function CompaniesPage() {
 
       if (companyErr) throw companyErr
 
-      // 2. Aprovar e Vincular o Gestor na tabela de Usuários e Vínculos
-      // Buscar o gestor vinculado a esta empresa na tabela 'usuarios' (criado na etapa do cadastro)
-      const { data: userByCompany } = await supabase
-        .from('usuarios')
-        .select('id, email')
-        .eq('company_id', req.id)
-        .eq('user_type', 'client_master')
-        .maybeSingle()
+      // 2. Localizar ou Criar o Gestor Master
+      let gestorUserId: string | null = req.gestor_user_id || null
+      let gestorEmail = (req.admin_email || req.email || '').trim().toLowerCase()
+      let gestorName = req.admin_name || 'Gestor Responsável'
+      let gestorPhone = req.admin_phone || req.phone || null
 
-      let existingUser: any = userByCompany
-      let gestorEmail = userByCompany?.email || req.admin_email || (req.email ? req.email.trim().toLowerCase() : '')
-
-      if (!existingUser && gestorEmail) {
-        const { data: userByEmail } = await supabase
+      // Se ainda não temos o ID do gestor, pesquisar por company_id, codigo_empresa ou email
+      if (!gestorUserId) {
+        const { data: uByComp } = await supabase
           .from('usuarios')
-          .select('id, email')
-          .eq('email', gestorEmail)
+          .select('id, email, full_name, phone')
+          .eq('company_id', req.id)
           .maybeSingle()
-        existingUser = userByEmail
+
+        if (uByComp?.id) {
+          gestorUserId = uByComp.id
+          gestorEmail = uByComp.email || gestorEmail
+          gestorName = uByComp.full_name || gestorName
+        }
       }
 
-      let gestorUserId: string | null = null
-
-      if (existingUser) {
-        gestorUserId = existingUser.id
-        // Atualizar perfil do gestor existente para master ativado e vinculado
-        await supabase
+      if (!gestorUserId && req.codigo_exclusivo) {
+        const { data: uByCode } = await supabase
           .from('usuarios')
-          .update({
-            user_type: 'client_master',
-            company_id: req.id,
-            codigo_empresa: randomCode,
-            is_active: true,
-            status_reason: null
-          })
-          .eq('id', existingUser.id)
-      } else if (gestorEmail) {
-        // Tentar registrar no Supabase Auth usando cliente isolado para não deslogar o Administrador
-        let authUserId: string | null = null
+          .select('id, email, full_name, phone')
+          .eq('codigo_empresa', req.codigo_exclusivo)
+          .maybeSingle()
+
+        if (uByCode?.id) {
+          gestorUserId = uByCode.id
+          gestorEmail = uByCode.email || gestorEmail
+          gestorName = uByCode.full_name || gestorName
+        }
+      }
+
+      if (!gestorUserId && gestorEmail) {
+        const { data: uByEmail } = await supabase
+          .from('usuarios')
+          .select('id, email, full_name, phone')
+          .eq('email', gestorEmail)
+          .maybeSingle()
+
+        if (uByEmail?.id) {
+          gestorUserId = uByEmail.id
+          gestorName = uByEmail.full_name || gestorName
+        }
+      }
+
+      // 3. Se o gestor não existir no banco, registrar conta Auth e Perfil
+      if (!gestorUserId && gestorEmail) {
         try {
           const authClient = createIsolatedAuthClient()
           const tempPassword = 'GestorPass' + randomCode + '!'
@@ -247,8 +325,8 @@ export function CompaniesPage() {
             password: tempPassword,
             options: {
               data: {
-                full_name: req.admin_name || 'Gestor Responsável',
-                phone: req.phone || null,
+                full_name: gestorName,
+                phone: gestorPhone,
                 company_id: req.id,
                 codigo_empresa: randomCode,
                 user_type: 'client_master'
@@ -256,46 +334,64 @@ export function CompaniesPage() {
             }
           })
           if (authData?.user?.id) {
-            authUserId = authData.user.id
+            gestorUserId = authData.user.id
           }
-        } catch (e) {
-          if (import.meta.env.DEV) console.warn('Aviso Supabase Auth ao aprovar gestor:', e)
+        } catch (authErr) {
+          if (import.meta.env.DEV) console.warn('Aviso Supabase Auth ao cadastrar gestor:', authErr)
         }
 
-        // Inserir perfil de Gestor em usuarios se ainda não existir
-        const newUserId = authUserId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'usr_' + Date.now())
-        const { data: newUser } = await supabase
+        // Se falhou ou usuário já existia no Auth, tentar recuperar ID do usuário existente
+        if (!gestorUserId) {
+          const { data: uExist } = await supabase
+            .from('usuarios')
+            .select('id')
+            .eq('email', gestorEmail)
+            .maybeSingle()
+          if (uExist?.id) {
+            gestorUserId = uExist.id
+          }
+        }
+      }
+
+      // 4. Ativar e vincular o Gestor na tabela usuarios
+      if (gestorUserId) {
+        const { error: userUpdateErr } = await supabase
           .from('usuarios')
-          .insert({
-            id: newUserId,
+          .upsert({
+            id: gestorUserId,
             email: gestorEmail,
-            full_name: req.admin_name || 'Gestor Responsável',
-            phone: req.phone || null,
+            full_name: gestorName,
+            phone: gestorPhone,
             user_type: 'client_master',
             company_id: req.id,
             codigo_empresa: randomCode,
-            is_active: true
-          })
-          .select('id')
-          .maybeSingle()
+            is_active: true,
+            status_reason: null,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' })
 
-        gestorUserId = newUser?.id || newUserId
-      }
+        if (userUpdateErr && import.meta.env.DEV) {
+          console.warn('Aviso ao atualizar perfil do gestor:', userUpdateErr.message)
+        }
 
-      // 3. Vincular em usuarios_empresa como 'usuario_master' com permissões totais ativadas
-      if (gestorUserId) {
-        await supabase
+        // 5. Vincular na tabela usuarios_empresa com permissões de Master
+        const { error: linkErr } = await supabase
           .from('usuarios_empresa')
           .upsert({
             company_id: req.id,
             user_id: gestorUserId,
             role: 'usuario_master',
             permissions: ['all'],
-            is_active: true
-          }, { onConflict: 'company_id,user_id' })
+            is_active: true,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' })
+
+        if (linkErr && import.meta.env.DEV) {
+          console.warn('Aviso ao vincular usuarios_empresa:', linkErr.message)
+        }
       }
 
-      // 4. Inicializar/Sincronizar Plano da Empresa no módulo financeiro
+      // 6. Inicializar/Sincronizar Plano da Empresa no módulo financeiro
       const reqPlan = (req.plan || 'básico').toLowerCase()
       const planFormatted = reqPlan.charAt(0).toUpperCase() + reqPlan.slice(1)
       const defaultAmount = reqPlan === 'plus' ? 1450.00 : reqPlan === 'pró' ? 850.00 : 450.00
@@ -317,24 +413,28 @@ export function CompaniesPage() {
           company_name: req.name, 
           cnpj: req.cnpj, 
           codigo_exclusivo: randomCode,
-          gestor_name: req.admin_name,
-          gestor_email: gestorEmail
+          gestor_name: gestorName,
+          gestor_email: gestorEmail,
+          gestor_user_id: gestorUserId
         }
       })
 
-      toast.success(`Empresa "${req.name}" APROVADA! O Gestor "${req.admin_name || 'Responsável'}" foi automaticamente aprovado e vinculado.`)
+      toast.success(`Empresa "${req.name}" APROVADA! Gestor "${gestorName}" ativado e vinculado com sucesso.`)
       if (selectedRequestModal?.id === req.id) {
         setSelectedRequestModal(null)
       }
 
+      // Disparar sincronização global
+      window.dispatchEvent(new CustomEvent('bi2b:refresh-data'))
       fetchCompanies()
       fetchCompanyRequests()
     } catch (err: any) {
+      if (import.meta.env.DEV) console.error('Erro ao aprovar solicitação de empresa:', err)
       toast.error(err.message || 'Erro ao aprovar empresa e gestor no Supabase.')
     }
   }
 
-  // RECUSAR SOLICITAÇÃO DA EMPRESA (Real Supabase: Deleta o registro pendente)
+  // RECUSAR SOLICITAÇÃO DA EMPRESA
   const handleRejectRequest = async (req: any) => {
     if (!confirm(`Tem certeza que deseja recusar e excluir a solicitação da empresa "${req.name}"?`)) {
       return
@@ -515,26 +615,34 @@ export function CompaniesPage() {
     }
   }
 
-  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
+  // Alternar status ativo/inativo
+  const handleToggleStatus = async (id: string, currentStatus: boolean, companyName?: string) => {
+    const newStatus = !currentStatus
     try {
       const { error } = await supabase
         .from('empresas')
-        .update({ is_active: !currentStatus })
+        .update({ is_active: newStatus })
         .eq('id', id)
       if (error) throw error
 
       logAuditActivity({
-        action: 'ALTERAR_STATUS_EMPRESA',
+        action: newStatus ? 'ATIVAR_EMPRESA' : 'DESATIVAR_EMPRESA',
         entityType: 'empresas',
         entityId: id,
-        metadata: { is_active: !currentStatus }
+        metadata: { is_active: newStatus, company_name: companyName }
       })
 
-      toast.success(`Status da empresa atualizado com sucesso.`)
-      fetchCompanies()
+      if (newStatus) {
+        toast.success(`Empresa "${companyName || 'selecionada'}" reativada com sucesso! Movida para Empresas Ativas.`)
+      } else {
+        toast.success(`Empresa "${companyName || 'selecionada'}" desativada. Movida para Empresas Inativas.`)
+      }
+
+      fetchCompanies(true)
+      fetchCompanyRequests()
     } catch (err) {
       if (import.meta.env.DEV) console.error(err)
-      toast.error('Erro ao atualizar status.')
+      toast.error('Erro ao atualizar status da empresa.')
     }
   }
 
@@ -563,11 +671,19 @@ export function CompaniesPage() {
     }
   }
 
-  const filteredCompanies = companies.filter(c => 
-    c.is_active !== false && (
-      (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-      (c.cnpj || '').includes(searchTerm)
-    )
+  const activeCompanies = companies.filter(c => c.is_active !== false)
+  const inactiveCompanies = companies.filter(c => c.is_active === false)
+
+  const filteredActiveCompanies = activeCompanies.filter(c => 
+    (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (c.cnpj || '').includes(searchTerm) ||
+    (c.trade_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const filteredInactiveCompanies = inactiveCompanies.filter(c => 
+    (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (c.cnpj || '').includes(searchTerm) ||
+    (c.trade_name || '').toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const filteredRequests = companyRequests.filter(r =>
@@ -586,7 +702,7 @@ export function CompaniesPage() {
           </div>
           <div>
             <h1 className="font-heading text-2xl font-bold text-[hsl(var(--foreground))]">Gestão de Empresas</h1>
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Gerencie empresas ativas e aprovações de solicitações do portal público</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">Gerencie empresas ativas, inativas e solicitações de aprovação</p>
           </div>
         </div>
         <button
@@ -598,21 +714,37 @@ export function CompaniesPage() {
         </button>
       </div>
 
-      {/* SUB-NAVEGAÇÃO: EMPRESAS CADASTRADAS VS SOLICITAÇÕES PENDENTES */}
+      {/* SUB-NAVEGAÇÃO: EMPRESAS ATIVAS VS EMPRESAS INATIVAS VS SOLICITAÇÕES PENDENTES */}
       <div className="flex border-b border-[hsl(var(--border))] space-x-6 text-sm font-semibold">
         <button
-          onClick={() => setViewTab('empresas')}
+          onClick={() => setViewTab('ativas')}
           className={cn(
             "pb-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer select-none",
-            viewTab === 'empresas'
+            viewTab === 'ativas'
               ? "border-brand-500 text-brand-600 dark:text-brand-400 font-bold"
               : "border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
           )}
         >
           <Building2 className="h-4 w-4" />
           <span>Empresas Ativas</span>
-          <span className="ml-1 rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 text-xs font-bold">
-            {filteredCompanies.length}
+          <span className="ml-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 text-xs font-bold border border-emerald-500/20">
+            {activeCompanies.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setViewTab('inativas')}
+          className={cn(
+            "pb-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer select-none",
+            viewTab === 'inativas'
+              ? "border-rose-500 text-rose-600 dark:text-rose-400 font-bold"
+              : "border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+          )}
+        >
+          <Building2 className="h-4 w-4 text-rose-500" />
+          <span>Empresas Inativas</span>
+          <span className="ml-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2 py-0.5 text-xs font-bold border border-rose-500/20">
+            {inactiveCompanies.length}
           </span>
         </button>
 
@@ -641,7 +773,13 @@ export function CompaniesPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[hsl(var(--muted-foreground))]" />
           <input
             type="text"
-            placeholder={viewTab === 'empresas' ? "Buscar por nome ou CNPJ..." : "Buscar solicitação por empresa, CNPJ ou gestor..."}
+            placeholder={
+              viewTab === 'ativas'
+                ? "Buscar empresas ativas por nome, fantasia ou CNPJ..."
+                : viewTab === 'inativas'
+                ? "Buscar empresas inativas por nome, fantasia ou CNPJ..."
+                : "Buscar solicitação por empresa, CNPJ ou gestor..."
+            }
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] py-2 pl-10 pr-4 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
@@ -652,7 +790,7 @@ export function CompaniesPage() {
       {/* ========================================================= */}
       {/* VISÃO 1: TABELA DE EMPRESAS ATIVAS */}
       {/* ========================================================= */}
-      {viewTab === 'empresas' && (
+      {viewTab === 'ativas' && (
         <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] overflow-hidden shadow-sm animate-fade-in">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -673,12 +811,12 @@ export function CompaniesPage() {
                     <td colSpan={7} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin text-brand-500" />
-                        <span>Carregando empresas...</span>
+                        <span>Carregando empresas ativas...</span>
                       </div>
                     </td>
                   </tr>
-                ) : filteredCompanies.length > 0 ? (
-                  filteredCompanies.map(company => (
+                ) : filteredActiveCompanies.length > 0 ? (
+                  filteredActiveCompanies.map(company => (
                     <tr key={company.id} className="hover:bg-[hsl(var(--muted))]/30 transition-colors">
                       <td className="p-4">
                         <div>
@@ -705,7 +843,7 @@ export function CompaniesPage() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <p className="text-[hsl(var(--foreground))]">{company.email}</p>
+                        <p className="text-[hsl(var(--foreground))]">{company.email || 'Não informado'}</p>
                       </td>
                       <td className="p-4">
                         <span className={cn(
@@ -721,39 +859,30 @@ export function CompaniesPage() {
                         {company.max_users} usuários
                       </td>
                       <td className="p-4">
-                        <span className={cn(
-                          'px-2 py-0.5 rounded text-xs font-semibold',
-                          company.is_active 
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400' 
-                            : 'bg-rose-100 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400'
-                        )}>
-                          {company.is_active ? 'Ativa' : 'Inativa'}
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-500/20">
+                          Ativa
                         </span>
                       </td>
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-1">
                           <button
-                            onClick={() => handleToggleStatus(company.id, company.is_active)}
-                            className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] cursor-pointer"
-                            title={company.is_active ? 'Inativar empresa' : 'Ativar empresa'}
+                            onClick={() => handleToggleStatus(company.id, true, company.name)}
+                            className="rounded-lg p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 cursor-pointer transition-colors"
+                            title="Desativar empresa (mover para Inativas)"
                           >
-                            {company.is_active ? (
-                              <ToggleRight className="h-5 w-5 text-emerald-500" />
-                            ) : (
-                              <ToggleLeft className="h-5 w-5 text-[hsl(var(--muted-foreground))]" />
-                            )}
+                            <ToggleRight className="h-5 w-5 text-emerald-500" />
                           </button>
                           <button
                             onClick={() => handleOpenEdit(company)}
                             className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] cursor-pointer"
-                            title="Editar"
+                            title="Editar empresa"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(company.id, company.name)}
                             className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20 cursor-pointer"
-                            title="Deletar"
+                            title="Deletar empresa"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -765,6 +894,122 @@ export function CompaniesPage() {
                   <tr>
                     <td colSpan={7} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
                       Nenhuma empresa ativa cadastrada.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* VISÃO 2: TABELA DE EMPRESAS INATIVAS */}
+      {/* ========================================================= */}
+      {viewTab === 'inativas' && (
+        <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] overflow-hidden shadow-sm animate-fade-in">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/50 text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
+                  <th className="p-4">Empresa</th>
+                  <th className="p-4">ID</th>
+                  <th className="p-4">Contato</th>
+                  <th className="p-4">Plano</th>
+                  <th className="p-4">Limite de Usuários</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[hsl(var(--border))] text-sm">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-brand-500" />
+                        <span>Carregando empresas inativas...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredInactiveCompanies.length > 0 ? (
+                  filteredInactiveCompanies.map(company => (
+                    <tr key={company.id} className="hover:bg-[hsl(var(--muted))]/30 transition-colors opacity-85 hover:opacity-100">
+                      <td className="p-4">
+                        <div>
+                          <h4 className="font-semibold text-[hsl(var(--foreground))] line-through text-slate-500 dark:text-slate-400">{company.name}</h4>
+                          <p className="text-xs text-[hsl(var(--muted-foreground))]">CNPJ: {formatCnpj(company.cnpj)}</p>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-xs font-bold tracking-widest text-[hsl(var(--muted-foreground))] bg-[hsl(var(--muted))] px-2.5 py-1 rounded border border-[hsl(var(--border))] select-all">
+                            {company.codigo_exclusivo || company.id}
+                          </span>
+                          <button
+                            onClick={() => handleCopyId(company.codigo_exclusivo || company.id, company.id)}
+                            className="p-1 rounded text-[hsl(var(--muted-foreground))] hover:text-brand-500 transition-colors cursor-pointer"
+                            title="Copiar ID de 4 dígitos"
+                          >
+                            {copiedCompanyId === company.id ? (
+                              <Check className="h-3.5 w-3.5 text-green-500" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <p className="text-[hsl(var(--muted-foreground))]">{company.email || 'Não informado'}</p>
+                      </td>
+                      <td className="p-4">
+                        <span className={cn(
+                          'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase opacity-70',
+                          company.plan === 'plus' && 'bg-purple-100 text-purple-700 dark:bg-purple-950/30',
+                          company.plan === 'pró' && 'bg-blue-100 text-blue-700 dark:bg-blue-950/30',
+                          company.plan === 'básico' && 'bg-gray-100 text-gray-700 dark:bg-gray-800'
+                        )}>
+                          {company.plan}
+                        </span>
+                      </td>
+                      <td className="p-4 font-semibold text-[hsl(var(--muted-foreground))]">
+                        {company.max_users} usuários
+                      </td>
+                      <td className="p-4">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-500/20">
+                          Inativa
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleToggleStatus(company.id, false, company.name)}
+                            className="rounded-lg p-2 text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-950/40 cursor-pointer transition-colors bg-rose-50 dark:bg-rose-950/20 border border-rose-500/30"
+                            title="Reativar empresa (mover para Ativas)"
+                          >
+                            <ToggleLeft className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(company)}
+                            className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] cursor-pointer"
+                            title="Editar empresa"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(company.id, company.name)}
+                            className="rounded-lg p-2 text-[hsl(var(--muted-foreground))] hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20 cursor-pointer"
+                            title="Deletar empresa"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                      Nenhuma empresa inativa no momento.
                     </td>
                   </tr>
                 )}
