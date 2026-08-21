@@ -1,215 +1,319 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ROUTES } from '@/constants/routes'
-import { APP_NAME } from '@/constants'
-import {
-  Sun,
-  Moon,
-  Menu,
-  X,
-  ArrowRight,
-} from 'lucide-react'
-import { useTheme } from '@/contexts/ThemeContext'
-import { cn } from '@/lib/utils'
-import logoPng from '@/assets/logo.png'
-import logoAzulPng from '@/assets/logoazul.png'
-
-// ===== SECTIONS DA CONSULTORIA =====
-import { HeroSection } from './sections/HeroSection'
-import { PortalOriginalAboutSection } from './sections/PortalOriginalAboutSection'
-import { ServicesSection } from './sections/ServicesSection'
-import { CompanyAboutSection } from './sections/CompanyAboutSection'
-import { TeamSection } from './sections/TeamSection'
-import { PortalTeaserSection } from './sections/PortalTeaserSection'
-import { FaqSection } from './sections/FaqSection'
-import { ContactSection } from './sections/ContactSection'
-import { FooterSection } from './sections/FooterSection'
-
+import { useState, useEffect, useRef } from 'react'
+import { Menu, X, ArrowRight, Sparkles } from 'lucide-react'
 import { getClientSubdomainUrl } from '@/utils/subdomain'
 
-export function LandingPage() {
-  const navigate = useNavigate()
-  const { resolvedTheme, toggleTheme } = useTheme()
-  const [mobileMenu, setMobileMenu] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
+// ===== SEÇÕES DA LANDING PAGE BI2B =====
+import { Bi2BHeroSection } from './sections/Bi2BHeroSection'
+import { Bi2BProblemSection } from './sections/Bi2BProblemSection'
+import { Bi2BGuideSection } from './sections/Bi2BGuideSection'
+import { Bi2BPlanSection } from './sections/Bi2BPlanSection'
+import { Bi2BObjectionSection } from './sections/Bi2BObjectionSection'
+import { Bi2BCasesSection } from './sections/Bi2BCasesSection'
+import { Bi2BReviewsSection } from './sections/Bi2BReviewsSection'
+import { Bi2BPartnersSection } from './sections/Bi2BPartnersSection'
+import { Bi2BPricingSection } from './sections/Bi2BPricingSection'
+import { Bi2BStakesSection } from './sections/Bi2BStakesSection'
+import { Bi2BTransformSection } from './sections/Bi2BTransformSection'
+import { Bi2BLocationSection } from './sections/Bi2BLocationSection'
+import { Bi2BPortalSection } from './sections/Bi2BPortalSection'
+import { Bi2BFinalCtaSection } from './sections/Bi2BFinalCtaSection'
+import { Bi2BFaqSection } from './sections/Bi2BFaqSection'
+import { Bi2BFooterSection } from './sections/Bi2BFooterSection'
 
+export function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showStickyCta, setShowStickyCta] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Scroll reveal observer & sticky CTA observer
   useEffect(() => {
+    // 1. Scroll listener for header background and sticky CTA
     const handleScroll = () => {
-      if (window.scrollY > 200) {
-        setIsScrolled(true)
-      } else {
-        setIsScrolled(false)
+      const scrollY = window.scrollY
+      setIsScrolled(scrollY > 50)
+      setShowStickyCta(scrollY > 480)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+
+    // 2. IntersectionObserver for reveal elements
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const revealElements = document.querySelectorAll('.bi2b-reveal')
+
+    if (!('IntersectionObserver' in window) || prefersReducedMotion) {
+      revealElements.forEach((el) => el.classList.add('in'))
+    } else {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in')
+              observer.unobserve(entry.target)
+            }
+          })
+        },
+        { threshold: 0.1, rootMargin: '0px 0px -4% 0px' }
+      )
+
+      revealElements.forEach((el) => observer.observe(el))
+
+      return () => {
+        window.removeEventListener('scroll', handleScroll)
+        observer.disconnect()
       }
     }
 
-    handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [])
 
-  const navItems = [
-    { label: 'Soluções', href: '#servicos' },
-    { label: 'Sobre Nós', href: '#sobre' },
-    { label: 'Equipe', href: '#equipe' },
-    { label: 'Portal do Cliente', href: '#portal-teaser' },
-    { label: 'FAQ', href: '#faq' },
-    { label: 'Contato', href: '#contato' },
-  ]
-
   const scrollTo = (id: string) => {
-    setMobileMenu(false)
-    const el = document.querySelector(id)
-    el?.scrollIntoView({ behavior: 'smooth' })
+    setMobileMenuOpen(false)
+    const element = document.querySelector(id)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' })
+    }
   }
 
   const handleClientLogin = () => {
     window.location.href = getClientSubdomainUrl('/')
   }
 
-  const isDark = resolvedTheme === 'dark'
-  const currentLogo = isDark ? logoPng : logoAzulPng
-
   return (
-    <div
-      className={cn(
-        "min-h-screen font-sans relative overflow-x-hidden",
-        isDark ? "bg-[#040914] text-slate-100 selection:bg-cyan-500 selection:text-slate-950" : "bg-slate-50 text-slate-900 selection:bg-[#0d6084]/20 selection:text-slate-900"
-      )}
-    >
-      
-      {/* Background Glows (Bi2B Consultoria Identity) */}
-      <div 
-        className={cn(
-          "hidden md:block absolute top-0 left-1/4 h-[750px] w-[750px] -translate-x-1/2 rounded-full blur-[150px] -z-10 pointer-events-none",
-          isDark ? "bg-[#0d6084]/25" : "bg-[#0d6084]/8"
-        )} 
-      />
-      <div 
-        className={cn(
-          "hidden md:block absolute top-[18%] right-1/4 h-[650px] w-[650px] rounded-full blur-[140px] -z-10 pointer-events-none",
-          isDark ? "bg-[#0a4a62]/30" : "bg-[#38bdf8]/12"
-        )} 
-      />
-
-      {/* ===== HEADER FLUTUANTE RESPONSIVO ===== */}
+    <div ref={containerRef} className="bi2b-landing min-h-screen bg-[#FAFAFA] text-[#0C1E28]">
+      {/* ===== HEADER / NAVBAR ===== */}
       <header
-        className={cn(
-          "fixed left-1/2 -translate-x-1/2 z-[60] w-full max-w-6xl top-2 sm:top-3 px-3 sm:px-4 transition-all duration-300 pointer-events-auto"
-        )}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-[#083A50]/95 backdrop-blur-md border-b border-white/10 shadow-lg py-3'
+            : 'bg-transparent py-4 sm:py-5'
+        }`}
       >
-        <div 
-          className={cn(
-            "mx-auto rounded-full px-4 sm:px-5 py-2 sm:py-2.5 flex items-center justify-between border transition-all duration-300 backdrop-blur-xl",
-            isScrolled
-              ? (isDark 
-                  ? "bg-[#040914]/95 border-white/15 shadow-lg shadow-cyan-950/40" 
-                  : "bg-white/95 border-slate-200/90 shadow-md shadow-slate-200/50")
-              : (isDark 
-                  ? "bg-[#040914]/80 border-white/10 shadow-sm" 
-                  : "bg-white/90 border-slate-200/80 shadow-sm")
-          )}
-        >
-          {/* Logo */}
-          <div className="flex items-center cursor-pointer" onClick={() => navigate(ROUTES.HOME)}>
-            <img src={currentLogo} alt={APP_NAME} className="h-7 sm:h-8 w-auto object-contain" />
-          </div>
+        <div className="bi2b-wrap flex items-center justify-between">
+          {/* Brand Logo with Glowing Red Dot */}
+          <a
+            href="#topo"
+            onClick={(e) => {
+              e.preventDefault()
+              scrollTo('#topo')
+            }}
+            className="font-heading font-bold text-2xl text-white flex items-center gap-2 tracking-tight group"
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0000] shadow-[0_0_12px_2px_rgba(255,0,0,0.8)] group-hover:scale-110 transition-transform" />
+            <span>Bi2B</span>
+          </a>
 
-          {/* Navigation Links Estáticos */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => (
-              <button
-                key={item.href}
-                onClick={() => scrollTo(item.href)}
-                className={cn(
-                  "font-medium text-[13px] xl:text-sm cursor-pointer px-3.5 py-1.5 rounded-full transition-colors",
-                  isDark ? "text-slate-300 hover:text-white hover:bg-white/10" : "text-slate-600 hover:text-[#0d6084] hover:bg-slate-100"
-                )}
-              >
-                {item.label}
-              </button>
-            ))}
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-7">
+            <button
+              onClick={() => scrollTo('#topo')}
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors cursor-pointer"
+            >
+              Início
+            </button>
+            <button
+              onClick={() => scrollTo('#cases')}
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors cursor-pointer"
+            >
+              Casos Reais
+            </button>
+            <button
+              onClick={() => scrollTo('#parceiros')}
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors cursor-pointer"
+            >
+              Parceiros
+            </button>
+            <button
+              onClick={() => scrollTo('#planos')}
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors cursor-pointer"
+            >
+              Planos
+            </button>
+            <button
+              onClick={() => scrollTo('#portal')}
+              className="text-sm font-semibold text-white/90 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#FF4B3E]" />
+              <span>Portal</span>
+            </button>
+            <button
+              onClick={() => scrollTo('#faq')}
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors cursor-pointer"
+            >
+              Dúvidas
+            </button>
           </nav>
 
-          {/* Right Action Buttons */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={toggleTheme}
-              className={cn(
-                "rounded-full p-2 cursor-pointer border border-white/10 transition-colors",
-                isDark ? "text-slate-300 bg-white/5 hover:bg-white/10 hover:text-cyan-300" : "text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-[#0d6084]"
-              )}
-              title="Alternar Tema"
-            >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
             <button
               onClick={handleClientLogin}
-              className="group hidden sm:inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] hover:from-[#0f6f99] hover:to-[#0c5874] border border-cyan-400/30 text-white font-semibold text-xs xl:text-sm h-9 sm:h-10 px-4 sm:px-5 shadow-lg shadow-[#0d6084]/25 cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-white/90 hover:text-white border border-white/20 hover:border-white/40 rounded-full px-3.5 py-2 transition-all cursor-pointer hover:bg-white/5"
+              title="Acessar Área do Cliente"
             >
               <span>Portal do Cliente</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
 
-            {/* Hamburger Mobile */}
-            <div className="flex items-center gap-2 lg:hidden">
-              <button 
-                onClick={() => setMobileMenu(!mobileMenu)}
-                className={cn(
-                  "p-2 rounded-full border border-white/10 cursor-pointer transition-colors",
-                  isDark ? "text-slate-300 bg-white/5" : "text-slate-700 bg-slate-100"
-                )}
-                aria-label="Abrir Menu"
-              >
-                {mobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            </div>
+            <a
+              href="#agendar"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollTo('#agendar')
+              }}
+              className="bi2b-btn bi2b-btn-primary text-xs sm:text-sm py-2 sm:py-2.5 px-4 sm:px-5 font-semibold shadow-md"
+            >
+              <span>Agendar diagnóstico</span>
+            </a>
+
+            {/* Mobile Hamburger Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Abrir menu de navegação"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
 
-        {/* Menu Mobile */}
-        {mobileMenu && (
-          <div
-            className={cn(
-              "absolute left-3 right-3 sm:left-4 sm:right-4 top-14 sm:top-16 rounded-2xl border p-5 sm:p-6 backdrop-blur-2xl shadow-2xl flex flex-col gap-3 sm:gap-4 lg:hidden z-[70]",
-              isDark ? "border-white/15 bg-[#040914]/98 text-slate-100 shadow-cyan-950/40" : "border-slate-200 bg-white/98 text-slate-800"
-            )}
-          >
-            {navItems.map((item) => (
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden absolute top-full left-0 right-0 bg-[#083A50] border-b border-white/10 px-6 py-6 shadow-2xl animate-in slide-in-from-top-2 duration-200">
+            <div className="flex flex-col gap-4">
               <button
-                key={item.href}
-                onClick={() => scrollTo(item.href)}
-                className={cn(
-                  "block w-full py-2.5 text-left text-xs font-bold uppercase tracking-widest cursor-pointer transition-colors",
-                  isDark ? "text-slate-300 hover:text-cyan-300" : "text-slate-700 hover:text-[#0d6084]"
-                )}
+                onClick={() => scrollTo('#topo')}
+                className="text-left text-base font-semibold text-white/90 hover:text-white py-2"
               >
-                {item.label}
+                Início
               </button>
-            ))}
-            <div className={cn("h-px my-1 sm:my-2", isDark ? "bg-white/10" : "bg-slate-200")} />
-            <div className="flex flex-col gap-3">
               <button
-                onClick={() => { setMobileMenu(false); handleClientLogin() }}
-                className="w-full rounded-full bg-gradient-to-r from-[#0d6084] to-[#0a4a62] border border-cyan-400/30 py-3 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md cursor-pointer"
+                onClick={() => scrollTo('#cases')}
+                className="text-left text-base font-semibold text-white/90 hover:text-white py-2"
               >
-                Portal do Cliente
+                Casos Reais
               </button>
+              <button
+                onClick={() => scrollTo('#parceiros')}
+                className="text-left text-base font-semibold text-white/90 hover:text-white py-2"
+              >
+                Parceiros
+              </button>
+              <button
+                onClick={() => scrollTo('#planos')}
+                className="text-left text-base font-semibold text-white/90 hover:text-white py-2"
+              >
+                Planos
+              </button>
+              <button
+                onClick={() => scrollTo('#portal')}
+                className="text-left text-base font-semibold text-white hover:text-cyan-300 py-2 flex items-center gap-2"
+              >
+                <Sparkles className="w-4 h-4 text-[#FF4B3E]" />
+                <span>Portal do Cliente</span>
+              </button>
+              <button
+                onClick={() => scrollTo('#faq')}
+                className="text-left text-base font-semibold text-white/90 hover:text-white py-2"
+              >
+                Dúvidas
+              </button>
+              <div className="pt-3 border-t border-white/10 flex flex-col gap-3">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    handleClientLogin()
+                  }}
+                  className="w-full text-center text-sm font-semibold text-white border border-white/30 rounded-full py-2.5 hover:bg-white/10"
+                >
+                  Acessar Área do Cliente
+                </button>
+              </div>
             </div>
           </div>
         )}
       </header>
 
-      {/* ===== SEÇÕES DA LANDING PAGE 100% ESTÁTICAS ===== */}
-      <HeroSection isDark={isDark} />
-      <PortalOriginalAboutSection isDark={isDark} />
-      <ServicesSection isDark={isDark} />
-      <CompanyAboutSection isDark={isDark} />
-      <TeamSection isDark={isDark} />
-      <FaqSection isDark={isDark} />
-      <ContactSection isDark={isDark} />
-      <PortalTeaserSection isDark={isDark} />
-      <FooterSection isDark={isDark} />
+      {/* Spacer for fixed header */}
+      <div className="h-16 sm:h-20" />
+
+      {/* ===== LANDING PAGE SECTIONS ===== */}
+      <main>
+        {/* 1. Hero Section */}
+        <Bi2BHeroSection
+          onScheduleClick={() => scrollTo('#agendar')}
+          onPlansClick={() => scrollTo('#planos')}
+        />
+
+        {/* 2. O Problema */}
+        <Bi2BProblemSection />
+
+        {/* 3. Guia & Equipe */}
+        <Bi2BGuideSection />
+
+        {/* 4. Como Funciona (Plano) */}
+        <Bi2BPlanSection />
+
+        {/* 5. Quebra de Objeção */}
+        <Bi2BObjectionSection />
+
+        {/* 6. Casos Reais */}
+        <Bi2BCasesSection />
+
+        {/* 7. Avaliações */}
+        <Bi2BReviewsSection />
+
+        {/* 8. Parceiros & Integrações */}
+        <Bi2BPartnersSection />
+
+        {/* 9. Planos & Preços */}
+        <Bi2BPricingSection onScheduleClick={() => scrollTo('#agendar')} />
+
+        {/* 10. O Que Está em Jogo (Stakes) */}
+        <Bi2BStakesSection />
+
+        {/* 11. A Virada (Transformação) */}
+        <Bi2BTransformSection />
+
+        {/* 12. Localização / Onde Estamos */}
+        <Bi2BLocationSection />
+
+        {/* 13. Conheça o Portal do Cliente (NOVA SEÇÃO DE DESTAQUE) */}
+        <Bi2BPortalSection />
+
+        {/* 14. CTA Final */}
+        <Bi2BFinalCtaSection />
+
+        {/* 15. Perguntas Frequentes (FAQ) */}
+        <Bi2BFaqSection />
+      </main>
+
+      {/* 16. Rodapé */}
+      <Bi2BFooterSection />
+
+      {/* ===== STICKY CTA NO MOBILE (Desliza após rolar a página) ===== */}
+      <div
+        id="stickyCta"
+        className={`bi2b-sticky-cta ${showStickyCta ? 'show' : ''}`}
+      >
+        <span className="font-heading font-semibold text-xs sm:text-sm text-[#0C1E28]">
+          Diagnóstico gratuito Bi2B
+        </span>
+        <a
+          href="#agendar"
+          onClick={(e) => {
+            e.preventDefault()
+            scrollTo('#agendar')
+          }}
+          className="bi2b-btn bi2b-btn-primary text-xs py-2 px-3.5 whitespace-nowrap"
+        >
+          <span>Agendar</span>
+          <span className="bi2b-arrow text-sm">→</span>
+        </a>
+      </div>
     </div>
   )
 }
