@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react'
+import { Check, Zap, ArrowRight, ShieldCheck } from 'lucide-react'
 
 interface Bi2BPricingSectionProps {
   onScheduleClick?: () => void
@@ -134,7 +134,7 @@ export function Bi2BPricingSection({
                 {/* Popular Pill */}
                 {isFeatured && (
                   <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#0B4F6C] text-white font-mono text-[0.66rem] font-bold tracking-wider py-1.5 px-3.5 rounded-full uppercase whitespace-nowrap shadow-sm flex items-center gap-1.5">
-                    <Sparkles className="w-3 h-3 text-[#FF0000]" />
+                    <Zap className="w-3 h-3 text-[#FF0000]" />
                     <span>{plan.popularBadge}</span>
                   </span>
                 )}

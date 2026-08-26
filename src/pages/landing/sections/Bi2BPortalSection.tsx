@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   ExternalLink,
   Layers,
-  Sparkles,
+  Zap,
 } from 'lucide-react'
 
 import portalImg from '@/assets/portal.png'
@@ -126,7 +126,7 @@ export function Bi2BPortalSection() {
         {/* Header da Seção */}
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0B4F6C]/10 border border-[#0B4F6C]/20 text-[#0B4F6C] font-mono text-[0.72rem] font-semibold tracking-widest uppercase mb-3.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#FF0000]" />
+            <Zap className="w-3.5 h-3.5 text-[#FF0000]" />
             <span>Tecnologia &amp; Plataforma Digital</span>
           </div>
 

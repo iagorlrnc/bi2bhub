@@ -1018,8 +1018,30 @@ html {
     transition: none;
   }
   .bi2b-panel::after,
-  .bi2b-resp-note .bi2b-pulse {
-    animation: none;
+  .bi2b-resp-note .bi2b-pulse,
+  .animate-marquee {
+    animation: none !important;
   }
 }
+
+/* Continuous Infinite Marquee */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: running;
+}
+
 

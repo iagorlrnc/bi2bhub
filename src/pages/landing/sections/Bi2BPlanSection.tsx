@@ -1,4 +1,4 @@
-import { SearchCheck, LayoutDashboard, CalendarRange, Sparkles, ArrowRight } from 'lucide-react'
+import { SearchCheck, LayoutDashboard, CalendarRange, Zap, ArrowRight } from 'lucide-react'
 
 export function Bi2BPlanSection() {
   const steps = [
@@ -55,7 +55,7 @@ export function Bi2BPlanSection() {
               >
                 {step.isFeatured && (
                   <span className="absolute -top-3.5 left-6 bg-[#0B4F6C] text-white font-mono text-[0.66rem] tracking-wider py-1 px-3 rounded-md uppercase font-bold shadow-sm flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-[#FF0000]" />
+                    <Zap className="w-3 h-3 text-[#FF0000]" />
                     <span>{step.badge}</span>
                   </span>
                 )}

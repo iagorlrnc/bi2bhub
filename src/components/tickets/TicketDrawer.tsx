@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import {
   X, MessageSquare, Info, History, AlertCircle, Send,
   Paperclip, FileText, Download, Lock, Star, Copy, Trash2,
-  Building2, UserCheck, Loader2, Sparkles, RefreshCw, CheckCircle2,
+  Building2, UserCheck, Loader2, Zap, RefreshCw, CheckCircle2,
   Clock, Eye
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -1026,7 +1026,7 @@ export function TicketDrawer({
                           <div key={evt.id} className="relative group">
                             {/* Marcador do Nó */}
                             <div className="absolute -left-6 top-1 h-5 w-5 rounded-full bg-brand-500 text-white flex items-center justify-center ring-4 ring-[hsl(var(--background))] shadow-md">
-                              <Sparkles className="h-3 w-3" />
+                              <Zap className="h-3 w-3" />
                             </div>
 
                             {/* Conteúdo do Card */}
