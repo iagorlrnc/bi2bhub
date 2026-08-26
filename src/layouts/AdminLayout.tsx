@@ -125,7 +125,7 @@ export function AdminLayout() {
       {/* Sidebar Fingu-style */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[#0a4d6a]/40 bg-[#0d6084] text-white transition-all duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 lg:relative lg:z-30',
+          'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/10 bg-[#083A50] text-white transition-all duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 lg:relative lg:z-30',
           isCollapsed ? 'lg:w-[68px]' : 'lg:w-[240px]',
           mobileOpen ? 'w-[240px] translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
@@ -242,7 +242,7 @@ export function AdminLayout() {
                         cn(
                           'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
                           isActive
-                            ? 'bg-white text-[#0d6084] font-bold dark:bg-slate-800 dark:text-white'
+                            ? 'bg-white text-[#0B4F6C] font-bold dark:bg-slate-800 dark:text-white'
                             : 'text-sky-100/90 hover:bg-white/10 hover:text-white dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100',
                           isCollapsed && 'justify-center px-0 py-2.5'
                         )
@@ -250,7 +250,7 @@ export function AdminLayout() {
                     >
                       {({ isActive }) => (
                         <>
-                          <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-[#0d6084] dark:text-brand-400' : 'text-sky-200 group-hover:text-white dark:text-slate-400')} />
+                          <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-[#0B4F6C] dark:text-brand-400' : 'text-sky-200 group-hover:text-white dark:text-slate-400')} />
                           {!isCollapsed && <span className="truncate">{item.label}</span>}
                           {isCollapsed && (
                             <span className="pointer-events-none fixed left-[76px] z-[9999] hidden rounded-md border border-slate-700/50 bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap group-hover:flex dark:border-slate-300/50 dark:bg-slate-100 dark:text-slate-900">
@@ -271,7 +271,7 @@ export function AdminLayout() {
         {!isCollapsed ? (
           <div className="mt-auto border-t border-white/15 p-3 space-y-3 dark:border-slate-800/60">
             <div className="flex items-center gap-2.5 rounded-lg p-1">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0d6084] dark:bg-brand-600 dark:text-white">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-[#0B4F6C] dark:bg-brand-600 dark:text-white">
                 {userInitial}
               </div>
               <div className="min-w-0 flex-1">
