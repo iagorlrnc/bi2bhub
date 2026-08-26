@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Menu, X, ArrowRight, Sparkles } from 'lucide-react'
+import { Menu, X, ArrowRight } from 'lucide-react'
 import { getClientSubdomainUrl } from '@/utils/subdomain'
 
 // ===== SEÇÕES DA LANDING PAGE BI2B =====
@@ -87,7 +87,7 @@ export function LandingPage() {
       {/* ===== HEADER / NAVBAR ===== */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
+          isScrolled || mobileMenuOpen
             ? 'bg-[#083A50]/95 backdrop-blur-md border-b border-white/10 shadow-lg py-3'
             : 'bg-transparent py-4 sm:py-5'
         }`}
@@ -136,7 +136,6 @@ export function LandingPage() {
               onClick={() => scrollTo('#portal')}
               className="text-sm font-semibold text-white/90 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#FF4B3E]" />
               <span>Portal</span>
             </button>
             <button
@@ -212,7 +211,6 @@ export function LandingPage() {
                 onClick={() => scrollTo('#portal')}
                 className="text-left text-base font-semibold text-white hover:text-cyan-300 py-2 flex items-center gap-2"
               >
-                <Sparkles className="w-4 h-4 text-[#FF4B3E]" />
                 <span>Portal do Cliente</span>
               </button>
               <button
@@ -236,9 +234,6 @@ export function LandingPage() {
           </div>
         )}
       </header>
-
-      {/* Spacer for fixed header */}
-      <div className="h-16 sm:h-20" />
 
       {/* ===== LANDING PAGE SECTIONS ===== */}
       <main>

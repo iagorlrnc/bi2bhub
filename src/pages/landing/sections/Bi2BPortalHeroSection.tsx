@@ -1,70 +1,68 @@
 import { useState, useEffect } from 'react'
+import { getClientSubdomainUrl } from '@/utils/subdomain'
+import { Lock } from 'lucide-react'
 
-interface Bi2BHeroSectionProps {
-  onScheduleClick?: () => void
-  onPlansClick?: () => void
+interface Bi2BPortalHeroSectionProps {
+  onModulesClick?: () => void
 }
 
-export function Bi2BHeroSection({
-  onScheduleClick,
-  onPlansClick,
-}: Bi2BHeroSectionProps) {
+export function Bi2BPortalHeroSection({ onModulesClick }: Bi2BPortalHeroSectionProps) {
   const [activeScan, setActiveScan] = useState(0)
 
   const scanDemos = [
     {
       id: 'SCAN 01',
-      title: 'Diagnóstico de Estoque & Margem',
-      badge: 'VAREJO DE AUTOPEÇAS',
+      title: 'Rotina Fiscal & Tributos',
+      badge: 'CENTRAL DE GUIAS',
       items: [
         {
-          label: 'Estoque parado > 90 dias',
-          sub: 'DINHEIRO PRESO NA PRATELEIRA',
-          value: 'R$ 47.200',
-          alert: true,
+          label: 'Guias de Impostos do Mês',
+          sub: 'DAS, ISS, FGTS DISPONÍVEIS',
+          value: '4/4 Baixadas',
+          alert: false,
         },
         {
-          label: 'Itens com margem negativa',
-          sub: 'PREJUÍZO OCULTO POR VENDA',
-          value: '12 itens',
-          alert: true,
+          label: 'Multas e Juros Evitados',
+          sub: 'ALERTAS ANTES DO VENCIMENTO',
+          value: 'R$ 0,00',
+          alert: false,
         },
         {
-          label: 'Potencial recuperável / mês',
-          sub: 'APÓS AJUSTE DE PREÇO E GIRO',
-          value: '+R$ 14.800',
+          label: 'Tempo de Resposta CRC',
+          sub: 'ATENDIMENTO MÉDIO POR CHAMADO',
+          value: '28 min',
           alert: false,
         },
       ],
     },
     {
       id: 'SCAN 02',
-      title: 'Previsibilidade de Fluxo & Caixa',
-      badge: 'MATERIAL DE CONSTRUÇÃO',
+      title: 'Bi2B Drive Cloud & CNDs',
+      badge: 'DOCUMENTOS 24H',
       items: [
         {
-          label: 'Incompatibilidade prazos D+30',
-          sub: 'FALTA DE CAIXA PREVISTA EM 18 DIAS',
-          value: 'R$ 38.500',
-          alert: true,
+          label: 'Certidões Negativas (CNDs)',
+          sub: 'FEDERAL, ESTADUAL E MUNICIPAL',
+          value: '100% Regular',
+          alert: false,
         },
         {
-          label: 'Taxa média de antecipação',
-          sub: 'JUROS EVITÁVEIS POR MÊS',
-          value: 'R$ 5.400',
-          alert: true,
+          label: 'Arquivos em Nuvem Segura',
+          sub: 'CONTRATOS, FOLHAS E BALANCETES',
+          value: '142 docs',
+          alert: false,
         },
         {
-          label: 'Economia com fluxo projetado',
-          sub: 'CAIXA PRESERVADO',
-          value: '+R$ 64.800/ano',
+          label: 'Economia Operacional / Mês',
+          sub: 'ELIMINAÇÃO DE ENVIOS MANUAIS',
+          value: '+23.5 horas',
           alert: false,
         },
       ],
     },
   ]
 
-  // Auto cycle scan demo every 6s for dynamic live feel
+  // Auto cycle scan demo every 6.5s
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveScan((prev) => (prev === 0 ? 1 : 0))
@@ -73,6 +71,10 @@ export function Bi2BHeroSection({
   }, [])
 
   const currentScan = scanDemos[activeScan]
+
+  const handleAccessPortal = () => {
+    window.location.href = getClientSubdomainUrl('/')
+  }
 
   return (
     <section
@@ -93,58 +95,54 @@ export function Bi2BHeroSection({
       />
 
       <div className="bi2b-wrap relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-12 lg:gap-16 items-center pt-2 md:pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-8 md:gap-12 lg:gap-16 items-center pt-2 md:pt-4">
           {/* Left Column Content */}
           <div className="bi2b-reveal in text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white font-mono text-[0.7rem] uppercase tracking-wider font-semibold mb-4">
               <span className="w-2 h-2 rounded-full bg-[#FF0000] shadow-[0_0_8px_1px_rgba(255,0,0,0.8)]" />
-              <span>Inteligência Financeira para o Comércio</span>
+              <span>Tecnologia &amp; Plataforma · Portal do Cliente Bi2B</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.2rem] font-bold text-white leading-[1.12] mb-5 tracking-tight font-heading">
-              Seu comércio fatura bem. Mas você sabe,{' '}
+              Tudo sobre o{' '}
               <span className="text-white border-b-4 border-[#FF0000] pb-0.5 inline-block">
-                com números na mão
-              </span>
-              , se está dando lucro real?
+                Portal do Cliente
+              </span>{' '}
+              Bi2B.
             </h1>
 
-            <p className="bi2b-lead text-[#AEC3CE] text-base sm:text-lg lg:text-xl leading-relaxed max-w-[42ch] mb-8">
-              A Bi2B é o cérebro financeiro e contábil que o seu comércio precisa. Mostramos onde está sangrando seu caixa e sua margem para você parar de decidir no escuro.
+            <p className="bi2b-lead text-[#AEC3CE] text-base sm:text-lg lg:text-xl leading-relaxed max-w-[44ch] mb-8">
+              Centralize guias de impostos, balancetes contábeis, arquivos na nuvem e suporte com contadores especialistas em uma plataforma moderna, segura e 100% digital.
             </p>
 
             <div className="flex flex-wrap items-center gap-3.5 mb-5">
-              <a
-                href="#agendar"
-                onClick={(e) => {
-                  if (onScheduleClick) {
-                    e.preventDefault()
-                    onScheduleClick()
-                  }
-                }}
-                className="bi2b-btn bi2b-btn-primary group text-xs sm:text-sm py-3.5 px-6 shadow-lg shadow-[#083A50]/50"
+              <button
+                type="button"
+                onClick={handleAccessPortal}
+                className="bi2b-btn bi2b-btn-primary group text-xs sm:text-sm py-3.5 px-6 shadow-lg shadow-[#083A50]/50 cursor-pointer"
               >
-                <span>Agendar Diagnóstico Gratuito</span>
+                <Lock className="w-4 h-4 text-white" />
+                <span>Entrar no Painel do Cliente</span>
                 <span className="bi2b-arrow text-lg leading-none">→</span>
-              </a>
+              </button>
 
               <a
-                href="#planos"
+                href="#modulos"
                 onClick={(e) => {
-                  if (onPlansClick) {
+                  if (onModulesClick) {
                     e.preventDefault()
-                    onPlansClick()
+                    onModulesClick()
                   }
                 }}
-                className="bi2b-btn bi2b-btn-ghost text-xs sm:text-sm py-3.5 px-5"
+                className="bi2b-btn bi2b-btn-ghost text-xs sm:text-sm py-3.5 px-5 cursor-pointer"
               >
-                Ver os planos
+                Ver Módulos &amp; Recursos
               </a>
             </div>
 
             <div className="bi2b-resp-note text-[#AEC3CE] flex items-center gap-2">
               <span className="bi2b-pulse" />
-              <span>Respondemos em até 2 horas úteis · Atendimento no Tocantins</span>
+              <span>SLA de resposta contábil em até 2 horas úteis · Criptografia 256-bit &amp; LGPD</span>
             </div>
           </div>
 
@@ -154,7 +152,7 @@ export function Bi2BHeroSection({
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="bi2b-eyebrow text-white before:bg-white/60 text-[0.7rem]">
-                  Raio-X Financeiro
+                  Status da Empresa
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -185,7 +183,7 @@ export function Bi2BHeroSection({
 
             <div className="text-left mb-2">
               <span className="font-mono text-[0.64rem] text-[#AEC3CE] uppercase tracking-wider block">
-                SEGMENTO: {currentScan.badge}
+                MÓDULO: {currentScan.badge}
               </span>
               <span className="text-xs font-bold text-white">
                 {currentScan.title}
@@ -218,7 +216,7 @@ export function Bi2BHeroSection({
 
             <div className="mt-4 pt-2 border-t border-white/10 flex items-center justify-between font-mono text-[0.66rem] text-[#AEC3CE]">
               <span>// Simulação interativa baseada em dados reais</span>
-              <span className="text-emerald-300 font-bold">● ONLINE</span>
+              <span className="text-emerald-300 font-bold">● SINCRONIZADO</span>
             </div>
           </div>
         </div>
